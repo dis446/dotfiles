@@ -4,6 +4,7 @@ alias ls="ls -a"
 alias la="ls -a"
 alias ll="ls -al"
 
+alias c="clear"
 alias mkdir="mkdir -pv"
 alias mount='mount |column -t'
 alias flats="flatpak search"
