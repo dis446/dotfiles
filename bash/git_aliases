@@ -1,0 +1,8 @@
+alias gita="git add"
+alias gitc="git commit -sm"
+alias gits="git status"
+alias gitpull="git pull"
+alias gitpush="git push"
+alias gitl="git log"
+alias gitd="git diff"
+

@@ -1,0 +1,5 @@
+alias vpn="expressvpn"
+alias vpnc="expressvpn connect"
+alias vpnca="expressvpn connect usla1"
+alias vpnd="expressvpn disconnect"
+alias vpns="expressvpn status"
