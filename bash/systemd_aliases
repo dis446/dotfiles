@@ -1,0 +1,7 @@
+alias sys="sudo systemctl"
+alias syss="sudo systemctl status"
+alias sysstop="sudo systemctl stop"
+alias sysstart="sudo systemctl start"
+alias sysrestart="sudo systemctl restart"
+alias sysenable="sudo systemctl enable"
+alias sysremove="sudo systemctl remove"

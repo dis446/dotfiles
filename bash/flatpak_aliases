@@ -1,0 +1,4 @@
+alias flats="flatpak search"
+alias flati="sudo flatpak install"
+alias flatr="sudo flatpak remove"
+
