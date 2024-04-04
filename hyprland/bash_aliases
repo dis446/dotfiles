@@ -1,1 +1,2 @@
 alias chc="cat ~/Code/dotfiles/hyprland/hyprland.conf"
+alias ehc="vim ~/Code/dotfiles/hyprland/hyprland.conf"
