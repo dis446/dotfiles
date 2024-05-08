@@ -1,3 +1,4 @@
 alias i="sudo dnf install"
 alias r="sudo dnf remove"
-alias up="sudo dnf update rpmfusion-nonfree-release rpmfusion-free-release fedora-repos nobara-repos --refresh && sudo dnf distro-sync --refresh && sudo dnf update --refresh"
+alias is="dnf search"
+alias up="sudo dnf update rpmfusion-nonfree-release rpmfusion-free-release fedora-repos nobara-repos --refresh && sudo dnf distro-sync --refresh && sudo flatpak update && sudo dnf update --refresh"
