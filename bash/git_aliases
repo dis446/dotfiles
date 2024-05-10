@@ -5,4 +5,5 @@ alias gitpull="git pull"
 alias gitpush="git push"
 alias gitl="git log"
 alias gitd="git diff"
+alias lg="lazygit"
 
