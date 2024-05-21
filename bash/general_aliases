@@ -41,5 +41,4 @@ alias ppi="ping 192.168.1.5"
 alias spi="ssh servy@192.168.1.5"
 alias myip="curl http://ipecho.net/plain; echo"
 alias sysbios="sudo systemctl reboot --firmware-setup"
-
-
+PS1="\u@\h \W\$ "
