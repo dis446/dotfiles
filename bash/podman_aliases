@@ -1,0 +1,6 @@
+alias docker="podman"
+alias docker-compose="podman-compose"
+alias p="podman"
+alias pps="podman ps"
+alias pcu="podman-compose up -d"
+alias pcd="podman-compose down"
