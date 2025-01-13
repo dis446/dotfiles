@@ -198,7 +198,7 @@
 
     // Power Menu
     "custom/exit": {
-        "format": "",
+        "format": "A",
         "on-click": "wlogout",
         "tooltip": true
     },
