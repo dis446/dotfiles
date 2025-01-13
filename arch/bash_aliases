@@ -1,0 +1,5 @@
+alias i="sudo pacman -Sy"
+alias is="pacman -Ss"
+alias il="pacman -Q"
+alias r="sudo pacman -Rd"
+alias up="sudo pacman -Syu"
