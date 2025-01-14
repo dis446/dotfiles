@@ -2,7 +2,7 @@
   "layer": "top",
     "modules-left": ["custom/arch", "hyprland/window"], 
     "modules-center": ["clock"],
-    "modules-right": ["backlight", "pulseaudio", "bluetooth", "network", "battery"],
+    "modules-right": ["backlight", "pulseaudio", "bluetooth", "network", "battery", "custom/power"],
     "custom/arch": {
       "format": "  ",
       "tooltip": false,
@@ -46,5 +46,10 @@
       "format-icons": ["", "", "", "", "", "", "", "", "", ""],
       "format-charging": "<span color='#b4befe'></span> {capacity}%",
       "tooltip": false
+    },
+    "custom/power": {
+      "format": " ⏻ ",
+      "tooltip": false,
+      "on-click": "wlogout --protocol layer-shell"
     }
 }
