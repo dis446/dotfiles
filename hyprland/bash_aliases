@@ -1,2 +1,2 @@
-alias chc="cat ~/dotfiles/hyprland/hyprland.conf"
-alias ehc="nvim ~/dotfiles/hyprland/hyprland.conf"
+alias chc="cat ~/dotfiles/hyprland/main.conf"
+alias ehc="nvim ~/dotfiles/hyprland"
