@@ -31,24 +31,18 @@
     
     // Modules Left
     "modules-left": [
-        "custom/appmenu",
-        "custom/settings",
-        //"custom/waybarthemes",
-        //"custom/wallpaper",
-        // "wlr/taskbar",
-        "group/quicklinks",
+        // "group/quicklinks",
         "hyprland/window",
         "custom/starter"
     ],
 
     // Modules Center
     "modules-center": [
-        "hyprland/workspaces"
     ],
 
     // Modules Right    
     "modules-right": [
-        //"custom/updates",
+        "custom/updates",
         "cpu",
         "memory",
         "pulseaudio",
