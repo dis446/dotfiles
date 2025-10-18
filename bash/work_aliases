@@ -1,6 +1,6 @@
 export ANDROID_HOME="/home/nendy/Android/Sdk"
 export JAVA_HOME="/usr/lib/jvm/graalvm-jdk-21.0.2+13.1"
-export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export DOCKER_HOST=unix:///run/docker.sock
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -11,3 +11,7 @@ alias sshcvprodfe="ssh ubuntu@35.171.15.8 -i ~/capitalvoucher-web01.pem"
 
 alias setMyIp="export HOST_IP=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)"
 
+alias brew="dnf"
+
+alias sshLmsStcProdHost="ssh admin@192.168.111.7"
+alias sshLmsStcProdDb="ssh admin@192.168.111.4"
