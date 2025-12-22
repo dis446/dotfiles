@@ -1,4 +1,5 @@
 alias d="docker"
+alias di="docker image"
 alias dps="docker ps"
 alias dcu="docker compose up -d"
 alias dcd="docker compose down"
