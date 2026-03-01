@@ -1,3 +1,4 @@
 alias i="sudo dnf install"
 alias r="sudo dnf remove"
 alias up="sudo dnf up"
+alias is="dnf search"
