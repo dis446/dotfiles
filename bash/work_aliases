@@ -15,5 +15,4 @@ alias brew="dnf"
 
 alias sshLmsStcProdHost="ssh admin@192.168.111.7"
 alias sshLmsStcProdDb="ssh admin@192.168.111.4"
-
 alias oc="opencode"
