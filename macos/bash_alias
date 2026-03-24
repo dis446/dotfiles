@@ -1,0 +1,25 @@
+unalias brew 2>/dev/null
+
+alias brew="command brew"
+
+alias i="brew install"
+alias r="brew uninstall"
+alias is="brew search"
+alias il="brew list"
+alias up="brew update && brew upgrade && brew cleanup"
+
+alias sys="brew services"
+alias syss="brew services list"
+alias sysstop="brew services stop"
+alias sysstart="brew services start"
+alias sysrestart="brew services restart"
+alias sysreboot="sudo shutdown -r now"
+alias sysenable="brew services start"
+alias sysremove='printf "Use brew uninstall <formula> on macOS\n"'
+
+alias srn="sudo shutdown -r now"
+alias ssn="sudo shutdown -h now"
+alias bios='printf "Firmware setup is not available from macOS\n"'
+alias sysbios='printf "Firmware setup is not available from macOS\n"'
+
+alias g='open -a TextEdit'

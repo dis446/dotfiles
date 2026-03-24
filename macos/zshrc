@@ -1,0 +1,11 @@
+for alias_file in "$HOME/dotfiles/bash/"*; do
+  [[ -f "$alias_file" ]] && source "$alias_file"
+done
+
+[[ -f "$HOME/dotfiles/macos/bash_alias" ]] && source "$HOME/dotfiles/macos/bash_alias"
+
+alias crc="cat ~/.zshrc"
+alias erc="nvim ~/.zshrc"
+alias src="source ~/.zshrc"
+
+PROMPT='%n@%m %1~%# '
