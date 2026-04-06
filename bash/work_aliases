@@ -1,12 +1,3 @@
-export DOCKER_HOST=unix:///run/docker.sock
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
 alias setMyIp="export HOST_IP=$(ifconfig | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk '{ print $2 }' | cut -f2 -d: | head -n1)"
-
-alias sshLmsStcProdHost="ssh admin@192.168.111.7"
-alias sshLmsStcProdDb="ssh admin@192.168.111.4"
 
 alias oc="opencode"
