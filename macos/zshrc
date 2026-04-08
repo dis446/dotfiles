@@ -8,4 +8,3 @@ alias crc="cat ~/.zshrc"
 alias erc="nvim ~/.zshrc"
 alias src="source ~/.zshrc"
 
-PROMPT='%n@%m %1~%# '
