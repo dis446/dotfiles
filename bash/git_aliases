@@ -1,3 +1,4 @@
+# Git basics
 alias gita="git add"
 alias gitc="git commit -sm"
 alias gits="git status"
@@ -77,3 +78,97 @@ function gwts() {
 alias gitsq="gwts"
 
 
+# Git worktree helpers
+# These keep worktrees in a sibling directory next to the main repo checkout,
+# which matches the layout IntelliJ can natively detect and manage.
+
+# Return the top-level directory of the current Git repository.
+# Used internally so the worktree helpers can create paths relative to the
+# repository you are currently inside.
+__dotfiles_git_root() {
+  command git rev-parse --show-toplevel 2>/dev/null
+}
+
+# Make a branch/ref name safe for filesystem paths.
+# Replaces slashes and spaces with hyphens.
+__dotfiles_sanitize() {
+  printf '%s' "$1" | tr '/ ' '--'
+}
+
+# Resolve the directory under which worktrees should be created.
+# Default is repo-sibling layout: <repo-parent>, so a repo named
+#   relation-store
+# gets a worktree like
+#   relation-store-reporting
+# If WORKTREE_ROOT is set, it overrides the default root.
+__dotfiles_worktree_root() {
+  local repo_root worktree_root
+  repo_root="$1"
+  worktree_root="${WORKTREE_ROOT:-}"
+
+  if [ -n "$worktree_root" ]; then
+    case "$worktree_root" in
+      /*) printf '%s' "$worktree_root" ;;
+      *) printf '%s/%s' "$repo_root" "$worktree_root" ;;
+    esac
+  else
+    printf '%s' "$(dirname "$repo_root")"
+  fi
+}
+
+# List all worktrees for the current repository.
+# Use this to see which branches are attached to which directories.
+gwtl() {
+  command git worktree list
+}
+
+# Prune stale worktree metadata from the current repository.
+# Run this after deleting a worktree directory manually.
+gwtp() {
+  command git worktree prune
+}
+
+# Create a new worktree for a new branch.
+# Usage: gwtc <branch> [start-point]
+# Creates the worktree beside the main checkout using IntelliJ-friendly naming:
+#   <repo-parent>/<repo-name>-<branch>
+# Then creates a new branch at the optional start-point.
+gwtc() {
+  local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir
+  branch="${1:?usage: gwtc <branch> [start-point]}"
+  start_point="${2:-HEAD}"
+
+  repo_root="$(__dotfiles_git_root)" || {
+    printf 'gwtc: not in a git repo\n' >&2
+    return 1
+  }
+
+  repo_name="$(basename "$repo_root")"
+  worktree_root="$(__dotfiles_worktree_root "$repo_root")"
+  safe_branch="$(__dotfiles_sanitize "$branch")"
+  worktree_dir="${worktree_root}/${repo_name}-${safe_branch}"
+
+  command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point"
+}
+
+# Create a worktree from an existing branch or ref.
+# Usage: gwtb <branch-or-ref> [path]
+# By default the worktree is created beside the main checkout as:
+#   <repo-parent>/<repo-name>-<ref>
+# Pass an explicit path if you want to place it somewhere else.
+gwtb() {
+  local ref repo_root repo_name worktree_root safe_ref worktree_dir
+  ref="${1:?usage: gwtb <branch-or-ref> [path]}"
+
+  repo_root="$(__dotfiles_git_root)" || {
+    printf 'gwtb: not in a git repo\n' >&2
+    return 1
+  }
+
+  repo_name="$(basename "$repo_root")"
+  worktree_root="$(__dotfiles_worktree_root "$repo_root")"
+  safe_ref="$(__dotfiles_sanitize "$ref")"
+  worktree_dir="${2:-${worktree_root}/${repo_name}-${safe_ref}}"
+
+  command mkdir -p "$worktree_root" && command git worktree add "$worktree_dir" "$ref"
+}
