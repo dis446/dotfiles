@@ -13,19 +13,24 @@ __dotfiles_sanitize() {
 }
 
 # Resolve the directory under which worktrees should be created.
-# Default behavior is repo-local (e.g. <repo>/worktrees), but WORKTREE_ROOT
-# can still be overridden to point elsewhere if needed.
+# Default behavior matches IntelliJ's native worktree layout: create the
+# worktree as a sibling of the main checkout, e.g.
+#   <repo-parent>/<repo-name>-<branch>
+# You can still override this with WORKTREE_ROOT if you want a custom root.
 __dotfiles_worktree_root() {
   local repo_root worktree_root default_worktree_root
   repo_root="$1"
-  default_worktree_root="$repo_root/worktrees"
   worktree_root="${WORKTREE_ROOT:-}"
 
-  case "$worktree_root" in
-    ""|"$HOME/worktrees") printf '%s' "$default_worktree_root" ;;
-    /*) printf '%s' "$worktree_root" ;;
-    *) printf '%s/%s' "$repo_root" "$worktree_root" ;;
-  esac
+  if [ -n "$worktree_root" ]; then
+    case "$worktree_root" in
+      /*) printf '%s' "$worktree_root" ;;
+      *) printf '%s/%s' "$repo_root" "$worktree_root" ;;
+    esac
+  else
+    default_worktree_root="$(dirname "$repo_root")"
+    printf '%s' "$default_worktree_root"
+  fi
 }
 
 # Jump to the root of the current Git repository.
@@ -60,8 +65,9 @@ gwtp() {
 
 # Create a new Git worktree for a branch.
 # Usage: gwtc <branch> [start-point]
-# Creates the worktree under <repo>/worktrees/<branch> (or WORKTREE_ROOT if
-# you override it), then creates a new branch at the optional start-point.
+# Creates the worktree beside the main checkout using IntelliJ-friendly naming:
+#   <repo-parent>/<repo-name>-<branch>
+# Then creates a new branch at the optional start-point.
 # Use this when you want a fresh branch and a dedicated checkout for it.
 gwtc() {
   local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir
@@ -76,16 +82,17 @@ gwtc() {
   repo_name="$(basename "$repo_root")"
   worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_branch="$(__dotfiles_sanitize "$branch")"
-  worktree_dir="${worktree_root}/${safe_branch}"
+  worktree_dir="${worktree_root}/${repo_name}-${safe_branch}"
 
   command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point"
 }
 
 # Create a Git worktree from an existing branch or ref.
 # Usage: gwtb <branch-or-ref> [path]
-# By default the worktree is created under <repo>/worktrees/<ref>, which is
-# the layout IntelliJ can natively recognize as a worktree inside the repo.
-# Pass an explicit path if you want to place it somewhere else.
+# By default the worktree is created beside the main checkout as:
+#   <repo-parent>/<repo-name>-<ref>
+# That is the layout IntelliJ can natively recognize. Pass an explicit path if
+# you want to place it somewhere else.
 gwtb() {
   local ref repo_root repo_name worktree_root safe_ref worktree_dir
   ref="${1:?usage: gwtb <branch-or-ref> [path]}"
@@ -98,15 +105,16 @@ gwtb() {
   repo_name="$(basename "$repo_root")"
   worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_ref="$(__dotfiles_sanitize "$ref")"
-  worktree_dir="${2:-${worktree_root}/${safe_ref}}"
+  worktree_dir="${2:-${worktree_root}/${repo_name}-${safe_ref}}"
 
   command mkdir -p "$worktree_root" && command git worktree add "$worktree_dir" "$ref"
 }
 
 # Create a new branch worktree and open a tmux session for it.
 # Usage: wt <branch> [start-point]
-# This is the "start working now" helper: it creates the worktree, opens a
-# tmux session rooted there, and attaches/switches you into it.
+# This is the "start working now" helper: it creates the IntelliJ-friendly
+# sibling worktree, opens a tmux session rooted there, and attaches/switches
+# you into it.
 wt() {
   local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir session
   branch="${1:?usage: wt <branch> [start-point]}"
@@ -120,7 +128,7 @@ wt() {
   repo_name="$(basename "$repo_root")"
   worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_branch="$(__dotfiles_sanitize "$branch")"
-  worktree_dir="${worktree_root}/${safe_branch}"
+  worktree_dir="${worktree_root}/${repo_name}-${safe_branch}"
   session="${repo_name}-${safe_branch}"
 
   command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point" || return 1
