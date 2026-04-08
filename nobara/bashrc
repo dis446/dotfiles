@@ -1,0 +1,7 @@
+for alias_file in "$HOME/dotfiles/bash/"*; do
+  [ -f "$alias_file" ] && . "$alias_file"
+done
+
+[ -f "$HOME/dotfiles/nobara/bash_alias" ] && . "$HOME/dotfiles/nobara/bash_alias"
+
+PS1='\u@\h \W\$ '
