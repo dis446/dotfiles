@@ -1,4 +1,4 @@
-export WORKTREE_ROOT="${WORKTREE_ROOT:-$HOME/worktrees}"
+export WORKTREE_ROOT="${WORKTREE_ROOT:-worktrees}"
 
 __dotfiles_git_root() {
   command git rev-parse --show-toplevel 2>/dev/null
@@ -6,6 +6,17 @@ __dotfiles_git_root() {
 
 __dotfiles_sanitize() {
   printf '%s' "$1" | tr '/ ' '--'
+}
+
+__dotfiles_worktree_root() {
+  local repo_root worktree_root
+  repo_root="$1"
+  worktree_root="$WORKTREE_ROOT"
+
+  case "$worktree_root" in
+    /*) printf '%s' "$worktree_root" ;;
+    *) printf '%s/%s' "$repo_root" "$worktree_root" ;;
+  esac
 }
 
 croot() {
@@ -27,7 +38,7 @@ gwtp() {
 }
 
 gwtc() {
-  local branch start_point repo_root repo_name safe_branch worktree_dir
+  local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir
   branch="${1:?usage: gwtc <branch> [start-point]}"
   start_point="${2:-HEAD}"
 
@@ -37,14 +48,15 @@ gwtc() {
   }
 
   repo_name="$(basename "$repo_root")"
+  worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_branch="$(__dotfiles_sanitize "$branch")"
-  worktree_dir="${WORKTREE_ROOT}/${repo_name}/${safe_branch}"
+  worktree_dir="${worktree_root}/${safe_branch}"
 
-  command git worktree add -b "$branch" "$worktree_dir" "$start_point"
+  command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point"
 }
 
 gwtb() {
-  local ref repo_root repo_name safe_ref worktree_dir
+  local ref repo_root repo_name worktree_root safe_ref worktree_dir
   ref="${1:?usage: gwtb <branch-or-ref> [path]}"
 
   repo_root="$(__dotfiles_git_root)" || {
@@ -53,14 +65,15 @@ gwtb() {
   }
 
   repo_name="$(basename "$repo_root")"
+  worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_ref="$(__dotfiles_sanitize "$ref")"
-  worktree_dir="${2:-${WORKTREE_ROOT}/${repo_name}/${safe_ref}}"
+  worktree_dir="${2:-${worktree_root}/${safe_ref}}"
 
-  command git worktree add "$worktree_dir" "$ref"
+  command mkdir -p "$worktree_root" && command git worktree add "$worktree_dir" "$ref"
 }
 
 wt() {
-  local branch start_point repo_root repo_name safe_branch worktree_dir session
+  local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir session
   branch="${1:?usage: wt <branch> [start-point]}"
   start_point="${2:-HEAD}"
 
@@ -70,11 +83,12 @@ wt() {
   }
 
   repo_name="$(basename "$repo_root")"
+  worktree_root="$(__dotfiles_worktree_root "$repo_root")"
   safe_branch="$(__dotfiles_sanitize "$branch")"
-  worktree_dir="${WORKTREE_ROOT}/${repo_name}/${safe_branch}"
+  worktree_dir="${worktree_root}/${safe_branch}"
   session="${repo_name}-${safe_branch}"
 
-  command git worktree add -b "$branch" "$worktree_dir" "$start_point" || return 1
+  command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point" || return 1
   command tmux new-session -Ad -s "$session" -c "$worktree_dir"
 
   if [ -z "${TMUX-}" ]; then
