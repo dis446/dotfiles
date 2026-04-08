@@ -1,0 +1,7 @@
+for alias_file in "$HOME/dotfiles/bash/"*; do
+  [ -f "$alias_file" ] && . "$alias_file"
+done
+
+[ -f "$HOME/dotfiles/fedora/bash_aliases" ] && . "$HOME/dotfiles/fedora/bash_aliases"
+
+PS1='\u@\h \W\$ '
