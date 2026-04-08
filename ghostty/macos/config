@@ -1,12 +1,12 @@
-# Shared fallback Ghostty config.
-# Host-specific configs live in ghostty/macos/config and ghostty/linux/config.
-
 #theme = catppuccin-mocha
 
 font-family = "Iosevka Term SS04"
 font-size = 8
 
 background-opacity = 0.9
+background-blur-radius = 20
+
+macos-titlebar-style = hidden
 
 window-padding-balance = true
 window-padding-y = 4
@@ -18,3 +18,5 @@ adjust-cell-height = 20%
 adjust-cursor-height = 40%
 window-height = 20000
 window-width = 20000
+
+command = TERM=xterm-256color /bin/zsh
