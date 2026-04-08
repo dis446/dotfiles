@@ -1,12 +1,20 @@
 
+# Return the top-level directory of the current Git repository.
+# Used internally so the helpers can create worktrees relative to the repo
+# you are currently inside.
 __dotfiles_git_root() {
   command git rev-parse --show-toplevel 2>/dev/null
 }
 
+# Make a branch/ref name safe for filesystem paths and tmux session names.
+# Replaces slashes and spaces with hyphens.
 __dotfiles_sanitize() {
   printf '%s' "$1" | tr '/ ' '--'
 }
 
+# Resolve the directory under which worktrees should be created.
+# Default behavior is repo-local (e.g. <repo>/worktrees), but WORKTREE_ROOT
+# can still be overridden to point elsewhere if needed.
 __dotfiles_worktree_root() {
   local repo_root worktree_root default_worktree_root
   repo_root="$1"
@@ -20,24 +28,41 @@ __dotfiles_worktree_root() {
   esac
 }
 
+# Jump to the root of the current Git repository.
+# Invoke this when you want to quickly return to the main checkout from any
+# subdirectory inside the repo.
 croot() {
   local root
   root="$(__dotfiles_git_root)" || return 1
   cd "$root" || return 1
 }
 
+# tmux shortcuts:
+# - tl: list running tmux sessions
+# - ta <session>: attach to a session
+# - tk <session>: kill a session
 alias tl='tmux list-sessions'
 alias ta='tmux attach -t'
 alias tk='tmux kill-session -t'
 
+# List all Git worktrees for the current repository.
+# Use this to confirm where worktrees live and what branch each one tracks.
 gwtl() {
   command git worktree list
 }
 
+# Prune stale worktree metadata from the current repository.
+# Run this after deleting a worktree directory manually or if Git has stale
+# references.
 gwtp() {
   command git worktree prune
 }
 
+# Create a new Git worktree for a branch.
+# Usage: gwtc <branch> [start-point]
+# Creates the worktree under <repo>/worktrees/<branch> (or WORKTREE_ROOT if
+# you override it), then creates a new branch at the optional start-point.
+# Use this when you want a fresh branch and a dedicated checkout for it.
 gwtc() {
   local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir
   branch="${1:?usage: gwtc <branch> [start-point]}"
@@ -56,6 +81,11 @@ gwtc() {
   command mkdir -p "$worktree_root" && command git worktree add -b "$branch" "$worktree_dir" "$start_point"
 }
 
+# Create a Git worktree from an existing branch or ref.
+# Usage: gwtb <branch-or-ref> [path]
+# By default the worktree is created under <repo>/worktrees/<ref>, which is
+# the layout IntelliJ can natively recognize as a worktree inside the repo.
+# Pass an explicit path if you want to place it somewhere else.
 gwtb() {
   local ref repo_root repo_name worktree_root safe_ref worktree_dir
   ref="${1:?usage: gwtb <branch-or-ref> [path]}"
@@ -73,6 +103,10 @@ gwtb() {
   command mkdir -p "$worktree_root" && command git worktree add "$worktree_dir" "$ref"
 }
 
+# Create a new branch worktree and open a tmux session for it.
+# Usage: wt <branch> [start-point]
+# This is the "start working now" helper: it creates the worktree, opens a
+# tmux session rooted there, and attaches/switches you into it.
 wt() {
   local branch start_point repo_root repo_name worktree_root safe_branch worktree_dir session
   branch="${1:?usage: wt <branch> [start-point]}"
@@ -99,6 +133,10 @@ wt() {
   fi
 }
 
+# Open an existing directory in tmux.
+# Usage: t [path]
+# If the directory is inside a Git repo, the tmux session name is derived from
+# the repo and current branch; otherwise it uses the directory name.
 t() {
   local dir repo_root repo_name branch safe_branch session
   dir="${1:-$PWD}"
