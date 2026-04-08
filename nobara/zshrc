@@ -1,7 +1,0 @@
-for alias_file in "$HOME/dotfiles/bash/"*; do
-  [[ -f "$alias_file" ]] && source "$alias_file"
-done
-
-[[ -f "$HOME/dotfiles/nobara/bash_alias" ]] && source "$HOME/dotfiles/nobara/bash_alias"
-
-PROMPT='%n@%m %1~%# '
