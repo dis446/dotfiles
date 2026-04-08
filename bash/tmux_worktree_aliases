@@ -1,4 +1,3 @@
-export WORKTREE_ROOT="${WORKTREE_ROOT:-worktrees}"
 
 __dotfiles_git_root() {
   command git rev-parse --show-toplevel 2>/dev/null
@@ -9,11 +8,13 @@ __dotfiles_sanitize() {
 }
 
 __dotfiles_worktree_root() {
-  local repo_root worktree_root
+  local repo_root worktree_root default_worktree_root
   repo_root="$1"
-  worktree_root="$WORKTREE_ROOT"
+  default_worktree_root="$repo_root/worktrees"
+  worktree_root="${WORKTREE_ROOT:-}"
 
   case "$worktree_root" in
+    ""|"$HOME/worktrees") printf '%s' "$default_worktree_root" ;;
     /*) printf '%s' "$worktree_root" ;;
     *) printf '%s/%s' "$repo_root" "$worktree_root" ;;
   esac
