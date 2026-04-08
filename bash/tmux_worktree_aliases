@@ -1,0 +1,110 @@
+export WORKTREE_ROOT="${WORKTREE_ROOT:-$HOME/worktrees}"
+
+__dotfiles_git_root() {
+  command git rev-parse --show-toplevel 2>/dev/null
+}
+
+__dotfiles_sanitize() {
+  printf '%s' "$1" | tr '/ ' '--'
+}
+
+croot() {
+  local root
+  root="$(__dotfiles_git_root)" || return 1
+  cd "$root" || return 1
+}
+
+alias tl='tmux list-sessions'
+alias ta='tmux attach -t'
+alias tk='tmux kill-session -t'
+
+gwtl() {
+  command git worktree list
+}
+
+gwtp() {
+  command git worktree prune
+}
+
+gwtc() {
+  local branch start_point repo_root repo_name safe_branch worktree_dir
+  branch="${1:?usage: gwtc <branch> [start-point]}"
+  start_point="${2:-HEAD}"
+
+  repo_root="$(__dotfiles_git_root)" || {
+    printf 'gwtc: not in a git repo\n' >&2
+    return 1
+  }
+
+  repo_name="$(basename "$repo_root")"
+  safe_branch="$(__dotfiles_sanitize "$branch")"
+  worktree_dir="${WORKTREE_ROOT}/${repo_name}/${safe_branch}"
+
+  command git worktree add -b "$branch" "$worktree_dir" "$start_point"
+}
+
+gwtb() {
+  local ref repo_root repo_name safe_ref worktree_dir
+  ref="${1:?usage: gwtb <branch-or-ref> [path]}"
+
+  repo_root="$(__dotfiles_git_root)" || {
+    printf 'gwtb: not in a git repo\n' >&2
+    return 1
+  }
+
+  repo_name="$(basename "$repo_root")"
+  safe_ref="$(__dotfiles_sanitize "$ref")"
+  worktree_dir="${2:-${WORKTREE_ROOT}/${repo_name}/${safe_ref}}"
+
+  command git worktree add "$worktree_dir" "$ref"
+}
+
+wt() {
+  local branch start_point repo_root repo_name safe_branch worktree_dir session
+  branch="${1:?usage: wt <branch> [start-point]}"
+  start_point="${2:-HEAD}"
+
+  repo_root="$(__dotfiles_git_root)" || {
+    printf 'wt: not in a git repo\n' >&2
+    return 1
+  }
+
+  repo_name="$(basename "$repo_root")"
+  safe_branch="$(__dotfiles_sanitize "$branch")"
+  worktree_dir="${WORKTREE_ROOT}/${repo_name}/${safe_branch}"
+  session="${repo_name}-${safe_branch}"
+
+  command git worktree add -b "$branch" "$worktree_dir" "$start_point" || return 1
+  command tmux new-session -Ad -s "$session" -c "$worktree_dir"
+
+  if [ -z "${TMUX-}" ]; then
+    command tmux attach -t "$session"
+  else
+    command tmux switch-client -t "$session"
+  fi
+}
+
+t() {
+  local dir repo_root repo_name branch safe_branch session
+  dir="${1:-$PWD}"
+  dir="$(cd "$dir" && pwd)" || return 1
+
+  repo_root="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)"
+  if [ -n "$repo_root" ]; then
+    repo_name="$(basename "$repo_root")"
+    branch="$(git -C "$dir" branch --show-current 2>/dev/null)"
+    [ -n "$branch" ] || branch="$(basename "$dir")"
+    safe_branch="$(__dotfiles_sanitize "$branch")"
+    session="${repo_name}-${safe_branch}"
+  else
+    session="$(basename "$dir")"
+  fi
+
+  command tmux new-session -Ad -s "$session" -c "$dir"
+
+  if [ -z "${TMUX-}" ]; then
+    command tmux attach -t "$session"
+  else
+    command tmux switch-client -t "$session"
+  fi
+}
