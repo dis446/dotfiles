@@ -1,0 +1,4 @@
+# Normalize TERM for Ghostty so SSH sessions don't inherit xterm-ghostty.
+if [[ "$TERM" == "xterm-ghostty" ]]; then
+  export TERM=xterm-256color
+fi
