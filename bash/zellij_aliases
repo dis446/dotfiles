@@ -2,7 +2,7 @@ alias zw="zellij attach work || zellij --session work"
 
 function zwt() {
   local name="${1:-}"
-  local repo_root worktree_dir
+  local repo_root repo_name worktree_dir tab_name
 
   if [[ -z "$name" ]]; then
     echo "usage: zwt <name>"
@@ -20,6 +20,8 @@ function zwt() {
   fi
 
   repo_root="$(git rev-parse --show-toplevel)"
+  repo_name="$(basename "$repo_root")"
+  tab_name="$repo_name-$name"
   worktree_dir="$repo_root/.worktrees/$name"
 
   if [[ -e "$worktree_dir" ]]; then
@@ -39,7 +41,7 @@ function zwt() {
     return 1
   fi
 
-  if ! zellij action new-tab --name "$name" --cwd "$worktree_dir"; then
+  if ! zellij action new-tab --name "$tab_name" --cwd "$worktree_dir"; then
     git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
     return 1
   fi
