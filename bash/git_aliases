@@ -6,4 +6,74 @@ alias gitpush="git push"
 alias gitl="git log"
 alias gitd="git diff"
 alias lg="lazygit"
+alias gwt="git worktree"
+alias gwtl="git worktree list"
+alias gwtr="git worktree remove"
+
+function gwts() {
+  local target_branch="${1:-test}"
+  local source_branch="${2:-$(git branch --show-current)}"
+  local repo_root worktree_path tmpdir target_ref
+
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "gwts: not inside a git repository"
+    return 1
+  fi
+
+  if [[ -z "$source_branch" ]]; then
+    echo "gwts: could not determine source branch"
+    return 1
+  fi
+
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "gwts: working tree must be clean"
+    return 1
+  fi
+
+  if ! git show-ref --verify --quiet "refs/heads/$target_branch"; then
+    echo "gwts: local branch '$target_branch' does not exist"
+    return 1
+  fi
+
+  repo_root="$(git rev-parse --show-toplevel)"
+  target_ref="refs/heads/$target_branch"
+  worktree_path="$(git -C "$repo_root" worktree list --porcelain | awk -v ref="$target_ref" '
+    $1 == "worktree" { path = $2 }
+    $1 == "branch" && $2 == ref { print path; exit }
+  ')"
+
+  if [[ -n "$worktree_path" ]]; then
+    if [[ "$worktree_path" == "$repo_root" ]]; then
+      echo "gwts: '$target_branch' is currently checked out in this worktree; switch off it first"
+      return 1
+    fi
+  else
+    tmpdir="$(mktemp -d)"
+    worktree_path="$tmpdir"
+
+    cleanup() {
+      git -C "$repo_root" worktree remove --force "$tmpdir" >/dev/null 2>&1 || true
+      rm -rf "$tmpdir"
+    }
+    trap cleanup RETURN
+
+    if ! git -C "$repo_root" worktree add "$worktree_path" "$target_branch" >/dev/null; then
+      echo "gwts: failed to create a worktree for '$target_branch'"
+      return 1
+    fi
+  fi
+
+  if ! git -C "$worktree_path" merge --squash "$source_branch"; then
+    return 1
+  fi
+
+  if ! git -C "$worktree_path" commit -m "squash: $source_branch into $target_branch"; then
+    return 1
+  fi
+
+  echo "Merged $source_branch into $target_branch locally."
+}
+
+alias gitsq="gwts"
+
 
