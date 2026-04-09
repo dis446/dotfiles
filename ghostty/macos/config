@@ -14,6 +14,8 @@ window-padding-x = 6
 
 cursor-style-blink = false
 
+shell-integration-features = ssh-env
+
 adjust-cell-height = 20%
 adjust-cursor-height = 40%
 window-height = 20000
