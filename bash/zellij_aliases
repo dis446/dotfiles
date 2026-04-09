@@ -1,4 +1,4 @@
-alias zw="zellij attach work || zellij --session work"
+alias z="zellij attach work || zellij --session work"
 
 function zwt() {
   local name="${1:-}"
