@@ -46,6 +46,11 @@ function zwt() {
     return 1
   fi
 
+  if ! zellij run --in-place --cwd "$worktree_dir" -- bash; then
+    git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+    return 1
+  fi
+
   zellij action new-pane --direction right --cwd "$worktree_dir" -- pi
 }
 
