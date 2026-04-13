@@ -2,7 +2,7 @@ alias z="zellij attach work || zellij --session work"
 
 function zwt() {
   local name="${1:-}"
-  local repo_root repo_name worktree_dir tab_name
+  local repo_root repo_name repo_parent worktree_base worktree_dir tab_name parent_branch parent_meta_file worktree_key cd_cmd
 
   if [[ -z "$name" ]]; then
     echo "usage: zwt <name>"
@@ -19,10 +19,20 @@ function zwt() {
     return 1
   fi
 
+  parent_branch="$(git branch --show-current)"
+  if [[ -z "$parent_branch" ]]; then
+    echo "zwt: current branch has no name"
+    return 1
+  fi
+
   repo_root="$(git rev-parse --show-toplevel)"
   repo_name="$(basename "$repo_root")"
+  repo_parent="$(dirname "$repo_root")"
+  worktree_base="$repo_parent/$repo_name.worktrees"
   tab_name="$repo_name-$name"
-  worktree_dir="$repo_root/.worktrees/$name"
+  worktree_dir="$worktree_base/$name"
+  worktree_key="${name//\//__SLASH__}"
+  parent_meta_file="$worktree_base/$worktree_key.parent"
 
   if [[ -e "$worktree_dir" ]]; then
     echo "zwt: worktree directory already exists: $worktree_dir"
@@ -34,28 +44,49 @@ function zwt() {
     return 1
   fi
 
-  mkdir -p "$repo_root/.worktrees"
+  mkdir -p "$worktree_base"
 
   if ! git -C "$repo_root" worktree add -b "$name" "$worktree_dir" >/dev/null; then
     echo "zwt: failed to create worktree and branch '$name'"
     return 1
   fi
 
-  if ! zellij action new-tab --name "$tab_name" --cwd "$worktree_dir"; then
+  mkdir -p "$(dirname "$parent_meta_file")"
+  printf '%s\n' "$parent_branch" > "$parent_meta_file"
+
+  printf -v cd_cmd 'cd -- %q' "$worktree_dir"
+
+  if ! zellij action new-tab --name "$tab_name"; then
     git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+    git -C "$repo_root" branch -D "$name" >/dev/null 2>&1 || true
+    rm -f "$parent_meta_file"
     return 1
   fi
 
-  if ! zellij run --in-place --cwd "$worktree_dir" -- bash; then
+  if ! zellij action write-chars "$cd_cmd"; then
     git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+    git -C "$repo_root" branch -D "$name" >/dev/null 2>&1 || true
+    rm -f "$parent_meta_file"
     return 1
   fi
 
-  zellij action new-pane --direction right --cwd "$worktree_dir" -- pi
+  if ! zellij action write 13; then
+    git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+    git -C "$repo_root" branch -D "$name" >/dev/null 2>&1 || true
+    rm -f "$parent_meta_file"
+    return 1
+  fi
+
+  if ! zellij action new-pane --direction right --cwd "$worktree_dir" -- pi; then
+    git -C "$repo_root" worktree remove --force "$worktree_dir" >/dev/null 2>&1 || true
+    git -C "$repo_root" branch -D "$name" >/dev/null 2>&1 || true
+    rm -f "$parent_meta_file"
+    return 1
+  fi
 }
 
 function zwdone() {
-  local current_worktree current_branch repo_root
+  local current_worktree current_branch repo_root repo_name repo_parent new_worktree_base old_worktree_base worktree_rel worktree_key parent_branch_file parent_branch parent_worktree commit_msg
 
   if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "zwdone: not inside a git repository"
@@ -66,8 +97,121 @@ function zwdone() {
   current_branch="$(git branch --show-current)"
   repo_root="$(git rev-parse --path-format=absolute --git-common-dir)"
   repo_root="$(dirname "$repo_root")"
+  repo_name="$(basename "$repo_root")"
+  repo_parent="$(dirname "$repo_root")"
+  new_worktree_base="$repo_parent/$repo_name.worktrees"
+  old_worktree_base="$repo_root/.worktrees"
 
-  if ! gwts "$@"; then
+  if [[ "$current_worktree" == "$new_worktree_base/"* ]]; then
+    worktree_rel="${current_worktree#$new_worktree_base/}"
+    worktree_key="${worktree_rel//\//__SLASH__}"
+    parent_branch_file="$new_worktree_base/$worktree_key.parent"
+  elif [[ "$current_worktree" == "$old_worktree_base/"* ]]; then
+    worktree_rel="${current_worktree#$old_worktree_base/}"
+    worktree_key="${worktree_rel//\//__SLASH__}"
+    parent_branch_file="$old_worktree_base/$worktree_key.parent"
+  else
+    echo "zwdone: current worktree is not managed by zwt"
+    return 1
+  fi
+
+  if [[ -z "$current_branch" ]]; then
+    echo "zwdone: current worktree is detached"
+    return 1
+  fi
+
+  if [[ -f "$parent_branch_file" ]]; then
+    parent_branch="$(<"$parent_branch_file")"
+  fi
+
+  if [[ -z "$parent_branch" || "$parent_branch" == HEAD ]]; then
+    parent_branch="$(
+      git -C "$repo_root" worktree list --porcelain |
+        awk -v root="$repo_root" '
+          $1 == "worktree" { path = $2 }
+          $1 == "branch" && path == root {
+            sub(/^refs\/heads\//, "", $2)
+            print $2
+            exit
+          }
+        '
+    )"
+  fi
+
+  if [[ -z "$parent_branch" || "$parent_branch" == HEAD ]]; then
+    parent_branch="$(
+      git reflog show --format='%gs' "$current_branch" 2>/dev/null |
+        sed -n 's/^branch: Created from //p' |
+        head -n1
+    )"
+  fi
+
+  if [[ -z "$parent_branch" || "$parent_branch" == HEAD ]]; then
+    for candidate in main master trunk develop; do
+      if git -C "$repo_root" show-ref --verify --quiet "refs/heads/$candidate"; then
+        parent_branch="$candidate"
+        break
+      fi
+    done
+  fi
+
+  if [[ -z "$parent_branch" || "$parent_branch" == HEAD ]]; then
+    echo "zwdone: missing parent branch metadata: $parent_branch_file"
+    return 1
+  fi
+
+  if [[ ! -f "$parent_branch_file" || "$(<"$parent_branch_file")" != "$parent_branch" ]]; then
+    mkdir -p "$(dirname "$parent_branch_file")"
+    printf '%s\n' "$parent_branch" > "$parent_branch_file"
+  fi
+
+  if [[ "$current_branch" == "$parent_branch" ]]; then
+    echo "zwdone: current branch is already the parent branch"
+    return 1
+  fi
+
+  if [[ -n "$(git -C "$current_worktree" status --porcelain)" ]]; then
+    echo "zwdone: current worktree has uncommitted changes"
+    return 1
+  fi
+
+  parent_worktree="$(
+    git -C "$repo_root" worktree list --porcelain |
+      awk -v target="refs/heads/$parent_branch" '
+        /^worktree / { path = substr($0, 10) }
+        /^branch / { if ($2 == target) { print path; exit } }
+      '
+  )"
+
+  if [[ -z "$parent_worktree" ]]; then
+    echo "zwdone: could not find worktree for parent branch '$parent_branch'"
+    return 1
+  fi
+
+  if [[ -n "$(git -C "$parent_worktree" status --porcelain)" ]]; then
+    echo "zwdone: parent worktree has uncommitted changes"
+    return 1
+  fi
+
+  if ! git -C "$parent_worktree" merge --squash "$current_branch"; then
+    git -C "$parent_worktree" merge --abort >/dev/null 2>&1 || true
+    echo "zwdone: squash merge into '$parent_branch' failed"
+    return 1
+  fi
+
+  if git -C "$parent_worktree" diff --cached --quiet; then
+    echo "zwdone: squash merge produced no changes"
+    return 1
+  fi
+
+  if [[ $# -gt 0 ]]; then
+    commit_msg="$*"
+  else
+    commit_msg="squash: ${worktree_rel} -> ${parent_branch}"
+  fi
+
+  if ! git -C "$parent_worktree" commit -m "$commit_msg"; then
+    echo "zwdone: failed to create squash commit"
     return 1
   fi
 
@@ -78,12 +222,12 @@ function zwdone() {
 
   git -C "$repo_root" worktree prune >/dev/null 2>&1 || true
 
-  if [[ -n "$current_branch" ]]; then
-    if ! git -C "$repo_root" branch -D "$current_branch"; then
-      echo "zwdone: failed to delete branch '$current_branch'"
-      return 1
-    fi
+  if ! git -C "$repo_root" branch -D "$current_branch"; then
+    echo "zwdone: failed to delete branch '$current_branch'"
+    return 1
   fi
+
+  rm -f "$parent_branch_file"
 
   if [[ -n "${ZELLIJ:-}" ]]; then
     zellij action close-tab
