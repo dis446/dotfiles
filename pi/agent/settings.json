@@ -9,6 +9,9 @@
   "autocompleteMaxVisible": 5,
   "showHardwareCursor": false,
   "hideThinkingBlock": false,
+  "defaultProvider": "github-copilot",
+  "defaultModel": "gpt-5.4",
+  "enabledModels": ["github-copilot/gpt-5.4*", "github-copilot/gpt-5.4-mini"],
   "compaction": {
     "enabled": true,
     "reserveTokens": 16384,
