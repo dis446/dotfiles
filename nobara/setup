@@ -1,7 +1,6 @@
 mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 ln -sf "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 ln -sf "$HOME/dotfiles/ghostty/linux/config" "$HOME/.config/ghostty/config"
-ln -sf "$HOME/dotfiles/tmux/tmux.conf" "$HOME/.tmux.conf"
 ln -sf "$HOME/dotfiles/nobara/bashrc" "$HOME/.bashrc"
 ln -sf "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 source "$HOME/.bashrc"
