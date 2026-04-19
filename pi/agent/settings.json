@@ -10,7 +10,7 @@
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
   "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4-mini",
+  "defaultModel": "gpt-5.4",
   "enabledModels": [
     "github-copilot/gpt-5.4*",
     "github-copilot/gpt-5.4-mini"

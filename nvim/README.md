@@ -142,44 +142,53 @@ This is the active colorscheme for the entire UI.
 
 ---
 
-### Dashboard
-#### `alpha-nvim`
-Shown on `VimEnter`.
+### Dashboard / explorer / picker consolidation
+#### `snacks.nvim`
+`snacks.nvim` now provides the dashboard and file explorer, and also owns the active file/search pickers.
 
-It provides:
+Enabled modules right now:
+- `dashboard`
+- `explorer`
+- `picker`
+- `lazygit`
+- `rename`
+- `notifier`
+- `quickfile`
+- `bigfile`
+
+Still intentionally disabled for later phases:
+- `input`
+- `indent`
+
+Dashboard:
 - custom ASCII art header
-- menu buttons for:
+- buttons for:
   - new file
-  - toggle file explorer
+  - open explorer
   - find file
   - live grep
   - restore session
   - quit
 
-It also disables folding in the alpha buffer.
+Explorer:
+- replaces `netrw`
+- `<leader>ee` — open explorer
+- `<leader>ef` — reveal current file in explorer
 
----
+Picker:
+- `<leader>ff` — find files
+- `<leader>fr` — recent files
+- `<leader>fs` — live grep
+- `<leader>fc` — grep word under cursor
+- `<leader>ft` — TODOs
 
-### File explorer
-#### `nvim-tree.lua`
-A sidebar file explorer.
-
-Settings:
-- width 30
-- relative line numbers in tree
-- custom folder arrows
-- indent markers enabled
-- close tree after opening a file
-- hide `.DS_Store`
-- do not ignore git-ignored files
-
-It also disables built-in `netrw` so `nvim-tree` can manage file browsing.
-
-Keymaps:
-- `<leader>ee` — toggle file explorer
-- `<leader>ef` — toggle explorer on the current file
-- `<leader>ec` — collapse the tree
-- `<leader>er` — refresh the tree
+Extra test / direct commands:
+- `:SnacksExplorer`
+- `:SnacksReveal`
+- `:SnacksFiles`
+- `:SnacksRecent`
+- `:SnacksGrep`
+- `:SnacksLazyGit`
 
 ---
 
@@ -236,18 +245,14 @@ Keymaps:
 ---
 
 ### LazyGit
-#### `lazygit.nvim`
-Provides a Neovim command wrapper for LazyGit.
+#### `lazygit.nvim` + `snacks.lazygit`
+Your normal keymap still points at `lazygit.nvim`:
 
-Commands:
-- `:LazyGit`
-- `:LazyGitConfig`
-- `:LazyGitCurrentFile`
-- `:LazyGitFilter`
-- `:LazyGitFilterCurrentFile`
-
-Keymap:
 - `<leader>lg` — open LazyGit
+
+You also have a Snacks-backed command available during the migration:
+
+- `:SnacksLazyGit` — open Snacks lazygit
 
 ---
 
@@ -280,7 +285,6 @@ It uses `nvim-ts-context-commentstring` so comments are correct in embedded lang
 
 - TSX / JSX
 - HTML
-- Svelte
 
 ---
 
@@ -314,30 +318,27 @@ Keymaps:
 
 ---
 
-### Telescope
-#### `telescope.nvim`
-Fuzzy finder for files, text, buffers, and more.
+### Picker
+#### `snacks.picker`
+The active picker stack is now `Snacks.picker`.
 
-Dependencies:
-- `plenary.nvim`
-- `telescope-fzf-native.nvim` for faster fuzzy matching
-- `nvim-web-devicons`
-- `todo-comments.nvim`
+It powers:
+- file search
+- recent files
+- grep
+- grep word under cursor
+- TODO pickers
+- LSP location pickers
+- buffer diagnostics picker
 
-Settings:
-- `path_display = { "smart" }` — shorten path display intelligently
-- insert-mode mappings:
-  - `<C-k>` / `<C-j>` — move selection up/down
-  - `<C-q>` — send selected items to quickfix and open it
-
-It also loads the `fzf` extension.
-
-Keymaps:
+Active keymaps:
 - `<leader>ff` — find files
 - `<leader>fr` — recent files
 - `<leader>fs` — live grep
 - `<leader>fc` — grep string under cursor
 - `<leader>ft` — find todos
+- `gd` / `gi` / `gt` / `gR` — LSP pickers
+- `<leader>D` — buffer diagnostics picker
 
 ---
 
@@ -349,7 +350,7 @@ Keymaps:
 - `]t` — next TODO comment
 - `[t` — previous TODO comment
 
-Also powers Telescope and Trouble integrations for TODO search.
+Also powers Snacks picker and Trouble integrations for TODO search.
 
 ---
 
@@ -439,18 +440,19 @@ Sets up language servers and shared LSP keymaps.
 #### On attach keymaps
 When an LSP attaches to a buffer, these mappings are added:
 
-- `gR` — references
+- `gR` — references (`Snacks.picker`)
 - `gD` — declaration
-- `gd` — definitions
-- `gi` — implementations
-- `gt` — type definitions
+- `gd` — definitions (`Snacks.picker`)
+- `gi` — implementations (`Snacks.picker`)
+- `gt` — type definitions (`Snacks.picker`)
 - `<leader>ca` — code action
 - `<leader>rn` — rename
-- `<leader>D` — diagnostics for the file
+- `<leader>D` — diagnostics for the file (`Snacks.picker`)
 - `<leader>d` — floating diagnostic for the current line
 - `[d` / `]d` — previous/next diagnostic
 - `K` — hover documentation
 - `<leader>rs` — restart the LSP
+- `<leader>th` — toggle inlay hints
 
 #### Completion capabilities
 `cmp-nvim-lsp` extends LSP capabilities so completion works better with `nvim-cmp`.
@@ -459,10 +461,9 @@ When an LSP attaches to a buffer, these mappings are added:
 Custom gutter signs are defined for errors, warnings, hints, and info.
 
 #### Special server setup
-- `svelte` — notifies on JS/TS file writes so the server updates properly
-- `graphql` — supports several filetypes including `svelte` and React files
-- `emmet_ls` — supports HTML, JSX/TSX, CSS-like languages, and Svelte
-- `lua_ls` — knows `vim` is a global and uses `callSnippet = "Replace"`
+- `graphql` — supports GraphQL and React filetypes
+- `emmet_ls` — supports HTML, JSX/TSX, and CSS-like languages
+- `lua_ls` — knows `vim` is a global, uses `callSnippet = "Replace"`, disables telemetry, and sets `checkThirdParty = false`
 
 ---
 
@@ -498,8 +499,6 @@ Sources:
 Formatting:
 - `lspkind` adds pictogram icons to completion entries
 
-Note: there is a typo in the config:
-- `nvm_lsp` should likely be `nvim_lsp`
 
 ---
 
@@ -508,7 +507,7 @@ Note: there is a typo in the config:
 Runs formatters on save and manually via keymap.
 
 Configured formatters by filetype:
-- JavaScript / TypeScript / React / Svelte / CSS / HTML / JSON / YAML / Markdown / GraphQL / Liquid — `prettier`
+- JavaScript / TypeScript / React / CSS / HTML / JSON / YAML / Markdown / GraphQL / Liquid — `prettier`
 - Lua — `stylua`
 - Python — `isort` then `black`
 
@@ -527,7 +526,7 @@ Keymap:
 Runs linters automatically on several events.
 
 Configured linters:
-- JavaScript / TypeScript / React / Svelte — `eslint_d`
+- JavaScript / TypeScript / React — `eslint_d`
 - Python — `pylint`
 
 Autocmds trigger linting on:
@@ -577,7 +576,7 @@ This config is a modular Neovim setup centered around:
 
 - `lazy.nvim` for plugin management
 - `tokyonight` for the UI theme
-- `nvim-tree`, `telescope`, and `bufferline` for navigation
+- `snacks.nvim` and `bufferline` for navigation
 - `mason` + `lspconfig` + `nvim-cmp` for language support
 - `conform` and `nvim-lint` for code quality tooling
 - `treesitter` for syntax awareness

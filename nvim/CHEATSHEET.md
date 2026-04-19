@@ -18,30 +18,45 @@
 - `<leader>ty` — move current buffer to new tab
 
 ## Files
-- `<leader>ee` — toggle file explorer
-- `<leader>ef` — toggle explorer on current file
-- `<leader>ec` — collapse tree
-- `<leader>er` — refresh tree
-- `a` — create new file in `nvim-tree` buffer
-- `r` — rename file/directory in `nvim-tree` buffer
-- `d` — delete file/directory in `nvim-tree` buffer
-- `<leader>ff` — find files
-- `<leader>fr` — recent files
-- `<leader>fs` — live grep
-- `<leader>fc` — grep word under cursor
-- `<leader>ft` — TODOs
+_Current stack (Phase 3)_
+- `<leader>ee` — open Snacks explorer
+- `<leader>ef` — reveal current file in Snacks explorer
+- `<leader>ff` — find files (`Snacks.picker`)
+- `<leader>fr` — recent files (`Snacks.picker`)
+- `<leader>fs` — live grep (`Snacks.picker`)
+- `<leader>fc` — grep word under cursor (`Snacks.picker`)
+- `<leader>ft` — TODOs (`Snacks.picker`)
+
+_Snacks explorer buffer actions_
+- `<CR>` / `l` — open file or toggle directory
+- `h` — close directory
+- `<BS>` — go up one directory
+- `a` — add file or directory
+- `r` — rename current file or directory
+- `d` — delete current file or directory
+- `u` — refresh / update explorer
+- `H` — toggle hidden files
+- `I` — toggle ignored files
+
+_Alternate Snacks commands_
+- `:SnacksExplorer` — open Snacks explorer
+- `:SnacksReveal` — reveal current file in Snacks explorer
+- `:SnacksFiles` — open Snacks file picker
+- `:SnacksRecent` — open Snacks recent files picker
+- `:SnacksGrep` — open Snacks grep picker
 
 ## LSP
-- `gd` — definitions
+_Current stack_
+- `gd` — definitions (`Snacks.picker`)
 - `gD` — declaration
-- `gi` — implementations
-- `gt` — type definitions
-- `gR` — references
+- `gi` — implementations (`Snacks.picker`)
+- `gt` — type definitions (`Snacks.picker`)
+- `gR` — references (`Snacks.picker`)
 - `K` — hover docs
 - `<leader>ca` — code action
 - `<leader>rn` — rename
 - `<leader>d` — line diagnostics
-- `<leader>D` — buffer diagnostics
+- `<leader>D` — buffer diagnostics (`Snacks.picker`)
 - `[d` / `]d` — prev / next diagnostic
 - `<leader>rs` — restart LSP
 - `<leader>th` — toggle inlay hints
@@ -64,6 +79,7 @@
 - `<leader>wr` — restore session
 - `<leader>ws` — save session
 - `<leader>lg` — LazyGit
+- `:SnacksLazyGit` — open Snacks lazygit
 
 ## Pi AI
 - `<leader>pi` — toggle Pi float
@@ -80,7 +96,7 @@
 - `ih` — select git hunk
 
 ## Trouble
-- `<leader>xx` — toggle Trouble
+- `<leader>xx` — diagnostics list
 - `<leader>xw` — workspace diagnostics
 - `<leader>xd` — document diagnostics
 - `<leader>xq` — quickfix list
