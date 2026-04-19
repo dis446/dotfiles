@@ -150,15 +150,13 @@ Enabled modules right now:
 - `dashboard`
 - `explorer`
 - `picker`
+- `input`
+- `indent`
 - `lazygit`
 - `rename`
 - `notifier`
 - `quickfile`
 - `bigfile`
-
-Still intentionally disabled for later phases:
-- `input`
-- `indent`
 
 Dashboard:
 - custom ASCII art header
@@ -245,13 +243,11 @@ Keymaps:
 ---
 
 ### LazyGit
-#### `lazygit.nvim` + `snacks.lazygit`
-Your normal keymap still points at `lazygit.nvim`:
+#### `snacks.lazygit`
+LazyGit is now opened through Snacks.
 
+Keymaps / commands:
 - `<leader>lg` — open LazyGit
-
-You also have a Snacks-backed command available during the migration:
-
 - `:SnacksLazyGit` — open Snacks lazygit
 
 ---
@@ -369,19 +365,14 @@ Keymaps:
 ---
 
 ### Indent guides
-#### `indent-blankline.nvim`
-Shows indentation guides using the `ibl` module.
-
-Settings:
-- indent character = `┊`
+#### `snacks.indent`
+Indent guides are now handled by Snacks.
 
 ---
 
 ### UI prompts
-#### `dressing.nvim`
-Improves `vim.ui.select` and `vim.ui.input` with nicer popups.
-
-Loaded lazily to avoid startup cost.
+#### `snacks.input` + `snacks.picker.ui_select`
+`vim.ui.input` and `vim.ui.select` are now handled by Snacks.
 
 ---
 
@@ -577,6 +568,8 @@ This config is a modular Neovim setup centered around:
 - `lazy.nvim` for plugin management
 - `tokyonight` for the UI theme
 - `snacks.nvim` and `bufferline` for navigation
+- `snacks.input` / `snacks.picker.ui_select` for UI prompts
+- `snacks.indent` for indent guides
 - `mason` + `lspconfig` + `nvim-cmp` for language support
 - `conform` and `nvim-lint` for code quality tooling
 - `treesitter` for syntax awareness

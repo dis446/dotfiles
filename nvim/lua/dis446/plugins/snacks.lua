@@ -36,10 +36,10 @@ return {
     },
     picker = {
       enabled = true,
-      ui_select = false, -- phase 5: enable after dressing.nvim is removed
+      ui_select = true,
     },
-    input = { enabled = false }, -- phase 5: enable after dressing.nvim is removed
-    indent = { enabled = false }, -- phase 5: enable after indent-blankline is removed
+    input = { enabled = true },
+    indent = { enabled = true },
     lazygit = { enabled = true },
     rename = { enabled = true },
     notifier = {
@@ -80,6 +80,10 @@ return {
     keymap.set("n", "<leader>ft", function()
       Snacks.picker.todo_comments()
     end, { desc = "Find todos" })
+
+    keymap.set("n", "<leader>lg", function()
+      Snacks.lazygit()
+    end, { desc = "Open lazy git" })
 
     vim.api.nvim_create_user_command("SnacksExplorer", function()
       Snacks.explorer()
