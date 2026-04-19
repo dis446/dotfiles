@@ -62,24 +62,24 @@ A lot of configs become mini-frameworks. Yours doesn’t. It’s understandable 
 
 ## Where it feels dated
 
-### 1. LSP setup is the most dated part
+### 1. LSP setup is now much more current
 
 Relevant files:
 
 - `nvim/lua/dis446/plugins/lsp/lspconfig.lua`
 - `nvim/lua/dis446/plugins/lsp/mason.lua`
+- `nvim/lua/dis446/plugins/lsp/lazydev.lua`
 
-This is the biggest “2024 energy” section.
+This area has been modernized in the right direction.
 
-#### Specific issues
+#### Specific improvements
 
-- `folke/neodev.nvim` is old now.
-  - In 2026, this should generally be replaced with **`folke/lazydev.nvim`** or a newer LuaLS setup.
-- `tsserver` in Mason is a red flag.
-  - Newer ecosystems moved toward **`ts_ls`** naming / newer TS setup patterns.
-  - This is one of the first places likely to break when updating.
+- This config now uses **`folke/lazydev.nvim`** plus **`luvit-meta`** for Lua/Neovim typing support.
+  - That’s the more current approach in 2026.
+- TypeScript now uses **`ts_ls`** instead of `tsserver`.
+- The LSP layer now also has nicer diagnostics, bordered hover/signature windows, document highlights, and an inlay-hints toggle.
 
-So the LSP setup is functional, but not future-forward.
+So the LSP setup is functional and much closer to a current Neovim setup.
 
 ### 2. Some plugin choices feel classic rather than current
 
@@ -97,18 +97,13 @@ A lot of 2026 users lean more toward:
 
 Your choices are still valid; they just feel like an earlier era of modern Neovim.
 
-### 3. Trouble config looks old-style
+### 3. Trouble config is now on the newer API
 
 Relevant file:
 
 - `nvim/lua/dis446/plugins/trouble.lua`
 
-You’re using older commands like:
-
-- `TroubleToggle`
-- `TroubleToggle workspace_diagnostics`
-
-These may work depending on plugin version compatibility, but they are exactly the kind of thing that tends to break during upgrades.
+This has been updated to the current `Trouble ... toggle` command style, so it’s no longer relying on the older toggle commands.
 
 ---
 
@@ -220,15 +215,14 @@ These aren’t mandatory, but are common in more current setups.
 
 ### LSP UX polish
 
-I’d expect more 2026 ergonomics such as:
+The config now covers several of the obvious ergonomics:
 
-- inlay hints toggle/default enable
+- inlay hints toggle
 - document highlights
 - better diagnostics config
 - bordered hover/signature windows
-- code lens where relevant
 
-Right now the LSP is functional but basic.
+There’s still room to grow with things like code lens where relevant, but the baseline is solid now.
 
 ### Better use of Neovim core evolution
 
@@ -268,21 +262,19 @@ This is a solid base.
 
 ### High priority
 
-1. Replace `neodev.nvim`
-2. Fix TypeScript server naming/setup (`tsserver` → current Mason/LSP equivalent)
-3. Update Trouble mappings to current API
-4. Fix `lualine.lua` inactive color bug
-5. Either finish Java support properly or remove it
+1. Fix `lualine.lua` inactive color bug
+2. Either finish Java support properly or remove it
+3. Clean up netrw leftovers
+4. Switch `vim.loop` → `vim.uv`
+5. Consider adding code lens or other server-specific polish where it helps
 
 ### Medium priority
 
-6. Clean up netrw leftovers
-7. Switch `vim.loop` → `vim.uv`
-8. Improve diagnostics / inlay hint setup
+6. Keep refining diagnostics / inlay hint setup as needed
 
 ### Optional / taste-based
 
-11. Re-evaluate whether you still want:
+7. Re-evaluate whether you still want:
 - `nvim-tree` vs `oil.nvim` / `mini.files` / `snacks`
 - `alpha-nvim` vs newer dashboard UX
 - `nvim-cmp` vs newer completion stacks
