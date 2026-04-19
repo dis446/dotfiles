@@ -1,6 +1,3 @@
--- Use tree view in nvim explorer
-vim.cmd("let g:netrw_liststyle = 3")
-
 -- alias just to make this file more concise
 local opt = vim.opt
 

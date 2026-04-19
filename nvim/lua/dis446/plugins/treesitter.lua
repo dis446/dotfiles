@@ -9,14 +9,6 @@ return {
 		-- import nvim-treesitter plugin
 		local treesitter = require("nvim-treesitter.config")
 
-		-- Backfill APIs expected by older plugins like Telescope.
-		local parsers = require("nvim-treesitter.parsers")
-		if not parsers.ft_to_lang then
-			parsers.ft_to_lang = function(ft)
-				return vim.treesitter.language.get_lang(ft) or ft
-			end
-		end
-
 		-- configure treesitter
 		treesitter.setup({ -- enable syntax highlighting
 			highlight = {
