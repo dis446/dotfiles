@@ -22,6 +22,9 @@
 - `<leader>ef` — toggle explorer on current file
 - `<leader>ec` — collapse tree
 - `<leader>er` — refresh tree
+- `a` — create new file in `nvim-tree`
+- `r` — rename file/directory in `nvim-tree`
+- `d` — delete file/directory in `nvim-tree`
 - `<leader>ff` — find files
 - `<leader>fr` — recent files
 - `<leader>fs` — live grep
