@@ -544,20 +544,9 @@ Parsers are ensured for many languages, including:
 
 ---
 
-## Notable quirks / issues
+## Notes
 
-A few things stand out in the current config:
-
-1. `nvim-cmp` has a typo in the LSP source name:
-   - `nvm_lsp` should probably be `nvim_lsp`
-
-2. `lualine` references `colors.semilightgray`, but that color is not defined in the local table.
-
-3. Svelte LSP has a handler, but `svelte` is commented out in Mason’s install list.
-
-4. TypeScript LSP is not explicitly installed through Mason in this config.
-
-5. The file `subsitute.lua` is misspelled, though it still works as a file name.
+The config is intentionally modular and plugin-driven, with most functionality loaded lazily for faster startup.
 
 ---
 
