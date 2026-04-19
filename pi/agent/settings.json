@@ -8,7 +8,7 @@
   "editorPaddingX": 0,
   "autocompleteMaxVisible": 5,
   "showHardwareCursor": false,
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-5.4-mini",
   "enabledModels": [
@@ -49,5 +49,7 @@
   "skills": [],
   "prompts": [],
   "themes": [],
-  "enableSkillCommands": true
+  "enableSkillCommands": true,
+  "lastChangelogVersion": "0.66.1",
+  "defaultThinkingLevel": "medium"
 }
