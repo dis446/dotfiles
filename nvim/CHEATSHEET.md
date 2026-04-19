@@ -17,6 +17,13 @@
 - `<leader>tl` / `<leader>th` — next / previous tab
 - `<leader>ty` — move current buffer to new tab
 
+## Terminal
+- `<leader>ot` — toggle bottom terminal
+- `<leader>oT` — open floating terminal
+- `:SnacksTerminal` — toggle terminal
+- `:SnacksTerminalFloat` — open floating terminal
+- in terminal mode, `<leader>ot` also toggles the terminal
+
 ## Files and search
 - `<leader>ee` — toggle file explorer
 - `<leader>ef` — reveal current file in explorer

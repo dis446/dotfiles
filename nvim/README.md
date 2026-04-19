@@ -126,6 +126,7 @@ Enabled modules:
 - `indent`
 - `lazygit`
 - `rename`
+- `terminal`
 - `notifier`
 - `quickfile`
 - `bigfile`
@@ -140,6 +141,8 @@ Keymaps:
 - `<leader>fc` — grep word under cursor
 - `<leader>ft` — TODOs
 - `<leader>lg` — open LazyGit
+- `<leader>ot` — toggle terminal (works in normal and terminal mode)
+- `<leader>oT` — open floating terminal
 - `<leader>sm` — maximize/minimize a split
 - `<leader>xx` — diagnostics list
 - `<leader>xw` — workspace diagnostics
@@ -155,10 +158,27 @@ User commands:
 - `:SnacksRecent`
 - `:SnacksGrep`
 - `:SnacksLazyGit`
+- `:SnacksTerminal`
+- `:SnacksTerminalFloat`
 
 Dashboard buttons open new files, the explorer, file search, grep, session restore, and quit.
 
 ---
+
+### Terminal
+#### `Snacks.terminal()`
+Provides an integrated terminal view without adding a separate terminal plugin.
+
+Behavior:
+- default shell opens as a bottom split
+- floating terminal is available for temporary shell work
+- terminal toggling works from normal mode and terminal mode with `<leader>ot`
+
+Commands and keymaps:
+- `<leader>ot` — toggle terminal
+- `<leader>oT` — open floating terminal
+- `:SnacksTerminal` — toggle terminal
+- `:SnacksTerminalFloat` — open floating terminal
 
 ### Session management
 #### `auto-session`

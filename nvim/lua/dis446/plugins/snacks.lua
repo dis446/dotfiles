@@ -42,6 +42,7 @@ return {
     indent = { enabled = true },
     lazygit = { enabled = true },
     rename = { enabled = true },
+    terminal = {},
     zen = { enabled = true },
     notifier = {
       enabled = true,
@@ -85,6 +86,21 @@ return {
     keymap.set("n", "<leader>lg", function()
       Snacks.lazygit()
     end, { desc = "Open lazy git" })
+
+    keymap.set({ "n", "t" }, "<leader>ot", function()
+      Snacks.terminal()
+    end, { desc = "Toggle terminal" })
+
+    keymap.set("n", "<leader>oT", function()
+      Snacks.terminal(nil, {
+        win = {
+          position = "float",
+          border = "rounded",
+          width = 0.9,
+          height = 0.9,
+        },
+      })
+    end, { desc = "Open floating terminal" })
 
     keymap.set("n", "<leader>sm", function()
       Snacks.zen.zoom()
@@ -137,5 +153,20 @@ return {
     vim.api.nvim_create_user_command("SnacksLazyGit", function()
       Snacks.lazygit()
     end, { desc = "Open Snacks lazygit" })
+
+    vim.api.nvim_create_user_command("SnacksTerminal", function()
+      Snacks.terminal()
+    end, { desc = "Toggle Snacks terminal" })
+
+    vim.api.nvim_create_user_command("SnacksTerminalFloat", function()
+      Snacks.terminal(nil, {
+        win = {
+          position = "float",
+          border = "rounded",
+          width = 0.9,
+          height = 0.9,
+        },
+      })
+    end, { desc = "Open floating Snacks terminal" })
   end,
 }
