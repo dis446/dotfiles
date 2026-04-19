@@ -78,7 +78,7 @@ _Current stack_
 ## Sessions / Git tools
 - `<leader>wr` — restore session
 - `<leader>ws` — save session
-- `<leader>lg` — LazyGit
+- `<leader>lg` — open LazyGit (`Snacks.lazygit`)
 - `:SnacksLazyGit` — open Snacks lazygit
 
 ## Pi AI
