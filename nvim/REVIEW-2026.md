@@ -21,6 +21,8 @@ From a **2026 perspective**, though, it feels more like a **well-kept 2023/2024 
 
 I also did a quick headless boot with your config and it started **cleanly** and in about **46ms**, which is solid.
 
+You’ve also removed the unused Svelte-specific config, which simplifies the LSP, formatter, linting, and Treesitter setup.
+
 ---
 
 ## What’s good
@@ -161,31 +163,7 @@ But in `nvim-tree.lua` you disable netrw:
 
 So the netrw customization is effectively dead config.
 
-### 3. Svelte Treesitter parser is commented out
-
-Relevant file:
-
-- `nvim/lua/dis446/plugins/treesitter.lua`
-
-You support Svelte elsewhere via formatter, linting, LSP, and comment support, but Treesitter has:
-
-```lua
---"svelte",
-```
-
-That’s inconsistent.
-
-### 4. Svelte LSP autocmd can duplicate
-
-Relevant file:
-
-- `nvim/lua/dis446/plugins/lsp/lspconfig.lua`
-
-Inside the Svelte server setup, a `BufWritePost` autocmd is created in `on_attach`.
-
-That means each attach can create additional autocmds. A more polished version would use an augroup and explicit scoping/cleanup.
-
-### 5. Java support looks half-finished
+### 3. Java support looks half-finished
 
 Relevant files:
 
@@ -198,7 +176,7 @@ This reads as:
 - Java support exists on paper
 - but Java support is probably not production-ready
 
-### 6. `vim.loop` is old-style now
+### 4. `vim.loop` is old-style now
 
 Relevant file:
 
@@ -212,7 +190,7 @@ vim.loop.fs_stat(...)
 
 By 2026, `vim.uv` is the more current style.
 
-### 7. Import path style is inconsistent
+### 5. Import path style is inconsistent
 
 Relevant file:
 
@@ -298,11 +276,9 @@ This is a solid base.
 
 ### Medium priority
 
-6. Enable the Svelte Treesitter parser
-7. Clean up netrw leftovers
-8. Switch `vim.loop` → `vim.uv`
-9. Improve diagnostics / inlay hint setup
-10. Make the Svelte autocmd setup less global and less duplicative
+6. Clean up netrw leftovers
+7. Switch `vim.loop` → `vim.uv`
+8. Improve diagnostics / inlay hint setup
 
 ### Optional / taste-based
 
