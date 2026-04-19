@@ -11,7 +11,7 @@
 - `<leader>sh` — horizontal split
 - `<leader>se` — equalize splits
 - `<leader>sx` — close split
-- `<leader>sm` — maximize/minimize split
+- `<leader>sm` — maximize/minimize split (`Snacks.zen.zoom()`)
 - `<leader>tt` — new tab
 - `<leader>tw` — close tab
 - `<leader>tl` / `<leader>th` — next / previous tab
@@ -95,13 +95,13 @@ _Current stack_
 - visual `s` — substitute selection
 - `ih` — select git hunk
 
-## Trouble
-- `<leader>xx` — diagnostics list
-- `<leader>xw` — workspace diagnostics
-- `<leader>xd` — document diagnostics
-- `<leader>xq` — quickfix list
-- `<leader>xl` — location list
-- `<leader>xt` — TODOs in Trouble
+## Diagnostics / Lists
+- `<leader>xx` — diagnostics list (`Snacks.picker`)
+- `<leader>xw` — workspace diagnostics (`Snacks.picker`)
+- `<leader>xd` — document diagnostics (`Snacks.picker`)
+- `<leader>xq` — quickfix list (`Snacks.picker`)
+- `<leader>xl` — location list (`Snacks.picker`)
+- `<leader>xt` — TODO list (`Snacks.picker`)
 
 ## Completion
 - `<C-Space>` — trigger completion
