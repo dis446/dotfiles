@@ -251,6 +251,27 @@ Keymap:
 
 ---
 
+### Pi AI
+#### `pi.nvim`
+Opens Pi in a floating terminal window with repo-aware session persistence.
+
+Behavior:
+- detects the current git root
+- stores sessions under Neovim state in a per-repo directory
+- resumes the most recent session for that repo when one exists
+- keeps the float as a UI wrapper; the session is the durable state
+
+Commands:
+- `:Pi` — open Pi in a float
+- `:PiToggle` — toggle the Pi float
+- `:PiNew` — start a fresh Pi session for the current repo
+
+Keymaps:
+- `<leader>pi` — toggle Pi
+- `<leader>pI` — start a new Pi session
+
+---
+
 ### Commenting
 #### `Comment.nvim`
 Smart commenting support.

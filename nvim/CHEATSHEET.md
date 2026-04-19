@@ -64,6 +64,13 @@
 - `<leader>ws` — save session
 - `<leader>lg` — LazyGit
 
+## Pi AI
+- `<leader>pi` — toggle Pi float
+- `<leader>pI` — start a new Pi session for the current repo
+- `:Pi` — open Pi
+- `:PiToggle` — toggle Pi
+- `:PiNew` — new Pi session
+
 ## Text editing
 - `s` — substitute with motion
 - `ss` — substitute line
