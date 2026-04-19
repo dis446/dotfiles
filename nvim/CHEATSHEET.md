@@ -2,11 +2,11 @@
 
 **Leader:** `<Space>`
 
-## Core
+## General
 - `<leader>nh` — clear search highlights
-- `<leader>+` / `<leader>-` — increment / decrement number
+- `<leader>+` / `<leader>-` — increment / decrement number under cursor
 
-## Windows / Tabs
+## Windows and tabs
 - `<leader>sv` — vertical split
 - `<leader>sh` — horizontal split
 - `<leader>se` — equalize splits
@@ -17,47 +17,32 @@
 - `<leader>tl` / `<leader>th` — next / previous tab
 - `<leader>ty` — move current buffer to new tab
 
-## Files
-_Current stack (Phase 3)_
-- `<leader>ee` — open Snacks explorer
-- `<leader>ef` — reveal current file in Snacks explorer
-- `<leader>ff` — find files (`Snacks.picker`)
-- `<leader>fr` — recent files (`Snacks.picker`)
-- `<leader>fs` — live grep (`Snacks.picker`)
-- `<leader>fc` — grep word under cursor (`Snacks.picker`)
-- `<leader>ft` — TODOs (`Snacks.picker`)
-
-_Snacks explorer buffer actions_
-- `<CR>` / `l` — open file or toggle directory
-- `h` — close directory
-- `<BS>` — go up one directory
-- `a` — add file or directory
-- `r` — rename current file or directory
-- `d` — delete current file or directory
-- `u` — refresh / update explorer
-- `H` — toggle hidden files
-- `I` — toggle ignored files
-
-_Alternate Snacks commands_
-- `:SnacksExplorer` — open Snacks explorer
-- `:SnacksReveal` — reveal current file in Snacks explorer
-- `:SnacksFiles` — open Snacks file picker
-- `:SnacksRecent` — open Snacks recent files picker
-- `:SnacksGrep` — open Snacks grep picker
+## Files and search
+- `<leader>ee` — toggle file explorer
+- `<leader>ef` — reveal current file in explorer
+- `<leader>ff` — find files
+- `<leader>fr` — recent files
+- `<leader>fs` — live grep
+- `<leader>fc` — grep word under cursor
+- `<leader>ft` — TODOs
+- `:SnacksExplorer` — open explorer
+- `:SnacksReveal` — reveal current file in explorer
+- `:SnacksFiles` — open file picker
+- `:SnacksRecent` — open recent files picker
+- `:SnacksGrep` — open grep picker
 
 ## LSP
-_Current stack_
-- `gd` — definitions (`Snacks.picker`)
+- `gd` — definitions
 - `gD` — declaration
-- `gi` — implementations (`Snacks.picker`)
-- `gt` — type definitions (`Snacks.picker`)
-- `gR` — references (`Snacks.picker`)
+- `gi` — implementations
+- `gt` — type definitions
+- `gR` — references
 - `K` — hover docs
 - `<leader>ca` — code action
 - `<leader>rn` — rename
 - `<leader>d` — line diagnostics
-- `<leader>D` — buffer diagnostics (`Snacks.picker`)
-- `[d` / `]d` — prev / next diagnostic
+- `<leader>D` — buffer diagnostics
+- `[d` / `]d` — previous / next diagnostic
 - `<leader>rs` — restart LSP
 - `<leader>th` — toggle inlay hints
 
@@ -71,15 +56,15 @@ _Current stack_
 - `<leader>hB` — toggle line blame
 - `<leader>hd` / `<leader>hD` — diff buffer / diff against `~`
 
-## Formatting / Linting
-- `<leader>mp` — format file / selection
+## Formatting and linting
+- `<leader>mp` — format file or selection
 - `<leader>l` — lint current file
 
-## Sessions / Git tools
-- `<leader>wr` — restore session
-- `<leader>ws` — save session
-- `<leader>lg` — open LazyGit (`Snacks.lazygit`)
-- `:SnacksLazyGit` — open Snacks lazygit
+## Sessions and git tools
+- `<leader>wr` — restore session for current directory
+- `<leader>ws` — save session for current directory
+- `<leader>lg` — open LazyGit
+- `:SnacksLazyGit` — open LazyGit
 
 ## Pi AI
 - `<leader>pi` — toggle Pi float
@@ -88,20 +73,20 @@ _Current stack_
 - `:PiToggle` — toggle Pi
 - `:PiNew` — new Pi session
 
-## Text editing
+## Editing
 - `s` — substitute with motion
 - `ss` — substitute line
 - `S` — substitute to end of line
 - visual `s` — substitute selection
 - `ih` — select git hunk
 
-## Diagnostics / Lists
-- `<leader>xx` — diagnostics list (`Snacks.picker`)
-- `<leader>xw` — workspace diagnostics (`Snacks.picker`)
-- `<leader>xd` — document diagnostics (`Snacks.picker`)
-- `<leader>xq` — quickfix list (`Snacks.picker`)
-- `<leader>xl` — location list (`Snacks.picker`)
-- `<leader>xt` — TODO list (`Snacks.picker`)
+## Diagnostics and lists
+- `<leader>xx` — diagnostics list
+- `<leader>xw` — workspace diagnostics
+- `<leader>xd` — document diagnostics
+- `<leader>xq` — quickfix list
+- `<leader>xl` — location list
+- `<leader>xt` — TODO list
 
 ## Completion
 - `<C-Space>` — trigger completion
