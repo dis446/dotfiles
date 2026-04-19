@@ -65,12 +65,13 @@ return {
     end
 
     local function attach_close_mapping(session)
-      vim.keymap.set("t", "<Esc><Esc>", function()
+      vim.keymap.set("t", "<C-x>", function()
         close_float(session)
       end, {
         buffer = session.buf,
         silent = true,
         noremap = true,
+        nowait = true,
         desc = "Close Pi float",
       })
     end
@@ -97,6 +98,8 @@ return {
           session.job_id = nil
         end,
       })
+
+      attach_close_mapping(session)
     end
 
     local function open_float(force_new)
@@ -141,6 +144,7 @@ return {
       vim.wo[session.win].relativenumber = false
       vim.wo[session.win].signcolumn = "no"
       vim.wo[session.win].wrap = true
+      vim.wo[session.win].winbar = " [Pi] Ctrl+X close "
 
       if force_new then
         session.job_id = nil
