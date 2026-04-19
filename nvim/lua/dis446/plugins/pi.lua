@@ -57,12 +57,31 @@ return {
       return state[dir]
     end
 
+    local function close_float(session)
+      if session.win and vim.api.nvim_win_is_valid(session.win) then
+        vim.api.nvim_win_close(session.win, true)
+        session.win = nil
+      end
+    end
+
+    local function attach_close_mapping(session)
+      vim.keymap.set("t", "<Esc><Esc>", function()
+        close_float(session)
+      end, {
+        buffer = session.buf,
+        silent = true,
+        noremap = true,
+        desc = "Close Pi float",
+      })
+    end
+
     local function start_terminal(session, force_new)
       if not session.buf or not vim.api.nvim_buf_is_valid(session.buf) then
         session.buf = vim.api.nvim_create_buf(false, true)
         vim.bo[session.buf].bufhidden = "hide"
         vim.bo[session.buf].swapfile = false
         vim.bo[session.buf].filetype = "pi"
+        attach_close_mapping(session)
       end
 
       vim.api.nvim_set_current_buf(session.buf)
@@ -132,13 +151,6 @@ return {
       end
 
       vim.cmd("startinsert")
-    end
-
-    local function close_float(session)
-      if session.win and vim.api.nvim_win_is_valid(session.win) then
-        vim.api.nvim_win_close(session.win, true)
-        session.win = nil
-      end
     end
 
     vim.api.nvim_create_user_command("Pi", function()
