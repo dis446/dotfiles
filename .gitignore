@@ -2,6 +2,7 @@
 
 pi/agent/auth.json
 pi/agent/sessions
+pi/agent/settings.json
 pi/agent/sessions.json
 pi/agent/mcp-cache.json
 pi/agent/mcp-npx-cache.json
