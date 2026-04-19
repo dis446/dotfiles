@@ -241,6 +241,12 @@ Installs language servers and tools.
 - `prismals`
 - `pyright`
 - `jdtls`
+- `jsonls`
+- `yamlls`
+- `bashls`
+- `dockerls`
+- `sqls`
+- `marksman`
 
 #### Tools
 - `prettier`

@@ -37,6 +37,12 @@ return {
 				"prismals",
 				"pyright",
 				"jdtls",
+				"jsonls",
+				"yamlls",
+				"bashls",
+				"dockerls",
+				"sqls",
+				"marksman",
 			},
 		})
 
