@@ -1,1 +1,11 @@
 **/secret**
+
+pi/agent/auth.json
+pi/agent/sessions
+pi/agent/sessions.json
+pi/agent/mcp-cache.json
+pi/agent/mcp-npx-cache.json
+pi/agent/bin
+pi/agent/cache
+
+
