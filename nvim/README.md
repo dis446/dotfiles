@@ -198,12 +198,12 @@ Uses `nvim-web-devicons` for file icons.
 
 ---
 
-### Split maximizer
-#### `vim-maximizer`
-Provides a simple toggle to maximize/minimize the current split.
+### Window zoom
+#### `Snacks.zen.zoom()`
+Window zooming is now handled by Snacks.
 
 Keymap:
-- `<leader>sm`
+- `<leader>sm` — maximize/minimize a split
 
 ---
 
@@ -346,21 +346,21 @@ Keymaps:
 - `]t` — next TODO comment
 - `[t` — previous TODO comment
 
-Also powers Snacks picker and Trouble integrations for TODO search.
+Also powers Snacks picker integrations for TODO search.
 
 ---
 
-### Trouble
-#### `trouble.nvim`
-A nicer UI for diagnostics, quickfix, and location lists.
+### Diagnostics / lists
+#### `snacks.picker`
+Diagnostics, quickfix, location lists, and TODO browsing are now handled through Snacks pickers.
 
 Keymaps:
-- `<leader>xx` — toggle Trouble
+- `<leader>xx` — diagnostics list
 - `<leader>xw` — workspace diagnostics
 - `<leader>xd` — document diagnostics
 - `<leader>xq` — quickfix list
 - `<leader>xl` — location list
-- `<leader>xt` — TODOs in Trouble
+- `<leader>xt` — TODO list
 
 ---
 
@@ -570,6 +570,8 @@ This config is a modular Neovim setup centered around:
 - `snacks.nvim` and `bufferline` for navigation
 - `snacks.input` / `snacks.picker.ui_select` for UI prompts
 - `snacks.indent` for indent guides
+- `Snacks.zen.zoom()` for split zooming
+- `snacks.picker` for diagnostics / quickfix / location / TODO lists
 - `mason` + `lspconfig` + `nvim-cmp` for language support
 - `conform` and `nvim-lint` for code quality tooling
 - `treesitter` for syntax awareness

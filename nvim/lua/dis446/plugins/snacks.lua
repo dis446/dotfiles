@@ -42,6 +42,7 @@ return {
     indent = { enabled = true },
     lazygit = { enabled = true },
     rename = { enabled = true },
+    zen = { enabled = true },
     notifier = {
       enabled = true,
       timeout = 3000,
@@ -84,6 +85,34 @@ return {
     keymap.set("n", "<leader>lg", function()
       Snacks.lazygit()
     end, { desc = "Open lazy git" })
+
+    keymap.set("n", "<leader>sm", function()
+      Snacks.zen.zoom()
+    end, { desc = "Maximize/minimize a split" })
+
+    keymap.set("n", "<leader>xx", function()
+      Snacks.picker.diagnostics()
+    end, { desc = "Open diagnostics list" })
+
+    keymap.set("n", "<leader>xw", function()
+      Snacks.picker.diagnostics()
+    end, { desc = "Open workspace diagnostics" })
+
+    keymap.set("n", "<leader>xd", function()
+      Snacks.picker.diagnostics_buffer()
+    end, { desc = "Open document diagnostics" })
+
+    keymap.set("n", "<leader>xq", function()
+      Snacks.picker.qflist()
+    end, { desc = "Open quickfix list" })
+
+    keymap.set("n", "<leader>xl", function()
+      Snacks.picker.loclist()
+    end, { desc = "Open location list" })
+
+    keymap.set("n", "<leader>xt", function()
+      Snacks.picker.todo_comments()
+    end, { desc = "Open todos list" })
 
     vim.api.nvim_create_user_command("SnacksExplorer", function()
       Snacks.explorer()
