@@ -12,6 +12,7 @@ return {
       yellow = "#FFDA7B",
       red = "#FF4A4A",
       fg = "#c3ccdc",
+      fg_inactive = "#8FA7C0",
       bg = "#112638",
       inactive_bg = "#2c3043",
     }
@@ -43,9 +44,9 @@ return {
         c = { bg = colors.bg, fg = colors.fg },
       },
       inactive = {
-        a = { bg = colors.inactive_bg, fg = colors.fg_dark, gui = "bold" },
-        b = { bg = colors.inactive_bg, fg = colors.fg_dark },
-        c = { bg = colors.inactive_bg, fg = colors.fg_dark },
+        a = { bg = colors.inactive_bg, fg = colors.fg_inactive, gui = "bold" },
+        b = { bg = colors.inactive_bg, fg = colors.fg_inactive },
+        c = { bg = colors.inactive_bg, fg = colors.fg_inactive },
       },
     }
 
