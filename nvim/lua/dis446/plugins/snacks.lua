@@ -41,22 +41,22 @@ return {
         explorer = {
           hidden = true,
           ignored = true,
-          exclude = { "**/node_modules/**", "**/target/**", "**/build/**", "**/dist/**" },
+          exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
         },
         files = {
           hidden = true,
           ignored = true,
-          exclude = { "**/node_modules/**", "**/target/**", "**/build/**", "**/dist/**" },
+          exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
         },
         grep = {
           hidden = true,
           ignored = true,
-          exclude = { "**/node_modules/**", "**/target/**", "**/build/**", "**/dist/**" },
+          exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
         },
         grep_word = {
           hidden = true,
           ignored = true,
-          exclude = { "**/node_modules/**", "**/target/**", "**/build/**", "**/dist/**" },
+          exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
         },
       },
     },
