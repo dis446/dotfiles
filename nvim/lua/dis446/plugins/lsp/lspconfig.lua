@@ -112,23 +112,16 @@ return {
 
 		local capabilities = cmp_nvim_lsp.default_capabilities()
 
-		local function append_env_arg(name, value)
-			local current = vim.env[name] or ""
-			if current:find(value, 1, true) then
-				return
-			end
-			vim.env[name] = current == "" and value or (current .. " " .. value)
-		end
-
-		local function configure_jdtls_lombok()
+		local function get_jdtls_lombok_args()
 			local lombok_jar = vim.fn.stdpath("data") .. "/mason/packages/jdtls/lombok.jar"
-			if vim.fn.filereadable(lombok_jar) == 1 then
-				append_env_arg("JDTLS_JVM_ARGS", "-javaagent:" .. lombok_jar)
-				append_env_arg("JDTLS_JVM_ARGS", "-Xbootclasspath/a:" .. lombok_jar)
+			if vim.fn.filereadable(lombok_jar) ~= 1 then
+				return nil
 			end
+			return table.concat({
+				"-javaagent:" .. lombok_jar,
+				"-Xbootclasspath/a:" .. lombok_jar,
+			}, " ")
 		end
-
-		configure_jdtls_lombok()
 
 		local signs = { Error = "⛔", Warn = "⚠︎", Hint = "?", Info = "!" }
 		for type, icon in pairs(signs) do
@@ -157,7 +150,14 @@ return {
 			},
 			prismals = {},
 			pyright = {},
-			jdtls = {},
+			jdtls = (function()
+				local lombok_args = get_jdtls_lombok_args()
+				return lombok_args and {
+					cmd_env = {
+						JDTLS_JVM_ARGS = lombok_args,
+					},
+				} or {}
+			end)(),
 			jsonls = {},
 			yamlls = {},
 			bashls = {},
