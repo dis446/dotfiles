@@ -37,6 +37,27 @@ return {
     picker = {
       enabled = true,
       ui_select = true,
+      sources = {
+        explorer = {
+          hidden = true,
+          ignored = true,
+        },
+        files = {
+          hidden = true,
+          ignored = true,
+          exclude = { "**/target/**", "**/build/**", "**/dist/**" },
+        },
+        grep = {
+          hidden = true,
+          ignored = true,
+          exclude = { "**/target/**", "**/build/**", "**/dist/**" },
+        },
+        grep_word = {
+          hidden = true,
+          ignored = true,
+          exclude = { "**/target/**", "**/build/**", "**/dist/**" },
+        },
+      },
     },
     input = { enabled = true },
     indent = { enabled = true },
