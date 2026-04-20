@@ -112,17 +112,6 @@ return {
 
 		local capabilities = cmp_nvim_lsp.default_capabilities()
 
-		local function get_jdtls_lombok_args()
-			local lombok_jar = vim.fn.stdpath("data") .. "/mason/packages/jdtls/lombok.jar"
-			if vim.fn.filereadable(lombok_jar) ~= 1 then
-				return nil
-			end
-			return table.concat({
-				"-javaagent:" .. lombok_jar,
-				"-Xbootclasspath/a:" .. lombok_jar,
-			}, " ")
-		end
-
 		local signs = { Error = "⛔", Warn = "⚠︎", Hint = "?", Info = "!" }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
@@ -150,14 +139,6 @@ return {
 			},
 			prismals = {},
 			pyright = {},
-			jdtls = (function()
-				local lombok_args = get_jdtls_lombok_args()
-				return lombok_args and {
-					cmd_env = {
-						JDTLS_JVM_ARGS = lombok_args,
-					},
-				} or {}
-			end)(),
 			jsonls = {},
 			yamlls = {},
 			bashls = {},
