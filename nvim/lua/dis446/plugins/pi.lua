@@ -57,35 +57,47 @@ return {
       return state[dir]
     end
 
-    local function close_float(session)
+    local function close_pane(session)
       if session.win and vim.api.nvim_win_is_valid(session.win) then
         vim.api.nvim_win_close(session.win, true)
-        session.win = nil
       end
+      session.win = nil
     end
 
     local function attach_close_mapping(session)
-      vim.keymap.set("t", "<C-x>", function()
-        close_float(session)
-      end, {
+      local opts = {
         buffer = session.buf,
         silent = true,
         noremap = true,
         nowait = true,
-        desc = "Close Pi float",
-      })
+        desc = "Close Pi pane",
+      }
+
+      vim.keymap.set("t", "<C-x>", function()
+        close_pane(session)
+      end, opts)
+
+      vim.keymap.set("n", "<C-x>", function()
+        close_pane(session)
+      end, opts)
+    end
+
+    local function ensure_buffer(session)
+      if session.buf and vim.api.nvim_buf_is_valid(session.buf) then
+        return
+      end
+
+      session.buf = vim.api.nvim_create_buf(false, true)
+      vim.bo[session.buf].bufhidden = "hide"
+      vim.bo[session.buf].swapfile = false
+      vim.bo[session.buf].filetype = "pi"
+      attach_close_mapping(session)
     end
 
     local function start_terminal(session, force_new)
-      if not session.buf or not vim.api.nvim_buf_is_valid(session.buf) then
-        session.buf = vim.api.nvim_create_buf(false, true)
-        vim.bo[session.buf].bufhidden = "hide"
-        vim.bo[session.buf].swapfile = false
-        vim.bo[session.buf].filetype = "pi"
-        attach_close_mapping(session)
-      end
-
-      vim.api.nvim_set_current_buf(session.buf)
+      ensure_buffer(session)
+      vim.api.nvim_set_current_win(session.win)
+      vim.api.nvim_win_set_buf(session.win, session.buf)
 
       local cmd = { "pi", "--session-dir", session.dir }
       if not force_new and has_existing_sessions(session.dir) then
@@ -102,49 +114,44 @@ return {
       attach_close_mapping(session)
     end
 
-    local function open_float(force_new)
+    local function pane_width()
+      return math.max(50, math.floor(vim.o.columns * 0.33))
+    end
+
+    local function set_window_options(win)
+      vim.wo[win].number = false
+      vim.wo[win].relativenumber = false
+      vim.wo[win].signcolumn = "no"
+      vim.wo[win].wrap = true
+      vim.wo[win].winfixwidth = true
+      vim.wo[win].winbar = " [Pi] Ctrl+X close "
+    end
+
+    local function open_pane(force_new)
       local root = detect_root()
       local session_dir = session_dir_for_root(root)
       local session = get_session(session_dir)
       session.root = root
 
-      local width = math.floor(vim.o.columns * 0.85)
-      local height = math.floor(vim.o.lines * 0.85)
-      local row = math.floor((vim.o.lines - height) / 2)
-      local col = math.floor((vim.o.columns - width) / 2)
-
       if session.win and vim.api.nvim_win_is_valid(session.win) then
         vim.api.nvim_set_current_win(session.win)
+        vim.api.nvim_win_set_width(session.win, pane_width())
         if force_new or not is_job_running(session.job_id) then
           session.job_id = nil
           start_terminal(session, force_new)
         end
+        set_window_options(session.win)
         vim.cmd("startinsert")
         return
       end
 
-      if not session.buf or not vim.api.nvim_buf_is_valid(session.buf) then
-        session.buf = vim.api.nvim_create_buf(false, true)
-        vim.bo[session.buf].bufhidden = "hide"
-        vim.bo[session.buf].swapfile = false
-        vim.bo[session.buf].filetype = "pi"
-      end
+      ensure_buffer(session)
 
-      session.win = vim.api.nvim_open_win(session.buf, true, {
-        relative = "editor",
-        row = row,
-        col = col,
-        width = width,
-        height = height,
-        style = "minimal",
-        border = "rounded",
-      })
-
-      vim.wo[session.win].number = false
-      vim.wo[session.win].relativenumber = false
-      vim.wo[session.win].signcolumn = "no"
-      vim.wo[session.win].wrap = true
-      vim.wo[session.win].winbar = " [Pi] Ctrl+X close "
+      vim.cmd("botright vsplit")
+      session.win = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_set_width(session.win, pane_width())
+      vim.api.nvim_win_set_buf(session.win, session.buf)
+      set_window_options(session.win)
 
       if force_new then
         session.job_id = nil
@@ -158,7 +165,7 @@ return {
     end
 
     vim.api.nvim_create_user_command("Pi", function()
-      open_float(false)
+      open_pane(false)
     end, {})
 
     vim.api.nvim_create_user_command("PiToggle", function()
@@ -168,15 +175,21 @@ return {
       session.root = root
 
       if session.win and vim.api.nvim_win_is_valid(session.win) then
-        close_float(session)
+        if vim.api.nvim_get_current_win() == session.win then
+          close_pane(session)
+        else
+          vim.api.nvim_set_current_win(session.win)
+          vim.api.nvim_win_set_width(session.win, pane_width())
+          vim.cmd("startinsert")
+        end
         return
       end
 
-      open_float(false)
+      open_pane(false)
     end, {})
 
     vim.api.nvim_create_user_command("PiNew", function()
-      open_float(true)
+      open_pane(true)
     end, {})
   end,
 }

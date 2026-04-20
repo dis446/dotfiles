@@ -74,11 +74,12 @@
 - `:SnacksLazyGit` — open LazyGit
 
 ## Pi AI
-- `<leader>pi` — toggle Pi float
-- `<leader>pI` — start a new Pi session for the current repo
-- `:Pi` — open Pi
-- `:PiToggle` — toggle Pi
-- `:PiNew` — new Pi session
+- `<leader>pi` — open/focus Pi in a right-side pane; if already focused, close it
+- `<leader>pI` — start a new Pi session in the right-side pane for the current repo
+- `:Pi` — open/focus Pi pane
+- `:PiToggle` — open/focus Pi pane; if already focused, close it
+- `:PiNew` — start a new Pi session in the Pi pane
+- in the Pi pane, `<C-x>` — close the pane
 
 ## Editing
 - `s` — substitute with motion
