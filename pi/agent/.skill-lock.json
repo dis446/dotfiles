@@ -1,0 +1,40 @@
+{
+  "version": 3,
+  "skills": {
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "c2f31172b6f256272305a5e6e7228b258446899f",
+      "installedAt": "2026-02-28T02:11:01.073Z",
+      "updatedAt": "2026-02-28T02:12:25.129Z"
+    },
+    "caveman": {
+      "source": "juliusbrussee/caveman",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/juliusbrussee/caveman.git",
+      "skillPath": "caveman/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-04-16T08:51:55.850Z",
+      "updatedAt": "2026-04-20T03:09:39.261Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  },
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "firebender",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-cli",
+    "opencode",
+    "warp"
+  ]
+}
