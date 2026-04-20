@@ -6,8 +6,6 @@ return {
 		-- "nvim-java/nvim-java",
 	},
 	config = function()
-		local lspconfig = require("lspconfig")
-		local mason_lspconfig = require("mason-lspconfig")
 		local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
 		local keymap = vim.keymap
@@ -119,61 +117,62 @@ return {
 			vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = "" })
 		end
 
-		mason_lspconfig.setup_handlers({
-			-- default handler for installed servers
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["graphql"] = function()
-				-- configure graphql language server
-				lspconfig["graphql"].setup({
-					capabilities = capabilities,
-					filetypes = { "graphql", "gql", "typescriptreact", "javascriptreact" },
-				})
-			end,
-			["emmet_ls"] = function()
-				-- configure emmet language server
-				lspconfig["emmet_ls"].setup({
-					capabilities = capabilities,
-					filetypes = {
-						"html",
-						"typescriptreact",
-						"javascriptreact",
-						"css",
-						"sass",
-						"scss",
-						"less",
-					},
-				})
-			end,
-			["lua_ls"] = function()
-				-- configure lua server (with special settings)
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							runtime = {
-								version = "LuaJIT",
-							},
-							-- make the language server recognize "vim" global
-							diagnostics = {
-								globals = { "vim" },
-							},
-							workspace = {
-								checkThirdParty = false,
-							},
-							telemetry = {
-								enable = false,
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
+		local servers = {
+			ts_ls = {},
+			html = {},
+			cssls = {},
+			tailwindcss = {},
+			graphql = {
+				filetypes = { "graphql", "gql", "typescriptreact", "javascriptreact" },
+			},
+			emmet_ls = {
+				filetypes = {
+					"html",
+					"typescriptreact",
+					"javascriptreact",
+					"css",
+					"sass",
+					"scss",
+					"less",
+				},
+			},
+			prismals = {},
+			pyright = {},
+			jdtls = {},
+			jsonls = {},
+			yamlls = {},
+			bashls = {},
+			dockerls = {},
+			sqls = {},
+			marksman = {},
+			lua_ls = {
+				settings = {
+					Lua = {
+						runtime = {
+							version = "LuaJIT",
+						},
+						diagnostics = {
+							globals = { "vim" },
+						},
+						workspace = {
+							checkThirdParty = false,
+						},
+						telemetry = {
+							enable = false,
+						},
+						completion = {
+							callSnippet = "Replace",
 						},
 					},
-				})
-			end,
-		})
+				},
+			},
+		}
+
+		for server_name, server_opts in pairs(servers) do
+			vim.lsp.config(server_name, vim.tbl_deep_extend("force", {
+				capabilities = capabilities,
+			}, server_opts))
+			vim.lsp.enable(server_name)
+		end
 	end,
 }
