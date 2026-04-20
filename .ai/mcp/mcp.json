@@ -4,7 +4,7 @@
       "command": "bash",
       "args": [
         "-lc",
-        "exec env ARGOCD_BASE_URL=\"https://argocd-test.alpha.looms.cloud/\" ARGOCD_API_TOKEN=\"$API_KEY\" npx -y argocd-mcp@latest stdio"
+        "exec env ARGOCD_BASE_URL=\"https://argocd-test.alpha.looms.cloud/\" ARGOCD_API_TOKEN=\"$ALPHA_ARGOCD_TEST_API_KEY\" npx -y argocd-mcp@latest stdio"
       ],
       "lifecycle": "lazy"
     }
