@@ -111,6 +111,25 @@ return {
 		})
 
 		local capabilities = cmp_nvim_lsp.default_capabilities()
+
+		local function append_env_arg(name, value)
+			local current = vim.env[name] or ""
+			if current:find(value, 1, true) then
+				return
+			end
+			vim.env[name] = current == "" and value or (current .. " " .. value)
+		end
+
+		local function configure_jdtls_lombok()
+			local lombok_jar = vim.fn.stdpath("data") .. "/mason/packages/jdtls/lombok.jar"
+			if vim.fn.filereadable(lombok_jar) == 1 then
+				append_env_arg("JDTLS_JVM_ARGS", "-javaagent:" .. lombok_jar)
+				append_env_arg("JDTLS_JVM_ARGS", "-Xbootclasspath/a:" .. lombok_jar)
+			end
+		end
+
+		configure_jdtls_lombok()
+
 		local signs = { Error = "⛔", Warn = "⚠︎", Hint = "?", Info = "!" }
 		for type, icon in pairs(signs) do
 			local hl = "DiagnosticSign" .. type
