@@ -78,6 +78,12 @@
 - `<leader>mp` — format file or selection
 - `<leader>l` — lint current file
 
+## Comments
+- `gcc` — toggle line comment
+- `gc` — toggle comment for motion or visual selection
+- `gbc` — toggle block comment on current line
+- `gb` — toggle block comment for motion or visual selection
+
 ## Sessions and git tools
 - `<leader>wr` — restore session for current directory
 - `<leader>ws` — save session for current directory
