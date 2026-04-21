@@ -31,13 +31,14 @@ return {
 				vim.fn.mkdir(workspace_dir, "p")
 
 				local lombok_jar = vim.fn.stdpath("data") .. "/mason/packages/jdtls/lombok.jar"
-				local jvm_args = {}
+				local cmd = { vim.fn.stdpath("data") .. "/mason/bin/jdtls" }
 				if vim.fn.filereadable(lombok_jar) == 1 then
-					table.insert(jvm_args, "-javaagent:" .. lombok_jar)
-					table.insert(jvm_args, "-Xbootclasspath/a:" .. lombok_jar)
+					table.insert(cmd, "--jvm-arg=-javaagent:" .. lombok_jar)
+					table.insert(cmd, "--jvm-arg=-Xbootclasspath/a:" .. lombok_jar)
 				end
 
 				local java_home = vim.env.JAVA_HOME
+				local java_bin = vim.fn.exepath("java")
 				local runtimes = {}
 				if java_home and java_home ~= "" then
 					table.insert(runtimes, {
@@ -47,16 +48,15 @@ return {
 					})
 				end
 
-				local cmd_env = nil
-				if #jvm_args > 0 then
-					cmd_env = {
-						JDTLS_JVM_ARGS = table.concat(jvm_args, " "),
-					}
+				if java_bin ~= "" then
+					table.insert(cmd, "--java-executable=" .. java_bin)
 				end
 
+				table.insert(cmd, "-data")
+				table.insert(cmd, workspace_dir)
+
 				jdtls.start_or_attach({
-					cmd = { vim.fn.stdpath("data") .. "/mason/bin/jdtls", "-data", workspace_dir },
-					cmd_env = cmd_env,
+					cmd = cmd,
 					root_dir = root_dir,
 					init_options = {
 						bundles = {},
@@ -72,7 +72,7 @@ return {
 								updateSnapshots = true,
 							},
 							configuration = {
-								updateBuildConfiguration = "interactive",
+								updateBuildConfiguration = "automatic",
 								runtimes = runtimes,
 							},
 							references = {
