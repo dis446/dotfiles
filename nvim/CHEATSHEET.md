@@ -24,6 +24,17 @@
 - `:SnacksTerminalFloat` — open floating terminal
 - in terminal mode, `<leader>ot` also toggles the terminal
 
+## DBEE
+- `<leader>od` — reload current repo DB config and open DBEE
+- `<leader>oD` — reload current repo DB connections
+- `:DbeeRepoOpen` — reload current repo DB config and open DBEE
+- `:DbeeRepoToggle` — reload current repo DB config and open DBEE
+- `:DbeeRepoReload` — reload current repo DB connections
+- `:DbeeRepoEditConfig` — edit or create `repo/.nvim/dbee.lua`
+- `:DbeeRepoEditLocalConfig` — edit or create ignored `repo/.nvim/dbee.local.lua`
+- repo DB config lives in `repo/.nvim/dbee.lua`
+- personal repo override lives in `repo/.nvim/dbee.local.lua`
+
 ## Files and search
 - `<leader>ee` — toggle file explorer
 - `<leader>ef` — reveal current file in explorer
