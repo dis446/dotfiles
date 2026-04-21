@@ -1,435 +1,465 @@
-# nvim-dbee plan — revised for alpha back-end repos
+# nvim-dbee plan — repo-owned DB configs
 
-Goal: add `nvim-dbee` to this Neovim config in way that matches how `/home/ubby/Code/alpha/back-end` actually works.
+Goal: add `nvim-dbee` to Neovim with **explicit repo-owned DB config**, **multiple connections per repo**, **no IntelliJ parsing**, **no global connection pile**.
 
-Main change from original plan: do **not** make every repo maintain a brand-new `.db/dbee.lua` file first. Your repos already expose DB info in several existing places, and many already have JetBrains datasource files. Best plan is **discovery + optional override**, not **manual duplication everywhere**.
-
----
-
-## What repo survey showed
-
-Your back-end repos are mixed, not one uniform stack:
-
-- **Quarkus / Maven** repos with `application.properties`
-  - mostly PostgreSQL: `task-mgmt`, `mdm`, `dealer-mgmt`, `state-mgt`, `logMgmt`, `relation-store`, `call-service`
-  - MySQL in `auth`
-- **Node / Nest / Drizzle** repos
-  - PostgreSQL via `DATABASE_URL` or `POSTGRES_*`: `state-machine`, `rule-engine`, `structure_v2`, `namager`
-- **Symfony / PHP** repos
-  - MySQL via `DATABASE_URL`: `contract`, `collateral`
-- **Multi-DB repos exist**
-  - `mdm` has local main Postgres + downstream Postgres + downstream MySQL
-- **Local ports are not consistent**
-  - common local Postgres ports include `5433`, `7711`, `7712`
-  - local MySQL includes `3306`, `7713`
-- **Schema matters in several repos**
-  - examples: `task-mgmt`, `dealer-mgmt`, `mdm`, `state-machine`, `rule-engine`
-- **Env conventions differ by repo**
-  - `DB_HOST/DB_PORT/DB_NAME/DB_SCHEMA/DB_USER/DB_PASS`
-  - `DB_URL`
-  - `DATABASE_URL`
-  - `POSTGRES_*`
-- **`.envrc` is not current norm**
-  - `.env`, `.env.local`, `.env.dist`, `docker-compose*.yml`, and app config files are much more common
-- **You already have JetBrains datasource metadata in many repos**
-  - several repos contain local `.idea/dataSources.xml`
-  - this is valuable because it already reflects how you work today in IntelliJ
-
-Conclusion: one global connection pile is wrong, but one brand-new per-repo config file is also too much manual work.
+POC repo: `/home/ubby/Code/alpha/back-end/relation-store`
 
 ---
 
-## Revised recommendation
+## Hard requirements
 
-Use this model:
-
-1. **Detect repo root**
-2. **Load repo DB connections from existing repo files first**
-3. **Allow optional repo-local Neovim overrides**
-4. **Fallback to global personal defaults**
-5. **Treat SSH tunnels as external, but make tunnel-first connections easy**
-
-This gives:
-
-- low maintenance
-- better fit for mixed stacks
-- reuse of your existing IntelliJ/repo metadata
-- no need to hand-write config for every repo before it works
+- DBEE must **never read IntelliJ configs**.
+- Each repo must **own its own DB connection config**.
+- Each repo must support **multiple named DB connections**.
+- Secrets must stay out of committed config.
+- SSH tunnels stay **outside dbee**, but repo config may describe tunneled connections.
+- If repo has no DBEE config, DBEE should do nothing for that repo.
 
 ---
 
-## Recommended discovery order
+## What changed from earlier plan
 
-When Neovim enters a repo, load connections in this order:
+Old direction used discovery from repo files and JetBrains datasource import.
 
-1. `repo/.nvim/dbee.local.lua`
-   - personal overrides
-   - untracked
-   - can point remote DBs at localhost tunnel ports
-2. `repo/.nvim/dbee.lua`
-   - optional shared repo config
-   - no secrets
-   - use only when auto-discovery is not enough or when repo needs curated labels/groups
-3. `repo/.idea/dataSources.xml`
-   - import existing JetBrains datasource names + JDBC URLs when present
-   - best migration path from IntelliJ workflow
-4. framework-specific discovery
-   - Quarkus: `application.properties` + `.env` / `.env.local` / `.env.dist`
-   - Drizzle/Node: `drizzle.config.ts` + `.env` / `.env.local`
-   - Symfony: `.env` + `.env.local` + `DATABASE_URL`
-   - Docker Compose: `compose.yml` / `docker-compose*.yml` for local containers
-5. global fallback config
-   - only for truly shared personal connections
+New direction:
 
-Rule: earlier entries override later ones.
+- **No IntelliJ import**
+- **No magic autodiscovery as primary model**
+- **Repo-local explicit config is source of truth**
+- Optional env loading still OK for secrets/defaults
+
+Reason: cleaner ownership model. Less hidden behavior. Easier multi-DB support.
 
 ---
 
-## File layout recommendation
+## Recommended repo layout
 
-Prefer this over `.db/dbee.lua`:
+Use this in repos that opt in:
 
 ```text
 repo/
 ├── .nvim/
-│   ├── dbee.lua         # optional shared repo metadata, no secrets
-│   └── dbee.local.lua   # personal overrides, untracked
-├── .idea/               # optional JetBrains datasource source
-├── .env / .env.local / .env.dist
-└── docker-compose*.yml
+│   ├── dbee.lua         # committed, repo-owned, no secrets
+│   └── dbee.local.lua   # optional, untracked, personal overrides
+├── .env                 # optional, usually ignored already
+├── .env.test            # optional, usually ignored already
+└── scripts/
+    └── db-tunnel-*.sh   # optional tunnel helpers
 ```
 
-Why `.nvim/` instead of `.db/`:
+Why `.nvim/`:
 
-- clearer that file is editor-specific
-- avoids confusion with real DB folders like `db/`, `drizzle/`, `migrations/`
-- scales better if you later want other repo-local Neovim settings
-
-`dbee.local.lua` should be ignored via one of:
-
-- global gitignore
-- repo `.git/info/exclude`
-- repo `.gitignore` if you want team-wide ignore rule
+- clear editor-specific ownership
+- avoids mixing with app DB folders like `db/`, `drizzle/`, `migrations/`
+- easy future expansion for repo-local Neovim behavior
 
 ---
 
-## Connection model
+## Config contract
 
-Normalized connection object should support:
+Each `repo/.nvim/dbee.lua` should return **list of named connections**.
+
+Example shape:
+
+```lua
+return {
+  connections = {
+    {
+      name = "local",
+      type = "postgres",
+      url_env = "RELATION_STORE_DB_LOCAL_URL",
+      host = "127.0.0.1",
+      port = 5432,
+      database = "postgres",
+      user_env = "RELATION_STORE_DB_LOCAL_USER",
+      password_env = "RELATION_STORE_DB_LOCAL_PASS",
+      schema = "relation_store",
+      sslmode = "disable",
+      tags = { "local" },
+    },
+    {
+      name = "test-tunnel",
+      type = "postgres",
+      host = "127.0.0.1",
+      port_env = "RELATION_STORE_DB_TEST_TUNNEL_PORT",
+      port = 6432,
+      database = "relation_store",
+      user_env = "RELATION_STORE_DB_TEST_USER",
+      password_env = "RELATION_STORE_DB_TEST_PASS",
+      schema = "relation_store",
+      sslmode = "disable",
+      tags = { "test", "tunnel" },
+      via_tunnel = true,
+    },
+  },
+}
+```
+
+Notes:
+
+- `connections` is array, not single object
+- each connection has stable `name`
+- secrets come from env vars, not committed Lua
+- URL form and host/port form both allowed
+- schema should be first-class, not afterthought
+
+---
+
+## Normalized connection fields
+
+Support these fields in loader:
 
 - `name`
-- `type` / engine (`postgres`, `mysql`)
-- `url` or `host` + `port` + `database`
+- `type` — `postgres`, `mysql`, later more if needed
+- `url`
+- `url_env`
+- `host`
+- `host_env`
+- `port`
+- `port_env`
+- `database`
+- `database_env`
 - `user`
-- `password_env` or env-derived password
-- `schema` / `currentSchema` when relevant
-- `ssl` / `sslmode`
-- `source` (`nvim-local`, `nvim-shared`, `jetbrains`, `quarkus`, `drizzle`, `symfony`, `compose`, `global`)
-- `tags` like `local`, `dev`, `test`, `downstream`, `tunnel`
+- `user_env`
+- `password`
+- `password_env`
+- `schema`
+- `schema_env`
+- `sslmode`
+- `tags`
+- `via_tunnel`
+- `description`
 
-Important: schema support is not optional for your repos.
+Resolution rule:
+
+- explicit value wins if present
+- otherwise read matching `*_env`
+- otherwise use hardcoded non-secret default if present
+- if required field still missing, skip connection and warn
 
 ---
 
-## Discovery rules by repo type
+## Secret model
 
-### 1) JetBrains datasource import
+Committed `repo/.nvim/dbee.lua` may contain:
 
-Since you currently use IntelliJ database tooling, this should be first-class.
+- names
+- engine type
+- schema
+- localhost hostnames
+- local default ports
+- env variable names
+- non-secret descriptions/tags
 
-Read `.idea/dataSources.xml` when present and import:
+Committed `repo/.nvim/dbee.lua` must **not** contain:
 
-- datasource name
-- engine from driver ref / JDBC URL
-- JDBC URL
-- working dir
+- passwords
+- tokens
+- raw remote connection strings with credentials
 
-Do **not** depend on JetBrains for secrets. Use:
+Secrets should come from one of:
 
-- env vars
-- `dbee.local.lua`
-- prompt on connect if needed
+- repo `.env`
+- repo `.env.local`
+- shell env
+- `repo/.nvim/dbee.local.lua`
 
-This lets Neovim start with connections you already maintain in IntelliJ instead of forcing duplicate config.
+If `dbee.local.lua` is used, it must be ignored.
 
-### 2) Quarkus adapter
+---
 
-Target repos like `task-mgmt`, `mdm`, `dealer-mgmt`, `state-mgt`, `logMgmt`, `relation-store`, `auth`.
+## `dbee.local.lua` role
 
-Read:
+Use `repo/.nvim/dbee.local.lua` for personal overrides only.
 
-- `src/main/resources/application.properties`
-- `.env`
-- `.env.local`
-- `.env.dist`
-- `compose.yml` / `docker-compose*.yml`
+Examples:
 
-Detect patterns like:
+- override tunnel port
+- override username/password env names
+- disable noisy connections
+- add temporary one-off connection for branch work
 
-- `quarkus.datasource.db-kind=postgresql`
-- `quarkus.datasource.db-kind=mysql`
-- `quarkus.datasource.jdbc.url=${DB_URL}`
-- `jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?currentSchema=${DB_SCHEMA}`
-- `jdbc:mysql://...`
+Merge order:
 
-Expected outputs:
+1. `dbee.lua`
+2. `dbee.local.lua`
 
-- `task-mgmt` → local Postgres connection on repo-defined port, schema-aware
-- `auth` → MySQL connection via `DB_URL`
-- `mdm` → Postgres connection with schema + optional local stack extras
+Later file overrides earlier one by connection `name`.
 
-### 3) Drizzle / Node adapter
+---
 
-Target repos like `state-machine`, `rule-engine`, `structure_v2`, `namager`.
+## Tunnel model
 
-Read:
+Tunnels are external. DBEE only connects to local forwarded endpoint.
 
-- `drizzle.config.ts`
-- `.env`
-- `.env.local`
-- `docker-compose*.yml`
+Meaning:
 
-Detect patterns like:
+- DBEE config should point tunneled DBs to `127.0.0.1:<forwarded-port>`
+- repo may include helper script like `scripts/db-tunnel-test.sh`
+- DBEE loader does **not** open SSH session itself
 
-- `DATABASE_URL`
-- `POSTGRES_HOST`
-- `POSTGRES_PORT`
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-- drizzle `schemaFilter`
+Optional metadata is OK:
 
-Expected outputs:
+```lua
+via_tunnel = true,
+description = "Requires test SSH tunnel on localhost:6432"
+```
 
-- `state-machine` → Postgres via `DATABASE_URL`, schema `state_machine`
-- `rule-engine` → Postgres via `POSTGRES_*`, schema `rule_engine`, default local port often `6432`/repo-defined
+But connection itself remains normal localhost DB connection.
 
-### 4) Symfony adapter
+---
 
-Target repos like `contract`, `collateral`.
+## Neovim loader behavior
 
-Read:
+When opening file inside repo:
 
-- `.env`
-- `.env.local`
-- `.env.dev`
-- `config/packages/doctrine.yaml`
+1. find git root / repo root
+2. look for `repo/.nvim/dbee.lua`
+3. if absent, no repo DB config loaded
+4. if present, load `connections`
+5. if `repo/.nvim/dbee.local.lua` exists, merge overrides
+6. convert resolved connections to DBEE format
+7. expose repo command to open/select connection
 
-Detect:
+Important:
 
-- `DATABASE_URL=mysql://...`
-- engine from URL scheme
+- no fallback to IntelliJ
+- no scanning `application.properties` for live connection definitions
+- repo DB config is single source of truth for DBEE
 
-Expected output:
-
-- one MySQL connection per repo, plus optional local overrides
-
-### 5) Docker Compose local-stack adapter
-
-Use when repo runs database containers locally and app config alone is not enough.
-
-Very useful for:
-
-- `mdm` local stack
-- `task-mgmt` local Postgres
-- `rule-engine` local Postgres
-- any repo with explicit DB service port mapping
-
-Examples from your repos:
-
-- `task-mgmt` local Postgres on host port `5433`
-- `mdm` local main Postgres on `7711`
-- `mdm` downstream Postgres on `7712`
-- `mdm` downstream MySQL on `7713`
-- `rule-engine` local Postgres on `5433`
-
-This matters because many of your local DBs are not on default ports.
+App config may still inspire values when author writes repo config, but loader should not depend on it.
 
 ---
 
 ## Naming convention
 
-Use stable names like:
+Use stable repo-scoped names:
 
-- `task-mgmt/local`
-- `task-mgmt/dev`
-- `auth/local`
-- `mdm/local-main`
-- `mdm/local-downstream-pg`
-- `mdm/local-downstream-mysql`
-- `state-machine/dev-tunnel`
-- `rule-engine/local`
+- `local`
+- `test-tunnel`
+- `dev-tunnel`
+- `downstream-pg-local`
+- `downstream-mysql-local`
 
-Reason: several repos have more than one useful DB connection.
+In UI, show them as:
 
----
+- `relation-store/local`
+- `relation-store/test-tunnel`
 
-## SSH tunnel stance
-
-Keep tunnels outside dbee, but plan for them explicitly.
-
-Recommended practice:
-
-- tunnel with `ssh -L ...`, `autossh`, or small helper scripts
-- dbee connects to `127.0.0.1:<forwarded-port>`
-- remote/tunneled entries belong in `dbee.local.lua` or global personal config
-
-Why this fits your repos:
-
-- several remote DBs are private/cloud-hosted
-- local forwarded ports are safer and more consistent than direct remote access from editor config
-- same tunnel pattern works for both Postgres and MySQL
-
-Optional later improvement:
-
-- add helper commands/scripts like `db-tunnel-task-mgmt-dev`, `db-tunnel-state-machine-test`
-- but keep that out of initial dbee integration
+Reason: avoids name collisions across repos.
 
 ---
 
-## Security stance
+## POC target: `relation-store`
 
-Do not store raw passwords in:
+Repo facts relevant to POC:
 
-- `repo/.nvim/dbee.lua`
-- imported repo metadata
-- any committed repo file added for Neovim
+- Quarkus app expects Postgres via `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`
+- schema is `relation_store`
+- repo already has ignored `.env*` files
+- your required POC connections are:
+  - local Postgres
+  - test env Postgres through SSH tunnel
 
-Use:
+### POC desired connections
 
-- existing `.env.local`
-- ignored `.env`
-- shell env vars
-- `dbee.local.lua`
-- secret manager if you already have one
+#### 1) `relation-store/local`
 
-Also:
+Purpose:
 
-- prefer local/test/dev over prod
-- if remote prod-like connections are supported at all, keep them opt-in
-- consider filtering out names like `prod` unless explicit flag enables them
+- connect to your local Postgres for daily dev work
 
----
+Defaults:
 
-## Concrete examples from current repos
+- type: `postgres`
+- host: `127.0.0.1`
+- port: `5432`
+- database: `postgres`
+- schema: `relation_store`
+- sslmode: `disable`
 
-### `task-mgmt`
+Credentials:
 
-Repo already exposes enough info for auto-discovery:
+- from env vars, not committed in Lua
 
-- Quarkus Postgres
-- env vars: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_SCHEMA`, `DB_USER`, `DB_PASS`
-- local compose exposes Postgres on host port `5433`
+#### 2) `relation-store/test-tunnel`
 
-Result: this repo should work with zero extra dbee config.
+Purpose:
 
-### `auth`
+- connect to test env Postgres through local SSH tunnel
 
-Repo differs from most others:
+Defaults:
 
-- Quarkus
-- MySQL, not Postgres
-- main DB setting comes from `DB_URL`
+- type: `postgres`
+- host: `127.0.0.1`
+- port: `6432` by default if that is your chosen forward
+- database: `relation_store`
+- schema: `relation_store`
+- sslmode: `disable` at DBEE side if tunnel terminates to localhost
+- mark `via_tunnel = true`
 
-Result: plan must support mixed engines, not only Postgres.
+Credentials:
 
-### `mdm`
+- from env vars, not committed in Lua
 
-Repo proves one-repo-one-connection is wrong:
+Important:
 
-- main app Postgres
-- downstream Postgres
-- downstream MySQL
-- local docker stack already documents ports
-- repo also has JetBrains datasource definitions
-
-Result: repo-level config must support multiple named connections.
-
-### `state-machine`
-
-Repo shows Node/Drizzle pattern:
-
-- uses `DATABASE_URL`
-- schema filter matters
-- repo also has JetBrains datasource definitions
-
-Result: dbee should understand URL-driven Postgres repos, not only Java property templates.
-
-### `rule-engine`
-
-Repo shows another Node/Postgres shape:
-
-- uses `POSTGRES_*` vars instead of single `DATABASE_URL`
-- `drizzle.config.ts` is strong discovery source
-
-Result: adapter must support both URL and split-env formats.
-
-### `contract` / `collateral`
-
-Repos show Symfony/Doctrine pattern:
-
-- DB config centered on `DATABASE_URL`
-- MySQL common
-
-Result: plan should include a Symfony adapter or at least URL-based fallback.
+- DBEE config should **not** point at Azure hostname directly for this connection
+- it should point at tunnel endpoint on localhost
 
 ---
 
-## Open questions — updated
+## POC file examples
 
-1. **Primary repo-local file name**
-   - recommendation: `.nvim/dbee.lua`
-   - not `.db/dbee.lua`
+### `relation-store/.nvim/dbee.lua`
 
-2. **Should JetBrains datasource import be supported?**
-   - recommendation: **yes**
-   - this is biggest quality-of-life win for your current workflow
+```lua
+return {
+  connections = {
+    {
+      name = "local",
+      type = "postgres",
+      host = "127.0.0.1",
+      port = 5432,
+      database = "postgres",
+      schema = "relation_store",
+      user_env = "RELATION_STORE_DB_LOCAL_USER",
+      password_env = "RELATION_STORE_DB_LOCAL_PASS",
+      sslmode = "disable",
+      tags = { "local" },
+    },
+    {
+      name = "test-tunnel",
+      type = "postgres",
+      host = "127.0.0.1",
+      port_env = "RELATION_STORE_DB_TEST_TUNNEL_PORT",
+      port = 6432,
+      database = "relation_store",
+      schema = "relation_store",
+      user_env = "RELATION_STORE_DB_TEST_USER",
+      password_env = "RELATION_STORE_DB_TEST_PASS",
+      sslmode = "disable",
+      via_tunnel = true,
+      tags = { "test", "tunnel" },
+      description = "Test env over SSH tunnel",
+    },
+  },
+}
+```
 
-3. **Should config formats beyond Lua be supported?**
-   - recommendation: not initially
-   - prefer adapters for existing repo files over new JSON/YAML format
+### optional `relation-store/.nvim/dbee.local.lua`
 
-4. **Should SSH tunnel helpers be added?**
-   - maybe later
-   - not part of first implementation
+```lua
+return {
+  connections = {
+    {
+      name = "test-tunnel",
+      port = 6543,
+    },
+  },
+}
+```
 
-5. **Should prod connections appear automatically?**
-   - recommendation: no, or only behind explicit opt-in flag
+### env examples
+
+Could live in ignored `.env` or shell env:
+
+```bash
+RELATION_STORE_DB_LOCAL_USER=ubby
+RELATION_STORE_DB_LOCAL_PASS=...
+RELATION_STORE_DB_TEST_USER=app_relation_store
+RELATION_STORE_DB_TEST_PASS=...
+RELATION_STORE_DB_TEST_TUNNEL_PORT=6432
+```
+
+If you prefer full URLs later, contract can also support:
+
+```bash
+RELATION_STORE_DB_LOCAL_URL=postgresql://user:pass@127.0.0.1:5432/postgres?sslmode=disable
+RELATION_STORE_DB_TEST_TUNNEL_URL=postgresql://user:pass@127.0.0.1:6432/relation_store?sslmode=disable
+```
+
+Then `url_env` can replace split fields.
+
+---
+
+## Generalized pattern for all repos
+
+Every repo that wants DBEE support adds committed `repo/.nvim/dbee.lua`.
+
+That file declares zero or more named connections.
+
+Examples:
+
+- Quarkus repo with one local and one test tunnel → 2 entries
+- Node repo with local, dev tunnel, test tunnel → 3 entries
+- multi-DB repo like `mdm` → 4+ entries
+- MySQL repo like `auth` → same shape, different `type`
+
+This is simple, explicit, and stack-agnostic.
+
+---
+
+## Validation rules
+
+Loader should validate each connection:
+
+- `name` required
+- `type` required
+- either `url`/`url_env` or enough host-form fields to build DSN
+- if `via_tunnel = true`, missing localhost host should warn
+- if credential env vars missing, either prompt or skip based on config
+
+Recommendation for POC:
+
+- skip invalid connections with warning
+- do not prompt yet
+- keep first implementation deterministic
+
+---
+
+## Non-goals for first version
+
+Do not add yet:
+
+- IntelliJ import
+- framework autodiscovery
+- JSON/YAML config formats
+- tunnel lifecycle management
+- secret manager integration
+- automatic prod connection support
+
+Keep POC small.
+
+---
+
+## Recommended implementation order
+
+1. Add `nvim-dbee`
+2. Add repo-root detection
+3. Add loader for `repo/.nvim/dbee.lua`
+4. Add merge support for `repo/.nvim/dbee.local.lua`
+5. Add normalized connection resolver
+6. Add repo-scoped connection names in UI
+7. POC in `relation-store` with:
+   - `local`
+   - `test-tunnel`
+8. After POC works, roll same contract to other repos
 
 ---
 
 ## Final recommendation
 
-Build `nvim-dbee` integration around **repo discovery** with **optional repo-local override files**.
+Use **explicit repo-owned Lua config** as only DBEE source of truth.
 
-Best final shape:
+Best shape:
 
-- `.nvim/dbee.local.lua` for personal overrides and tunnels
-- `.nvim/dbee.lua` for optional shared repo metadata
-- import `.idea/dataSources.xml` when present
-- auto-discover from app config / env / compose files
-- fallback to global personal defaults
-- keep secrets out of committed files
-- keep SSH tunnels external
+- committed `repo/.nvim/dbee.lua`
+- optional ignored `repo/.nvim/dbee.local.lua`
+- multiple named connections per repo
+- env-backed secrets
+- localhost endpoints for tunneled DBs
+- no IntelliJ coupling
+- no hidden autodiscovery
 
-This matches your real repo fleet much better than a single global config or a mandatory new `.db/dbee.lua` file in every repo.
-
----
-
-## Implementation order
-
-1. Add `nvim-dbee` plugin
-2. Add repo-root detection
-3. Add connection loader with discovery order above
-4. Implement JetBrains datasource import
-5. Implement Quarkus adapter
-6. Implement Drizzle/Node adapter
-7. Implement Symfony URL adapter
-8. Implement compose-based local DB fallback
-9. Add commands:
-   - `:DbeeOpen`
-   - `:DbeeReloadConnections`
-   - `:DbeeRepoConnections`
-10. Later, add tunnel helper scripts only if still needed
-
-That is most realistic plan for your actual repos and current IntelliJ-heavy workflow.
+This matches your requirement exactly: each repo owns DB config, each repo can define many DB connections, DBEE stays separate from IntelliJ.
