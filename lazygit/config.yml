@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/master/schema/config.json
+customCommands:
+  - key: 'P'
+    context: 'status'
+    description: 'Commit staged changes with Pi'
+    loadingText: 'Generating commit message with Pi...'
+    command: '$HOME/dotfiles/scripts/pi-git-commit.sh'
+    output: terminal
