@@ -180,6 +180,27 @@ Commands and keymaps:
 - `:SnacksTerminal` — toggle terminal
 - `:SnacksTerminalFloat` — open floating terminal
 
+### DB client
+#### `nvim-dbee`
+Provides repo-scoped database connections loaded from `repo/.nvim/dbee.lua`.
+
+Repo commands:
+- `:DbeeRepoOpen` — reload current repo DB config and open DBee
+- `:DbeeRepoToggle` — reload current repo DB config and open DBee
+- `:DbeeRepoReload` — reload current repo DB connections
+- `:DbeeRepoEditConfig` — edit or create `repo/.nvim/dbee.lua`
+- `:DbeeRepoEditLocalConfig` — edit or create ignored `repo/.nvim/dbee.local.lua`
+
+Keymaps:
+- `<leader>od` — open DBee for current repo
+- `<leader>oD` — reload current repo DB connections
+
+Expected repo format:
+- committed `repo/.nvim/dbee.lua`
+- optional ignored `repo/.nvim/dbee.local.lua`
+- multiple named connections per repo supported
+- secrets can come from ignored `.env*` files via `env_files`
+
 ### Session management
 #### `auto-session`
 Manages session save and restore per directory.
