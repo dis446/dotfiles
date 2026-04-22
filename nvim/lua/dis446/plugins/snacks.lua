@@ -43,8 +43,11 @@ return {
           hidden = true,
           ignored = true,
           exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
+          -- make explorer wider: set sidebar width (fraction of total width). Default ~0.33, set to 0.66 for ~2x width
+          layout = { preset = "sidebar", preview = false, width = 0.66 },
           jump = { close = true },
         },
+
         files = {
           hidden = true,
           ignored = true,
