@@ -133,7 +133,7 @@ Enabled modules:
 - `zen`
 
 Keymaps:
-- `<leader>ee` — toggle file explorer
+- `<leader>ee` — open file explorer
 - `<leader>ef` — reveal current file in explorer
 - `<leader>ff` — find files
 - `<leader>fr` — recent files

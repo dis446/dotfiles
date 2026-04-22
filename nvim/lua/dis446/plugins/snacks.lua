@@ -17,7 +17,7 @@ return {
 ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝]],
         keys = {
           { icon = " ", key = "e", desc = "New File", action = ":ene | startinsert" },
-          { icon = " ", key = "SPC ee", desc = "Toggle file explorer", action = function() Snacks.explorer() end },
+          { icon = " ", key = "SPC ee", desc = "Open file explorer", action = function() Snacks.explorer.open() end },
           { icon = "󰱼 ", key = "SPC ff", desc = "Find File", action = function() Snacks.picker.files() end },
           { icon = " ", key = "SPC fs", desc = "Find Word", action = function() Snacks.picker.grep() end },
           { icon = "󰁯 ", key = "SPC wr", desc = "Restore Session For Current Directory", action = ":SessionRestore" },
@@ -32,7 +32,8 @@ return {
     },
     explorer = {
       enabled = true,
-      replace_netrw = true,
+      -- Keep explorer manual-only. Don't auto-open on directory buffers.
+      replace_netrw = false,
     },
     picker = {
       enabled = true,
@@ -42,6 +43,7 @@ return {
           hidden = true,
           ignored = true,
           exclude = { "**/node_modules/**", "**/.next/**", "**/.turbo/**", "**/out/**", "**/target/**", "**/build/**", "**/dist/**" },
+          jump = { close = true },
         },
         files = {
           hidden = true,
@@ -78,8 +80,8 @@ return {
     local keymap = vim.keymap
 
     keymap.set("n", "<leader>ee", function()
-      Snacks.explorer()
-    end, { desc = "Toggle file explorer" })
+      Snacks.explorer.open()
+    end, { desc = "Open file explorer" })
 
     keymap.set("n", "<leader>ef", function()
       Snacks.explorer.reveal()
@@ -153,7 +155,7 @@ return {
     end, { desc = "Open todos list" })
 
     vim.api.nvim_create_user_command("SnacksExplorer", function()
-      Snacks.explorer()
+      Snacks.explorer.open()
     end, { desc = "Open Snacks explorer" })
 
     vim.api.nvim_create_user_command("SnacksReveal", function()
