@@ -10,7 +10,7 @@
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
   "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5-mini",
+  "defaultModel": "gpt-5.4-mini",
   "enabledModels": [
     "github-copilot/gpt-5.4",
     "github-copilot/gpt-5.4-mini",
@@ -52,5 +52,5 @@
   "themes": [],
   "enableSkillCommands": true,
   "lastChangelogVersion": "0.66.1",
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "medium"
 }
