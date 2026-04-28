@@ -25,15 +25,37 @@
 - in terminal mode, `<leader>ot` also toggles the terminal
 
 ## DBEE
-- `<leader>od` — reload current repo DB config and open DBEE
-- `<leader>oD` — reload current repo DB connections
-- `:DbeeRepoOpen` — reload current repo DB config and open DBEE
-- `:DbeeRepoToggle` — reload current repo DB config and open DBEE
-- `:DbeeRepoReload` — reload current repo DB connections
-- `:DbeeRepoEditConfig` — edit or create `repo/.nvim/dbee.lua`
-- `:DbeeRepoEditLocalConfig` — edit or create ignored `repo/.nvim/dbee.local.lua`
-- repo DB config lives in `repo/.nvim/dbee.lua`
-- personal repo override lives in `repo/.nvim/dbee.local.lua`
+### Basics
+- Open DBee for current repo: `<leader>od` or `:DbeeRepoOpen`
+- Reload repo DB connections: `<leader>oD` or `:DbeeRepoReload`
+- Edit repo DB config: `:DbeeRepoEditConfig`
+- Edit personal override: `:DbeeRepoEditLocalConfig`
+- Repo DB config lives in `repo/.nvim/dbee.lua`
+- Personal repo override lives in `repo/.nvim/dbee.local.lua`
+
+### Quick workflow
+1. Open DBee.
+2. In drawer, press `<CR>` on connection to make it active.
+3. Press `<CR>` on `new` scratchpad to open query editor.
+4. Write SQL in editor pane.
+5. Run query with `BB`.
+   - visual mode `BB` = run selected SQL
+   - normal mode `BB` = run whole scratchpad
+6. Read output in result pane.
+7. Use result paging if needed: `L` next, `H` prev, `E` last, `F` first.
+8. Yank results from result pane:
+   - `yaj` — current row as JSON
+   - `yac` — current row as CSV
+   - `yaJ` — all rows as JSON
+   - `yaC` — all rows as CSV
+9. Save results with `require("dbee").store(...)` or `:Dbee store`.
+
+### Drawer basics
+- `o` — expand / collapse node
+- `r` — refresh tree
+- `cw` — edit connection
+- `dd` — delete connection
+- `<CR>` — open selected item
 
 ## Files and search
 - `<leader>ee` — open file explorer
