@@ -12,9 +12,8 @@
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-5.4-mini",
   "enabledModels": [
-    "github-copilot/gpt-5.4",
     "github-copilot/gpt-5.4-mini",
-    "github-copilot/gpt-5-mini"
+    "github-copilot/gpt-5.4"
   ],
   "compaction": {
     "enabled": true,

@@ -34,7 +34,7 @@
   "app.clear": ["ctrl+c"],
   "app.exit": ["ctrl+d"],
   "app.suspend": ["ctrl+z"],
-  "app.editor.external": ["ctrl+g"],
+  "app.editor.external": ["ctrl+e"],
   "app.clipboard.pasteImage": ["ctrl+v"],
   "app.session.togglePath": ["ctrl+p"],
   "app.session.toggleSort": ["ctrl+s"],
