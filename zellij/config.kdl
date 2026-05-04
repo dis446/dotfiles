@@ -321,6 +321,7 @@ web_client {
 // The folder in which Zellij will look for layouts
 // (Requires restart)
 // 
+layout_dir "$HOME/dotfiles/zellij"
 // layout_dir "/tmp"
  
 // The folder in which Zellij will look for themes
