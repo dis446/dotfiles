@@ -46,12 +46,14 @@
   "markdown": {
     "codeBlockIndent": "  "
   },
-  "packages": [],
+  "packages": [
+    "npm:context-mode"
+  ],
   "extensions": [],
   "skills": [],
   "prompts": [],
   "themes": [],
   "enableSkillCommands": true,
-  "lastChangelogVersion": "0.72.1",
-  "defaultThinkingLevel": "medium"
+  "lastChangelogVersion": "0.73.1",
+  "defaultThinkingLevel": "high"
 }
