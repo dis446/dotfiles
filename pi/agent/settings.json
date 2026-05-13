@@ -54,6 +54,6 @@
   "prompts": [],
   "themes": [],
   "enableSkillCommands": true,
-  "lastChangelogVersion": "0.73.1",
-  "defaultThinkingLevel": "high"
+  "lastChangelogVersion": "0.74.0",
+  "defaultThinkingLevel": "medium"
 }
