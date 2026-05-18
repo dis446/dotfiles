@@ -53,6 +53,8 @@ Do **not** scatter raw `auditLogger.send(...)` calls everywhere once repo grows.
 
 In dev environment, audit log transport is **Azure Service Bus** via common-lib.
 
+Requires `quarkus-parent` library version **at least 1.3.4**.
+
 CD dev env yaml files must also set these 3 env vars, e.g. `.gitlab/alpha-dev.yaml` and similar:
 - `AUDIT_LOG_SOURCE`
 - `AUDIT_LOG_BACKEND`
