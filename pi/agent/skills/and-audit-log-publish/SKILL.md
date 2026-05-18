@@ -86,6 +86,8 @@ Each audit event should usually include:
 - description
 - organization
 - createdBy
+  - prefer actor user id when available
+  - otherwise fall back to authenticated/request user id
 
 Preferred compact payload style:
 - `caseId=...`
@@ -141,6 +143,7 @@ Do **not** duplicate large try/catch blocks in every method if a clearer shared 
 ## Implementation Guidance
 
 - Inject `AuditLogger` into audit facade/service, not every class by default.
+- Avoid publishing directly from resource/controller layer unless repo is very small or there is no better abstraction.
 - Keep event/action names in constants or enums.
 - Centralize payload builders near audit facade.
 - Build explicit safe payload strings/maps.
