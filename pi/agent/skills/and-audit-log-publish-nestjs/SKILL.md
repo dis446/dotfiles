@@ -31,6 +31,8 @@ Do **not** publish noisy low-value events like:
 
 ## Platform Standard
 
+`@and/nest-common` library version must be **at least 1.2.5**.
+
 Target platform pattern for NestJS microservices:
 - use `@and/nest-common` `AuditPublisher` for request-driven business audit publishing
 - use `@and/nest-common` `AuditPayload` to build compact payloads
