@@ -32,7 +32,10 @@ Do **not** publish noisy low-value events like:
 ## Platform Standard
 
 Target platform pattern for AND microservices:
-- use `mn.and.common.logging.audit.AuditLogger`
+- use `mn.and.common.logging.audit.AuditPublisher` for request-driven business audit publishing
+- use `mn.and.common.logging.audit.AuditPayload` to build compact payloads
+- use `mn.and.common.logging.audit.AuditStatus` for standard statuses
+- keep `mn.and.common.logging.audit.AuditLogger` as lower-level transport API
 - use one **domain audit facade/service** per microservice, for example:
   - `CaseAuditService`
   - `ContractAuditService`
@@ -51,14 +54,17 @@ Do **not** scatter raw `auditLogger.send(...)` calls everywhere once repo grows.
 In dev environment, audit log transport is **Azure Service Bus** via common-lib.
 
 Relevant common implementation:
+- `mn.and.common.logging.audit.AuditPublisher`
+- `mn.and.common.logging.audit.AuditPayload`
+- `mn.and.common.logging.audit.AuditStatus`
 - `mn.and.common.logging.audit.AuditLogger`
 - `mn.and.common.logging.audit.AzureServiceBusAuditLogger`
 - `mn.and.common.logging.audit.DefaultAuditLogger`
 
 Meaning:
-- service code should call `AuditLogger`
+- request-driven business code should usually call `AuditPublisher`
 - service code should **not** implement Azure Service Bus details directly
-- service code should **not** add extra transport-level try/catch around `auditLogger.send(...)` only to protect broker publishing
+- service code should **not** add extra transport-level try/catch around audit publishing only to protect broker publishing
 - transport/logger implementation already handles serialization/send failures internally
 
 ## Core Rules
@@ -86,8 +92,9 @@ Each audit event should usually include:
 - description
 - organization
 - createdBy
-  - prefer actor user id when available
-  - otherwise fall back to authenticated/request user id
+  - prefer `ApiHeaders.getEffectiveUserUuid()`
+  - this uses actor user id when available
+  - otherwise falls back to authenticated/request user id
 
 Preferred compact payload style:
 - `caseId=...`
@@ -142,7 +149,8 @@ Do **not** duplicate large try/catch blocks in every method if a clearer shared 
 
 ## Implementation Guidance
 
-- Inject `AuditLogger` into audit facade/service, not every class by default.
+- Inject `AuditPublisher` into audit facade/service by default.
+- Use `AuditLogger` directly only for lower-level or non-request use cases.
 - Avoid publishing directly from resource/controller layer unless repo is very small or there is no better abstraction.
 - Keep event/action names in constants or enums.
 - Centralize payload builders near audit facade.
@@ -155,13 +163,13 @@ Do **not** duplicate large try/catch blocks in every method if a clearer shared 
 
 ### Success event
 1. Perform business operation.
-2. Build compact payload from relevant identifiers and status fields.
-3. Call `auditLogger.send(...)` with success status/event.
+2. Build compact payload from relevant identifiers and status fields using `AuditPayload`.
+3. Call `AuditPublisher` with standard `AuditStatus`.
 
 ### FAIL event
 1. Catch business exception only where needed for meaningful FAIL audit.
-2. Build compact FAIL payload with known identifiers and error summary.
-3. Call `auditLogger.send(...)` with status `FAIL`.
+2. Build compact FAIL payload with known identifiers and error summary using `AuditPayload`.
+3. Call `AuditPublisher` with status `FAIL`.
 4. Rethrow original exception.
 
 ## Review Checklist
