@@ -26,6 +26,14 @@
       "skillFolderHash": "",
       "installedAt": "2026-05-20T03:04:41.423Z",
       "updatedAt": "2026-05-20T03:04:41.423Z"
+    },
+    "and-audit-publish-quarkus": {
+      "source": "<internal-host>",
+      "sourceType": "well-known",
+      "sourceUrl": "https://<internal-host>",
+      "skillFolderHash": "",
+      "installedAt": "2026-05-20T05:05:42.100Z",
+      "updatedAt": "2026-05-20T05:05:42.100Z"
     }
   },
   "dismissed": {
