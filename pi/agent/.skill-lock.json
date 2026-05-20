@@ -18,6 +18,14 @@
       "skillFolderHash": "",
       "installedAt": "2026-04-16T08:51:55.850Z",
       "updatedAt": "2026-04-20T03:09:39.261Z"
+    },
+    "and-audit-publish-nestjs": {
+      "source": "developer-portal.alpha.looms.cloud",
+      "sourceType": "well-known",
+      "sourceUrl": "https://developer-portal.alpha.looms.cloud/.well-known/agent-skills/and-audit-publish-nestjs/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-05-20T03:04:41.423Z",
+      "updatedAt": "2026-05-20T03:04:41.423Z"
     }
   },
   "dismissed": {
@@ -30,6 +38,7 @@
     "codex",
     "cursor",
     "deepagents",
+    "dexto",
     "firebender",
     "gemini-cli",
     "github-copilot",
