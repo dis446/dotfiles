@@ -1,17 +1,18 @@
 ---
-name: and-audit-log-publish
-description: Guidance for publishing audit log events in AND microservices. Use when adding, reviewing, or refactoring compliance audit logging, especially for human actions, FAIL audit events, payload design, and AuditLogger usage.
+name: and-audit-publish-quarkus
+description: Guidance for publishing audit log events in AND Quarkus services. Use when adding, reviewing, or refactoring compliance audit logging, especially for human actions, FAIL audit events, payload design, and AuditPublisher usage.
 ---
 
 # AND Audit Log Publish
 
-Use this skill when implementing or reviewing audit logging in AND services.
+Use this skill when implementing or reviewing audit logging in AND Quarkus projects.
 
 ## Purpose
 
 Audit log records important **human actions** for compliance, traceability, and audit-review UI.
 
 Publish audit for actions like:
+
 - create
 - approve / reject / status change
 - detail view of sensitive business record
@@ -23,6 +24,7 @@ Publish audit for actions like:
 - other material user-driven business decisions
 
 Do **not** publish noisy low-value events like:
+
 - health checks
 - background retries
 - framework internals
@@ -32,10 +34,12 @@ Do **not** publish noisy low-value events like:
 ## Platform Standard
 
 Target platform pattern for AND microservices:
+
 - use `mn.and.common.logging.audit.AuditPublisher` for request-driven business audit publishing
 - use `mn.and.common.logging.audit.AuditPayload` to build compact payloads
 - use `mn.and.common.logging.audit.AuditStatus` for standard statuses
 - keep `mn.and.common.logging.audit.AuditLogger` as lower-level transport API
+- align service with `mn.and:quarkus-common:1.3.5`
 - use one **domain audit facade/service** per microservice, for example:
   - `CaseAuditService`
   - `ContractAuditService`
@@ -53,14 +57,29 @@ Do **not** scatter raw `auditLogger.send(...)` calls everywhere once repo grows.
 
 In dev environment, audit log transport is **Azure Service Bus** via common-lib.
 
-Requires `quarkus-parent` library version **at least 1.3.4**.
+CD dev env yaml files must also set these env vars, e.g. `.gitlab/alpha-dev.yaml` and similar:
 
-CD dev env yaml files must also set these 3 env vars, e.g. `.gitlab/alpha-dev.yaml` and similar:
 - `AUDIT_LOG_SOURCE`
 - `AUDIT_LOG_BACKEND`
 - `AUDIT_LOG_AZURE_CONNECTION_STRING`
+- `AUDIT_LOG_AZURE_ENTITY_TYPE` (optional; `queue` default)
+- `AUDIT_LOG_AZURE_QUEUE_NAME` (optional)
+- `AUDIT_LOG_AZURE_TOPIC_NAME` (optional)
+
+Important build-time rule:
+
+- `mn.and.audit.backend` is selected at **build time** in `quarkus-common` via `@IfBuildProperty`
+- if backend is not passed into Docker/Maven build stage, Quarkus will wire `DefaultAuditLogger`
+- so `AUDIT_LOG_BACKEND=azure` must be forwarded to the **docker build stage** / Maven package stage, not only set at runtime
+
+Runtime config still needed:
+
+- `AUDIT_LOG_SOURCE` for event source
+- `AUDIT_LOG_AZURE_CONNECTION_STRING` for Azure Service Bus auth
+- any other Azure-specific vars required by the deployed chart/secret
 
 Relevant common implementation:
+
 - `mn.and.common.logging.audit.AuditPublisher`
 - `mn.and.common.logging.audit.AuditPayload`
 - `mn.and.common.logging.audit.AuditStatus`
@@ -69,6 +88,7 @@ Relevant common implementation:
 - `mn.and.common.logging.audit.DefaultAuditLogger`
 
 Meaning:
+
 - request-driven business code should usually call `AuditPublisher`
 - service code should **not** implement Azure Service Bus details directly
 - service code should **not** add extra transport-level try/catch around audit publishing only to protect broker publishing
@@ -91,6 +111,7 @@ Meaning:
 ## What to Publish
 
 Each audit event should usually include:
+
 - feature/entity type
 - object id
 - compact object data
@@ -104,6 +125,7 @@ Each audit event should usually include:
   - otherwise falls back to authenticated/request user id
 
 Preferred compact payload style:
+
 - `caseId=...`
 - `bundleId=...`
 - `contractId=...`
@@ -116,6 +138,7 @@ Preferred compact payload style:
 - `errorMessage=...`
 
 Avoid by default:
+
 - full request body
 - full response body
 - large JSON payloads
@@ -127,24 +150,28 @@ Avoid by default:
 ## FAIL Event Guidance
 
 Publish `FAIL` when user-triggered business operation fails, for example:
+
 - validation rejection that matters for audit trail
 - entity not found during manual action
 - DB error while creating/updating audited object
 - unexpected runtime error during audited operation
 
 FAIL payload should stay compact, for example:
+
 - `caseId=...`
 - `status=...` if known
 - `errorType=...`
 - `errorMessage=...`
 
 Important:
+
 - FAIL event is about **business action failure**
 - not about audit transport failure itself
 
 ## Recommended Clean Pattern
 
 Preferred service-level structure:
+
 1. business service/resource performs operation
 2. domain audit facade builds compact payload
 3. facade publishes success event
@@ -169,11 +196,13 @@ Do **not** duplicate large try/catch blocks in every method if a clearer shared 
 ## Procedure
 
 ### Success event
+
 1. Perform business operation.
 2. Build compact payload from relevant identifiers and status fields using `AuditPayload`.
 3. Call `AuditPublisher` with standard `AuditStatus`.
 
 ### FAIL event
+
 1. Catch business exception only where needed for meaningful FAIL audit.
 2. Build compact FAIL payload with known identifiers and error summary using `AuditPayload`.
 3. Call `AuditPublisher` with status `FAIL`.
@@ -182,6 +211,7 @@ Do **not** duplicate large try/catch blocks in every method if a clearer shared 
 ## Review Checklist
 
 Before finishing audit log code, verify:
+
 - Is action human and compliance-relevant?
 - Is `objectId` correct for audit UI lookup in this domain?
 - Is payload compact and useful?
