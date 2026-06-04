@@ -10,10 +10,12 @@
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
   "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4",
+  "defaultModel": "gpt-5.4-mini",
   "enabledModels": [
     "github-copilot/gpt-5.4-mini",
-    "github-copilot/gpt-5.4"
+    "github-copilot/gpt-5.4",
+    "github-copilot/claude-opus-4.7",
+    "github-copilot/gpt-5.5"
   ],
   "compaction": {
     "enabled": true,
@@ -54,6 +56,6 @@
   "prompts": [],
   "themes": [],
   "enableSkillCommands": true,
-  "lastChangelogVersion": "0.75.1",
+  "lastChangelogVersion": "0.78.0",
   "defaultThinkingLevel": "medium"
 }
