@@ -9,13 +9,12 @@
   "autocompleteMaxVisible": 5,
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
-  "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4-mini",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-pro",
   "enabledModels": [
-    "github-copilot/gpt-5.4-mini",
-    "github-copilot/gpt-5.4",
-    "github-copilot/claude-opus-4.7",
-    "github-copilot/gpt-5.5"
+    "deepseek/deepseek-v4-flash",
+    "deepseek/deepseek-v4-pro",
+    "github-copilot/gpt-5.4-mini"
   ],
   "compaction": {
     "enabled": true,
@@ -56,6 +55,6 @@
   "prompts": [],
   "themes": [],
   "enableSkillCommands": true,
-  "lastChangelogVersion": "0.78.0",
-  "defaultThinkingLevel": "medium"
+  "lastChangelogVersion": "0.78.1",
+  "defaultThinkingLevel": "high"
 }
