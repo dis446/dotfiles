@@ -1,4 +1,4 @@
-local oxlintConfigPath = "/home/ubby/Code/alpha/back-end/nest-common/packages/nest-oxlint-config/index.mjs"
+local oxlintConfigPath = vim.fn.stdpath("config") .. "/oxlint-nest-config.mjs"
 
 return {
 	"mfussenegger/nvim-lint",
