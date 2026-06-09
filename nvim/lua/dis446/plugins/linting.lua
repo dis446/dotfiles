@@ -1,14 +1,35 @@
+local oxlintConfigPath = "/home/ubby/Code/alpha/back-end/nest-common/packages/nest-oxlint-config/index.mjs"
+
 return {
 	"mfussenegger/nvim-lint",
 	event = { "BufReadPre", "BufNewFile" },
 	config = function()
 		local lint = require("lint")
 
+		-- Custom oxlint linter configured with nest-oxlint-config
+		lint.linters.oxlint_nest = {
+			cmd = function()
+				local local_binary = vim.fn.fnamemodify("./node_modules/.bin/oxlint", ":p")
+				return vim.uv.fs_stat(local_binary) and local_binary or "oxlint"
+			end,
+			stdin = false,
+			args = { "--format", "github", "--config", oxlintConfigPath },
+			stream = "stdout",
+			ignore_exitcode = true,
+			parser = require("lint.parser").from_pattern(
+				"::([^ ]+) file=(.*),line=(%d+),endLine=(%d+),col=(%d+),endColumn=(%d+),title=(.*)::(.*)",
+				{ "severity", "file", "lnum", "end_lnum", "col", "end_col", "code", "message" },
+				{ ["error"] = vim.diagnostic.severity.ERROR, ["warning"] = vim.diagnostic.severity.WARN },
+				{ ["source"] = "oxlint" },
+				{}
+			),
+		}
+
 		lint.linters_by_ft = {
-			javascript = { "eslint_d" },
-			typescript = { "eslint_d" },
-			javascriptreact = { "eslint_d" },
-			typescriptreact = { "eslint_d" },
+			javascript = { "oxlint_nest" },
+			typescript = { "oxlint_nest" },
+			javascriptreact = { "oxlint_nest" },
+			typescriptreact = { "oxlint_nest" },
 			python = { "pylint" },
 		}
 
