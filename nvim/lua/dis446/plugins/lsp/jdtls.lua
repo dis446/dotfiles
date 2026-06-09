@@ -54,7 +54,11 @@ return {
 				end
 
 				local project_name = vim.fn.fnamemodify(root_dir, ":p:h:t")
-				local workspace_dir = vim.fn.stdpath("data") .. "/jdtls/workspace/" .. project_name .. "-" .. vim.fn.sha256(root_dir):sub(1, 8)
+				local workspace_dir = vim.fn.stdpath("data")
+					.. "/jdtls/workspace/"
+					.. project_name
+					.. "-"
+					.. vim.fn.sha256(root_dir):sub(1, 8)
 				vim.fn.mkdir(workspace_dir, "p")
 
 				local lombok_jar = vim.fn.stdpath("data") .. "/mason/packages/jdtls/lombok.jar"
@@ -89,6 +93,15 @@ return {
 					},
 					settings = {
 						java = {
+							format = {
+								settings = {
+									url = vim.fn.stdpath("config") .. "/style/eclipse-format.xml",
+									profile = "Quarkus",
+								},
+							},
+							completion = {
+								importOrder = { "java", "javax", "jakarta", "org", "com" },
+							},
 							eclipse = {
 								downloadSources = true,
 							},
@@ -122,6 +135,21 @@ return {
 							},
 						},
 					},
+				})
+
+				-- Organize imports on save
+				vim.api.nvim_create_autocmd("BufWritePre", {
+					buffer = bufnr,
+					callback = function()
+						local timeout = 3000
+						pcall(function()
+							vim.lsp.buf.code_action({
+								context = { only = { "source.organizeImports" } },
+								apply = true,
+								timeout = timeout,
+							})
+						end)
+					end,
 				})
 			end)
 		end

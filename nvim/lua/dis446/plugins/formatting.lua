@@ -1,4 +1,4 @@
-local oxfmtConfigPath = vim.fn.stdpath("config") .. "/oxfmt-nest-config.mjs"
+local oxfmtConfigPath = vim.fn.stdpath("config") .. "/style/oxfmt-nest-config.mjs"
 
 return {
 	"stevearc/conform.nvim",
