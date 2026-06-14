@@ -12,7 +12,7 @@ sudo_link_target() {
   sudo ln -s "$src" "$dest"
 }
 
-sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
 
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config" "$HOME/.config/ghostty/config"
