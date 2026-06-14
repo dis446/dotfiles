@@ -33,7 +33,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit zellij mise -y
+sudo dnf install git vim neovim lazygit zellij mise htop ncdu speedtest-cli -y --skip-unavailable
 
 mise use -g node@24
 mise use -g java@temurin-21
