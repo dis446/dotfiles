@@ -41,4 +41,4 @@ mise use -g java@temurin-21
 source "$HOME/.bashrc"
 
 git config --global user.email "dis446@yahoo.com"
-git config --global user.name "Disney Ganbaatar"
+git config --global user.name "Tsetsen-erdene Ganbaatar"
