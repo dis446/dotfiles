@@ -31,7 +31,7 @@ sudo dnf copr enable jdxcode/mise -y
 sudo dnf copr enable varland/zellij -y
 sudo dnf copr enable scottames/ghostty -y
 
-sudo dnf update
+sudo dnf update -y
 
 sudo dnf install git vim neovim lazygit zellij mise -y
 
