@@ -1,4 +1,3 @@
-sudo dnf update
 mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 link_target() {
   local src="$1"
@@ -30,18 +29,14 @@ sudo dnf copr enable jdxcode/mise -y
 sudo dnf copr enable varland/zellij -y
 sudo dnf copr enable scottames/ghostty -y
 
-i git vim neovim lazygit zellij mise -y
+sudo dnf update
+
+sudo dnf install git vim neovim lazygit zellij mise -y
 
 mise use -g node@24
 mise use -g java@temurin-21
 
-cd "$HOME/Downloads"
-wget https://download.jetbrains.com/toolbox/jetbrains-toolbox-3.5.0.84344.tar.gz
-tar -xvf jetbrains-toolbox-3.5.0.84344.tar.gz -C /opt
-
 source "$HOME/.bashrc"
-
-
 
 git config --global user.email "dis446@yahoo.com"
 git config --global user.name "Disney Ganbaatar"
