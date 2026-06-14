@@ -38,6 +38,8 @@ sudo dnf install git vim neovim lazygit zellij mise htop ncdu speedtest-cli -y -
 mise use -g node@24
 mise use -g java@temurin-21
 
+sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+
 source "$HOME/.bashrc"
 
 git config --global user.email "dis446@yahoo.com"
