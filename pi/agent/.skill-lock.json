@@ -14,10 +14,10 @@
       "source": "juliusbrussee/caveman",
       "sourceType": "github",
       "sourceUrl": "https://github.com/juliusbrussee/caveman.git",
-      "skillPath": "caveman/SKILL.md",
-      "skillFolderHash": "",
+      "skillPath": "skills/caveman/SKILL.md",
+      "skillFolderHash": "a22aa2a0a64d7d4b7b59bbddbdb865fedfb40d9c",
       "installedAt": "2026-04-16T08:51:55.850Z",
-      "updatedAt": "2026-04-20T03:09:39.261Z"
+      "updatedAt": "2026-06-15T11:49:02.001Z"
     },
     "and-audit-publish-nestjs": {
       "source": "developer-portal.alpha.looms.cloud",
@@ -52,6 +52,7 @@
     "kimi-code-cli",
     "opencode",
     "warp",
-    "zed"
+    "zed",
+    "claude-code"
   ]
 }
