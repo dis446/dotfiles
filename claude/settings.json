@@ -29,6 +29,12 @@
         "source": "github",
         "repo": "mksglu/context-mode"
       }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
     }
   },
   "skipDangerousModePermissionPrompt": true,

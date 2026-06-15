@@ -25,7 +25,6 @@ claude/*
 !claude/commands/
 !claude/agents/
 !claude/skills/
-!claude/plugins/
-claude/plugins/*
-!claude/plugins/installed_plugins.json
-!claude/plugins/known_marketplaces.json
+# plugins/ holds only machine-specific runtime state (cache, clones, install paths).
+# Reproducibility comes from settings.json: extraKnownMarketplaces + enabledPlugins
+# auto-install everything on startup. So plugins/ stays fully ignored.
