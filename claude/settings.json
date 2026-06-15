@@ -32,5 +32,6 @@
     }
   },
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark-ansi"
+  "theme": "dark-ansi",
+  "effortLevel": "low"
 }
