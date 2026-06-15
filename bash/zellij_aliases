@@ -1,3 +1,4 @@
 alias zw="zellij attach work || zellij --session work"
+alias zh="zellij attach home || zellij --session home"
 alias zAnd="zellij attach and || zellij --session work"
 alias zgSim="zellij attach gSim || zellij --session work"
