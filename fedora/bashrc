@@ -5,3 +5,4 @@ done
 [ -f "$HOME/dotfiles/fedora/bash_aliases" ] && . "$HOME/dotfiles/fedora/bash_aliases"
 
 PS1='\u@\h \W\$ '
+eval "$(mise activate bash)"
