@@ -1,15 +1,17 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
   "$docs": "https://code.claude.com/docs/en/keybindings",
-  "$note": "These mirror Claude Code's built-in defaults for reference. User bindings are ADDITIVE: to change a default, set the old key to null AND add the new binding. To remove a default, set it to null.",
+  "$note": "Mirrors Claude Code's built-in defaults for reference, with overrides for running inside zellij. Zellij grabs ctrl+t/o/s (tab/session/scroll modes) before Claude sees them, so toggleTodos/toggleTranscript/stash are remapped to ctrl+shift+* which zellij passes through. externalEditor (ctrl+g) and task:background (ctrl+b) are also grabbed by zellij but still reachable via their ctrl+x chords, so left as-is. User bindings are ADDITIVE: to change a default, set the old key to null AND add the new binding.",
   "bindings": [
     {
       "context": "Global",
       "bindings": {
         "ctrl+c": "app:interrupt",
         "ctrl+d": "app:exit",
-        "ctrl+t": "app:toggleTodos",
-        "ctrl+o": "app:toggleTranscript",
+        "ctrl+t": null,
+        "ctrl+shift+t": "app:toggleTodos",
+        "ctrl+o": null,
+        "ctrl+shift+r": "app:toggleTranscript",
         "ctrl+shift+b": "app:toggleBrief",
         "ctrl+shift+o": "app:toggleTeammatePreview",
         "ctrl+]": "app:openArtifact",
@@ -33,7 +35,8 @@
         "ctrl+_": "chat:undo",
         "ctrl+x ctrl+e": "chat:externalEditor",
         "ctrl+g": "chat:externalEditor",
-        "ctrl+s": "chat:stash",
+        "ctrl+s": null,
+        "ctrl+shift+s": "chat:stash",
         "ctrl+v": "chat:imagePaste",
         "ctrl+l": "chat:clearInput",
         "cmd+k": "chat:clearScreen"
