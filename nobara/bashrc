@@ -8,3 +8,4 @@ PS1='\u@\h \W\$ '
 
 source "$HOME/.sdkman/bin/sdkman-init.sh"
 export PATH="$HOME/.local/bin:$PATH"
+eval "$(mise activate bash)"
