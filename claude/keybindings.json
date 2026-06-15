@@ -1,0 +1,80 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
+  "$docs": "https://code.claude.com/docs/en/keybindings",
+  "$note": "These mirror Claude Code's built-in defaults for reference. User bindings are ADDITIVE: to change a default, set the old key to null AND add the new binding. To remove a default, set it to null.",
+  "bindings": [
+    {
+      "context": "Global",
+      "bindings": {
+        "ctrl+c": "app:interrupt",
+        "ctrl+d": "app:exit",
+        "ctrl+t": "app:toggleTodos",
+        "ctrl+o": "app:toggleTranscript",
+        "ctrl+shift+b": "app:toggleBrief",
+        "ctrl+shift+o": "app:toggleTeammatePreview",
+        "ctrl+]": "app:openArtifact",
+        "ctrl+r": "history:search"
+      }
+    },
+    {
+      "context": "Chat",
+      "bindings": {
+        "up": "history:previous",
+        "down": "history:next",
+        "escape": "chat:cancel",
+        "ctrl+x ctrl+k": "chat:killAgents",
+        "shift+tab": "chat:cycleMode",
+        "meta+p": "chat:modelPicker",
+        "meta+o": "chat:fastMode",
+        "meta+t": "chat:thinkingToggle",
+        "meta+w": "chat:workflowKeywordToggle",
+        "enter": "chat:submit",
+        "ctrl+j": "chat:newline",
+        "ctrl+_": "chat:undo",
+        "ctrl+x ctrl+e": "chat:externalEditor",
+        "ctrl+g": "chat:externalEditor",
+        "ctrl+s": "chat:stash",
+        "ctrl+v": "chat:imagePaste",
+        "ctrl+l": "chat:clearInput",
+        "cmd+k": "chat:clearScreen"
+      }
+    },
+    {
+      "context": "Autocomplete",
+      "bindings": {
+        "tab": "autocomplete:accept",
+        "escape": "autocomplete:dismiss",
+        "up": "autocomplete:previous",
+        "down": "autocomplete:next"
+      }
+    },
+    {
+      "context": "Confirmation",
+      "bindings": {
+        "y": "confirm:yes",
+        "enter": "confirm:yes",
+        "up": "confirm:previous",
+        "down": "confirm:next",
+        "tab": "confirm:nextField",
+        "shift+tab": "confirm:cycleMode",
+        "space": "confirm:toggle",
+        "ctrl+e": "confirm:toggleExplanation"
+      }
+    },
+    {
+      "context": "Transcript",
+      "bindings": {
+        "ctrl+e": "transcript:toggleShowAll",
+        "escape": "transcript:exit",
+        "q": "transcript:exit"
+      }
+    },
+    {
+      "context": "Task",
+      "bindings": {
+        "ctrl+x ctrl+b": "task:background",
+        "ctrl+b": "task:background"
+      }
+    }
+  ]
+}
