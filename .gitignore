@@ -25,3 +25,7 @@ claude/*
 !claude/commands/
 !claude/agents/
 !claude/skills/
+!claude/plugins/
+claude/plugins/*
+!claude/plugins/installed_plugins.json
+!claude/plugins/known_marketplaces.json
