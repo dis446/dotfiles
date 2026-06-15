@@ -14,3 +14,14 @@ pi/agent/cache
 /pi/context-mode/content
 /pi/agent/trust.json
 /pi/agent/trust.json
+
+# Claude Code (~/.claude) — track config only, ignore runtime + secrets.
+# Whitelist approach: ignore everything, then re-include the config we manage.
+claude/*
+!claude/settings.json
+!claude/keybindings.json
+!claude/CLAUDE.md
+!claude/hooks/
+!claude/commands/
+!claude/agents/
+!claude/skills/
