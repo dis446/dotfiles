@@ -6,7 +6,6 @@
     {
       "context": "Global",
       "bindings": {
-        "escape": "app:interrupt",
         "ctrl+t": null,
         "ctrl+shift+t": "app:toggleTodos",
         "ctrl+o": null,
