@@ -6,8 +6,7 @@
     {
       "context": "Global",
       "bindings": {
-        "ctrl+c": "app:interrupt",
-        "ctrl+d": "app:exit",
+        "escape": "app:interrupt",
         "ctrl+t": null,
         "ctrl+shift+t": "app:toggleTodos",
         "ctrl+o": null,
@@ -26,7 +25,7 @@
         "escape": "chat:cancel",
         "ctrl+x ctrl+k": "chat:killAgents",
         "shift+tab": "chat:cycleMode",
-        "meta+p": "chat:modelPicker",
+        "ctrl+l": "chat:modelPicker",
         "meta+o": "chat:fastMode",
         "meta+t": "chat:thinkingToggle",
         "meta+w": "chat:workflowKeywordToggle",
@@ -42,7 +41,6 @@
         "ctrl+s": null,
         "ctrl+shift+s": "chat:stash",
         "ctrl+v": "chat:imagePaste",
-        "ctrl+l": "chat:clearInput",
         "cmd+k": "chat:clearScreen"
       }
     },
