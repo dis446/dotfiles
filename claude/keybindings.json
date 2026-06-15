@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-keybindings.json",
   "$docs": "https://code.claude.com/docs/en/keybindings",
-  "$note": "Mirrors Claude Code's built-in defaults for reference, with overrides for running inside zellij. Zellij grabs ctrl+t/o/s (tab/session/scroll modes) before Claude sees them, so toggleTodos/toggleTranscript/stash are remapped to ctrl+shift+* which zellij passes through. externalEditor (ctrl+g) and task:background (ctrl+b) are also grabbed by zellij but still reachable via their ctrl+x chords, so left as-is. User bindings are ADDITIVE: to change a default, set the old key to null AND add the new binding.",
+  "$note": "Claude Code keybindings, tuned for Pi-agent (pi/agent/keybindings.json) parity and for running inside zellij. PI PARITY: ctrl+e=external editor, ctrl+k=toggle thinking, shift+enter=newline, ctrl+v=paste image, ctrl+-=undo, enter=submit, ctrl+d=exit, escape=cancel. NOTE: ctrl+e and ctrl+k shadow native readline end-of-line / delete-to-line-end in the input (this matches Pi's overload). Readline editing (ctrl+a/b/f/w/u/y, alt+b/f/d, arrows) is built into Claude's input and works without config. ZELLIJ: in normal mode zellij grabs ctrl+t/o/s/b/g/p/n; toggleTodos/toggleTranscript/stash moved to ctrl+shift+t/r/s to survive. No Claude equivalent for Pi's session mgmt (path/sort/filter/rename/delete), model cycling, message followUp/dequeue, or tree fold. User bindings are ADDITIVE: to change a default, set the old key to null AND add the new binding.",
   "bindings": [
     {
       "context": "Global",
@@ -31,10 +31,14 @@
         "meta+t": "chat:thinkingToggle",
         "meta+w": "chat:workflowKeywordToggle",
         "enter": "chat:submit",
+        "shift+enter": "chat:newline",
         "ctrl+j": "chat:newline",
+        "ctrl+-": "chat:undo",
         "ctrl+_": "chat:undo",
+        "ctrl+e": "chat:externalEditor",
         "ctrl+x ctrl+e": "chat:externalEditor",
         "ctrl+g": "chat:externalEditor",
+        "ctrl+k": "chat:thinkingToggle",
         "ctrl+s": null,
         "ctrl+shift+s": "chat:stash",
         "ctrl+v": "chat:imagePaste",
