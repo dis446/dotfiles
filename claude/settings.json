@@ -1,20 +1,8 @@
 {
-  "model": "opus[1m]",
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "extraKnownMarketplaces": {
-    "context-mode": {
-      "source": {
-        "source": "github",
-        "repo": "mksglu/context-mode"
-      }
-    }
-  },
-  "theme": "dark-ansi",
-  "enabledPlugins": {
-    "context-mode@context-mode": true
-  },
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -26,5 +14,22 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "context-mode@context-mode": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    }
+  },
+  "theme": "dark-ansi",
+  "skipDangerousModePermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "echo \"$(whoami)@$(hostname -s) $(basename \"$(pwd)\")\""
   }
 }
