@@ -2,7 +2,7 @@
   "permissions": {
     "defaultMode": "bypassPermissions"
   },
-  "model": "sonnet",
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -37,7 +37,7 @@
       }
     }
   },
+  "effortLevel": "low",
   "skipDangerousModePermissionPrompt": true,
-  "theme": "dark-ansi",
-  "effortLevel": "low"
+  "theme": "dark-ansi"
 }
