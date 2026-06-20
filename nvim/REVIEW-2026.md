@@ -114,7 +114,6 @@ The blink.cmp spec uses `version = "1.*"` which is sensible for stability. Just 
 - `tokyonight.nvim` colorscheme (custom overrides)
 - The `Snacks` config and keymap set
 - The `blink.cmp` config
-- The Pi AI integration (`pi.lua`)
 - The `mise.toml` Treesitter query predicate
 - Java config
 
