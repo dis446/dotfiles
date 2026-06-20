@@ -37,7 +37,7 @@
       }
     }
   },
-  "effortLevel": "low",
+  "effortLevel": "high",
   "skipDangerousModePermissionPrompt": true,
   "theme": "dark-ansi"
 }
