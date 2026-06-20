@@ -25,12 +25,18 @@ Current files involved:
 Current completion-related dependencies:
 
 - `hrsh7th/nvim-cmp`
+- `hrsh7th/cmp-nvim-lsp` (declared in `lspconfig.lua`, provides LSP capabilities)
 - `hrsh7th/cmp-buffer`
 - `hrsh7th/cmp-path`
 - `saadparwaiz1/cmp_luasnip`
 - `onsails/lspkind.nvim`
 - `L3MON4D3/LuaSnip`
 - `rafamadriz/friendly-snippets`
+
+Behaviors worth preserving on cutover:
+
+- `completeopt = "menu,menuone,preview,noselect"` and `confirm({ select = false })` — i.e. nothing is preselected; `<CR>` only confirms an item you explicitly moved to. The blink equivalent is `completion.list.selection.preselect = false` (and `auto_insert` to taste).
+- vs-code-style pictograms in the menu (currently via `lspkind`). `blink.cmp` renders kind icons itself, so `lspkind` is not needed.
 
 Current completion ergonomics:
 
@@ -68,10 +74,17 @@ Create a new plugin spec, likely:
 
 Start with:
 
-- LSP completion
-- buffer/path sources
-- snippet integration if desired
+- LSP completion (built-in `lsp` source)
+- buffer/path sources (both built in — no separate adapter plugins)
+- snippet integration if desired (see snippet note below)
 - the same general keymap ergonomics you already use
+
+`blink.cmp` notes that change the shape of the spec vs. `nvim-cmp`:
+
+- **Sources are built in.** `lsp`, `buffer`, `path`, and `snippets` ship with `blink.cmp`, so `cmp-buffer`/`cmp-path`/`cmp_luasnip`/`cmp-nvim-lsp` have no equivalent dependency.
+- **Fuzzy matcher.** `blink.cmp` uses a Rust matcher. The default `fuzzy.implementation = "prefer_rust_with_warning"` downloads a prebuilt binary from the tagged release; pinning to a release tag (not `main`) avoids needing a local Rust toolchain to build it. Worth noting since this repo's other plugins are pure Lua.
+- **Keymap presets.** Blink ships presets (`default`, `super-tab`, etc.). To keep the current `<C-j>`/`<C-k>`/`<C-b>`/`<C-f>`/`<C-Space>`/`<C-e>`/`<CR>` ergonomics, set `keymap.preset` and override those keys explicitly.
+- **Snippets.** Blink's `snippets` source works with `friendly-snippets` directly. To keep `LuaSnip`, set `snippets.preset = "luasnip"`; otherwise the built-in engine can replace it.
 
 Goal:
 
@@ -86,9 +99,18 @@ Update the LSP setup in:
 
 Replace:
 
-- `cmp_nvim_lsp.default_capabilities()`
+- the `require("cmp_nvim_lsp")` call (line 9)
+- `cmp_nvim_lsp.default_capabilities()` (line 113)
 
-with the `blink.cmp` equivalent capability setup.
+with the `blink.cmp` equivalent:
+
+- `require("blink.cmp").get_lsp_capabilities()` — optionally pass an existing
+  capabilities table to merge into.
+
+Also drop `hrsh7th/cmp-nvim-lsp` from the `dependencies` of the lspconfig spec
+(line 5). The capabilities table is fed to each server via the existing
+`vim.tbl_deep_extend("force", { capabilities = capabilities }, server_opts)`
+loop, so only the source of `capabilities` changes.
 
 This is required so servers advertise completion support correctly.
 
@@ -98,6 +120,7 @@ Once Blink is working well, remove:
 
 - `nvim/lua/dis446/plugins/nvim-cmp.lua`
 - `hrsh7th/nvim-cmp`
+- `hrsh7th/cmp-nvim-lsp` (from `lspconfig.lua` dependencies — see Phase 2)
 - `hrsh7th/cmp-buffer`
 - `hrsh7th/cmp-path`
 - `saadparwaiz1/cmp_luasnip`
