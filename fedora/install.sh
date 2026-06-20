@@ -29,7 +29,7 @@ source "$HOME/.bashrc"
 
 sudo dnf copr enable dejan/lazygit -y 
 sudo dnf copr enable jdxcode/mise -y
-sudo dnf copr enable varland/zellij -y
+sudo dnf copr enable varlad/zellij -y
 sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
