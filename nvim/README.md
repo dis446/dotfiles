@@ -46,10 +46,8 @@ This directory contains my Neovim configuration.
 - `background = "dark"`
 - `signcolumn = "yes"`
 
-#### Clipboard and splits
+#### Clipboard
 - `clipboard += unnamedplus`
-- `splitright = true`
-- `splitbelow = true`
 
 ---
 
@@ -64,18 +62,11 @@ Leader key: `Space`
 - `<leader>+` — increment number under cursor
 - `<leader>-` — decrement number under cursor
 
-#### Window management
-- `<leader>sv` — vertical split
-- `<leader>sh` — horizontal split
-- `<leader>se` — equalize splits
-- `<leader>sx` — close current split
-
 #### Tabs
 - `<leader>tt` — open new tab
 - `<leader>tw` — close current tab
-- `<leader>tl` — next tab
-- `<leader>th` — previous tab
-- `<leader>ty` — open current buffer in a new tab
+- `<C-Tab>` — next tab
+- `<C-S-Tab>` — previous tab
 
 ---
 
@@ -109,9 +100,6 @@ Theme colors include:
 - red
 - foreground and inactive foreground
 
-#### `bufferline.nvim`
-Shows buffers and tabs with devicons.
-
 ---
 
 ### Navigation and workspace UI
@@ -143,7 +131,6 @@ Keymaps:
 - `<leader>lg` — open LazyGit
 - `<leader>ot` — toggle terminal (works in normal and terminal mode)
 - `<leader>oT` — open floating terminal
-- `<leader>sm` — maximize/minimize a split
 - `<leader>xx` — diagnostics list
 - `<leader>xw` — workspace diagnostics
 - `<leader>xd` — document diagnostics
@@ -180,34 +167,10 @@ Commands and keymaps:
 - `:SnacksTerminal` — toggle terminal
 - `:SnacksTerminalFloat` — open floating terminal
 
-### DB client
-#### `nvim-dbee`
-Provides repo-scoped database connections loaded from `repo/.nvim/dbee.lua`.
-
-Repo commands:
-- `:DbeeRepoOpen` — reload current repo DB config and open DBee
-- `:DbeeRepoToggle` — reload current repo DB config and open DBee
-- `:DbeeRepoReload` — reload current repo DB connections
-- `:DbeeRepoEditConfig` — edit or create `repo/.nvim/dbee.lua`
-- `:DbeeRepoEditLocalConfig` — edit or create ignored `repo/.nvim/dbee.local.lua`
-
-Keymaps:
-- `<leader>od` — open DBee for current repo
-- `<leader>oD` — reload current repo DB connections
-
-Expected repo format:
-- committed `repo/.nvim/dbee.lua`
-- optional ignored `repo/.nvim/dbee.local.lua`
-- multiple named connections per repo supported
-- secrets can come from ignored `.env*` files via `env_files`
 
 ### Session management
 #### `auto-session`
-Manages session save and restore per directory.
-
-Keymaps:
-- `<leader>wr` — restore session for current directory
-- `<leader>ws` — save session for current directory
+Manages session save and restore per directory. Automatically restores sessions when opening Neovim in a directory and saves on exit.
 
 ---
 
