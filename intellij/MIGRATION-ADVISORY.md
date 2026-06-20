@@ -1,0 +1,594 @@
+# IntelliJ Migration Advisory
+
+> **Goal:** Transition primary development from zellij+neovim to IntelliJ IDEA
+> Ultimate, unify keybindings, and consolidate 13 years of IntelliJ muscle memory
+> with 6 months of zellij+neovim muscle memory.
+
+---
+
+## 1. Current State Analysis
+
+### 1.1 What you have today
+
+| Environment | Role | Active keybinding set |
+|---|---|---|
+| IntelliJ 2026.1 Ultimate | Java/TS/DB/Git IDE, already used daily | "GNOME Vim" keymap + IdeaVim enabled |
+| Zellij + Neovim | Terminal-first dev environment | Zellij Alt+hjkl panes, Neovim Space-leader |
+| Both | Simultaneously active | Conflicts already partially resolved |
+
+### 1.2 Current IntelliJ configuration
+
+- **Keymap:** `GNOME Vim` (parent: `Default for GNOME`)
+- **IdeaVim:** Enabled (v2.32.0+)
+- **Ide shortcut conflicts already assigned to Vim:** `Ctrl+K`, `Ctrl+R`
+- **Ide shortcuts intentionally removed:** `CloseActiveTab`, `EditorSelectWord`,
+  `EditorSplitLine`, `EditorStartNewLine`, `GotoClass`, `GotoPreviousError`,
+  `GotoTest`, `SmartSelect`, `Switcher`
+- **Tool windows open regularly:** Project, Commit, Structure, Version Control,
+  Terminal, Database, Maven, AI Assistant, Problems, Services
+- **Terminal config:** `useOptionAsMetaKey = true`, bash shell, 191+ commands run
+
+### 1.3 gSim project
+
+The `~/Code/gSim` umbrella is an Nx monorepo workspace with 5 sub-repos
+(globalSimNaut Java/Maven, globalSimClient React, globalSimSales Next.js,
+globalSimWeb Next.js, globalSimApp Flutter). Each is its own git repo. The
+umbrella already has `nx.json` + `projects/*/project.json` making it
+compatible with the Nx Console IntelliJ plugin.
+
+---
+
+## 2. Keymap Conflict Matrix
+
+There are **three** active muscle-memory layers, not two:
+
+| Layer | Origin | Examples |
+|---|---|---|
+| **IntelliJ IDE** | 10+ years | `Ctrl+K` commit, `Ctrl+T` pull, `Alt+1` project, `Alt+L` DB, `Shift+Shift` search |
+| **Vim editor** | Years (via IdeaVim + Neovim) | `hjkl` movement, `gd` defs, `gi` impls, `dt`/`ci` text objects |
+| **Zellij + Neovim leader** | 6 months | `Alt+hjkl` panes, `Space+ff` files, `Space+lg` lazygit |
+
+### 2.1 IntelliJ IDE vs Vim editor (within IntelliJ)
+
+This is the **hardest conflict class** because both systems want the same
+single-key chords.
+
+| Keystroke | IntelliJ IDE action | Vim normal-mode action | Current resolution | Recommendation |
+|---|---|---|---|---|
+| `Ctrl+K` | **VCS Commit** (Git commit window) | Move cursor up | **Vim owns it** (from vim_settings.xml) | **Give to IDE.** Use `k`/`↑` for movement. Commit is too important. |
+| `Ctrl+R` | Replace (find & replace) | Redo | **Vim owns it** | **Give to IDE.** Use `u`/`Ctrl+R` for undo/redo via `<C-r>` in IdeaVim. Actually `Ctrl+R` in Vim IS redo... IdeaVim supports this natively. This one is actually fine as-is. |
+| `Ctrl+J` | — (mostly unused) | Move cursor down | No conflict | Keep Vim |
+| `Ctrl+N` | Go to Class | Move cursor down | **Removed from keymap!** | **Restore to IDE.** `Ctrl+N` = Go to Class is one of the most-used IntelliJ shortcuts. Use `j`/`↓` for movement. |
+| `Ctrl+P` | — (varies by context) | Move cursor up | Potential | Keep Vim |
+| `Ctrl+Shift+N` | **Go to File** | — | No conflict | Keep IDE (this is your "Space+ff" equivalent in IntelliJ) |
+| `Ctrl+Shift+F` | **Find in Files** | — | No conflict | Keep IDE (this is your "Space+fs" equivalent in IntelliJ) |
+| `Shift+Shift` | **Search Everywhere** | — | No conflict | Keep IDE |
+| `Ctrl+Shift+T` | **Go to Test** | — | **Removed from keymap!** | **Restore to IDE.** Critical for Java/TDD workflow. |
+| `Ctrl+Tab` | Switcher (recent files/tools) | — | **Removed from keymap!** | **Restore.** Vim doesn't use Ctrl+Tab. No reason to remove. |
+| `Ctrl+W` | Extend selection | Previous window (`Ctrl+W` prefix in Vim) | Custom: `Ctrl+W` closes content (IntelliJ) | **Tricky.** In Vim, `Ctrl+W` is the window command prefix. In IntelliJ, `Ctrl+W` is Extend Selection. You mapped it to "Close Content" in your custom keymap. **Recommendation:** Keep `Ctrl+W` for IntelliJ (close tab works well), and use `Ctrl+W` + `h/j/k/l` via IdeaVim window commands only when Vim is in control. This is a known tension. |
+| `Ctrl+D` | Duplicate line | Scroll down half-page | Potential conflict | In IdeaVim, `Ctrl+D` scrolls. In IntelliJ, duplicates line. **Test which you use more.** |
+
+### 2.2 Zellij vs IntelliJ tool window shortcuts
+
+These **only conflict when Zellij is active**. When IntelliJ is the foreground
+GUI app, Zellij keybinds don't fire.
+
+| Keystroke | Zellij action | IntelliJ custom keymap | Conflict only when |
+|---|---|---|---|
+| `Alt+H` | Move focus left | Maven tool window | Zellij focused |
+| `Alt+J` | Move focus down | — | Zellij focused |
+| `Alt+K` | Move focus up | AI Assistant tool window | Zellij focused |
+| `Alt+L` | Move focus right | Database tool window | Zellij focused |
+| `Alt+←` | Move focus or tab left | — | Zellij focused |
+| `Alt+→` | Move focus or tab right | — | Zellij focused |
+| `Alt+↑` | Move focus up | — | Zellij focused |
+| `Alt+↓` | Move focus down | — | Zellij focused |
+| `Alt+N` | New pane | New file | Zellij focused |
+| `Alt+G` | — | GitHub Actions tool window | Zellij focused |
+
+**Key insight:** If you stop using Zellij as your primary terminal multiplexer
+and use IntelliJ's built-in terminal instead, **all Zellij conflicts disappear.**
+You would only open Zellij for rare multi-terminal sessions outside IntelliJ.
+
+### 2.3 Neovim Space-leader vs IntelliJ
+
+These CAN be replicated in IdeaVim. This is the **best path to unification**.
+
+| Neovim key | Action | IntelliJ equivalent | IdeaVim mapping |
+|---|---|---|---|
+| `Space+ee` | Snacks explorer | Project tool window (`Alt+1`) | `nnoremap <leader>ee :action ActivateProjectToolWindow<CR>` |
+| `Space+ef` | Reveal file in explorer | Select in Project View (`Alt+F1`) | `nnoremap <leader>ef :action SelectInProjectView<CR>` |
+| `Space+ff` | Find files | Go to File (`Ctrl+Shift+N`) | `nnoremap <leader>ff :action GotoFile<CR>` |
+| `Space+fr` | Recent files | Recent Files (`Ctrl+E`) | `nnoremap <leader>fr :action RecentFiles<CR>` |
+| `Space+fs` | Live grep | Find in Files (`Ctrl+Shift+F`) | `nnoremap <leader>fs :action FindInPath<CR>` |
+| `Space+fc` | Grep word under cursor | Find in Files (with selection) | `nnoremap <leader>fc :action FindInPath<CR>` (pre-fills word) |
+| `Space+ft` | TODOs | TODO tool window | `nnoremap <leader>ft :action ActivateTODOToolWindow<CR>` |
+| `Space+lg` | LazyGit | Version Control tool window | `nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>` |
+| `Space+pi` | Pi AI pane | AI Assistant | `nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>` |
+| `Space+pI` | New Pi session | New AI chat | — (manual) |
+| `Space+wr` | Restore session | — | No direct equivalent (IntelliJ remembers state) |
+| `Space+ws` | Save session | — | No direct equivalent |
+| `Space+ot` | Toggle terminal | Terminal tool window (`Alt+F12`) | `nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>` |
+| `Space+oT` | Floating terminal | Split terminal | `nnoremap <leader>oT :action Terminal.SplitVertically<CR>` |
+| `Space+sm` | Maximize split | Toggle distraction-free | `nnoremap <leader>sm :action ToggleDistractionFreeMode<CR>` |
+| `Space+xx` | Diagnostics list | Problems tool window | `nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>` |
+| `Space+xd` | Buffer diagnostics | Current file problems | Native (inline) |
+| `Space+sv` | Vertical split | Split Right | `nnoremap <leader>sv :action SplitVertically<CR>` |
+| `Space+sh` | Horizontal split | Split Down | `nnoremap <leader>sh :action SplitHorizontally<CR>` |
+| `Space+sx` | Close split | Close tab (unsplit) | `nnoremap <leader>sx :action CloseContent<CR>` |
+
+#### LSP keybinds
+
+| Neovim key | IdeaVim equivalent | IntelliJ native |
+|---|---|---|
+| `gd` | `:action GotoDeclaration<CR>` | Already works (IntelliJ's own) |
+| `gD` | `:action GotoDeclaration<CR>` | Same |
+| `gi` | `:action GotoImplementation<CR>` | Already works |
+| `gt` | `:action GotoTypeDeclaration<CR>` | Already works |
+| `gR` | `:action FindUsages<CR>` | `Alt+F7` (conflict-free) |
+| `K` | Quick documentation | Already works |
+| `<leader>ca` | `:action ShowIntentionActions<CR>` | `Alt+Enter` standard |
+| `<leader>rn` | `:action RenameElement<CR>` | `Shift+F6` standard |
+| `[d` / `]d` | Next/previous error | `F2` / `Shift+F2` (IDE standard, remapped to `Shift+F2` in your keymap for RenameElement) |
+
+**Note:** Your custom keymap remaps `Shift+F2` to `RenameElement`. But
+`Shift+F2` is normally "Previous Highlighted Error" in IntelliJ. This is a
+conflict worth fixing — restore `Shift+F2` to errors and use `Shift+F6` for
+rename (the standard).
+
+---
+
+## 3. Multi-Project Workflow (Replacing Zellij Tabs)
+
+### 3.1 Your Zellij pattern
+
+```
+Tab 1: gSim        →  [neovim][pi][bash]
+Tab 2: path-service →  [neovim][pi][bash]
+Tab 3: mdm          →  [neovim][pi][bash]
+...
+```
+
+Each tab = one repo. `Alt+hjkl` between panes, `Alt+tab-number` between repos.
+
+### 3.2 IntelliJ equivalent
+
+IntelliJ opens projects as **separate windows** by default. You've already
+identified this as the pain point: alt-tabbing between windows is annoying.
+
+**Solution: Use "Attach Project" (IntelliJ 2024+)**
+
+1. Open one project normally (e.g., `gSim`)
+2. **File → Attach Project...** → pick a second repo directory
+3. Each attached project appears as a **separate root** in the Project tool
+   window, with its own VCS, run configs, module structure
+4. Use `Ctrl+Tab` (Switcher) to jump between files across all attached projects
+5. The Project tool window shows all attached repos in a tree
+
+**For the gSim umbrella specifically:**
+
+The umbrella already has Nx Console support. Open `~/Code/gSim` as the IntelliJ
+project. Each sub-repo (`globalSimNaut`, `globalSimClient`, etc.) shows in the
+Project view. Because Nx Console is installed, you get:
+- Nx task runner for `nx:dev`, `nx:build`, `nx:test`
+- Multi-module navigation
+- Single-window git: each sub-repo is a separate VCS root, visible in the
+  Version Control tool window and the Commit tab
+
+**For unrelated repos (e.g., `path-service` + `mdm`):**
+
+Option A: **Attach both to one window.** Project view shows both roots.
+Option B: **Separate windows, but use a Linux window manager shortcut.**
+  On GNOME: `Alt+` (backtick) switches between windows of the same application.
+  This is faster than Alt+Tab across all apps.
+Option C: **Use Recent Projects (`Ctrl+E`)** and `Ctrl+Shift+E` (Recent
+  Locations) for quick navigation without closing projects.
+
+**Recommendation:** Use Option A for related repos (all in `and/alpha/back-end/`)
+and Option A + B for completely separate repos.
+
+### 3.3 Terminal replacement for Zellij panes
+
+| Zellij pane | IntelliJ replacement |
+|---|---|
+| Top: Neovim | Editor (the IDE is the editor) |
+| Middle: Pi (AI) | AI Assistant tool window (`Alt+K`, or your `Space+pi`) |
+| Bottom: Bash | Terminal tool window (`Alt+F12`, or your `Space+ot`) |
+
+You get the same layout, but with IDE tool windows instead of terminal panes:
+```
+[   Editor (Java/TS code)        ]
+[   Terminal tool window (bash)  ]
+```
+
+The AI Assistant and Database tool windows live on the right side (per your
+current `window.layouts.xml` configuration):
+```
+[ Editor  ][ AI Assistant ]
+[ Editor  ][ Database     ]
+[ Terminal ][ Maven        ]
+```
+
+---
+
+## 4. Pi Integration in IntelliJ
+
+### 4.1 The problem
+
+Pi runs as a terminal TUI. You don't want to run it inside the built-in
+terminal (Alt+F12) because that terminal is for project-specific bash commands.
+
+### 4.2 Options
+
+| Option | How | Pros | Cons |
+|---|---|---|---|
+| **A. Terminal tab** | Dedicated terminal tab for Pi (`Ctrl+Shift+T` in terminal, or new terminal tab) | Easy, works immediately | Pi and bash share Terminal tool window space |
+| **B. External terminal** | Run Pi in a standalone terminal (GNOME Terminal, Kitty, Alacritty) outside IntelliJ | Dedicated space, full TUI support | Window management (another Alt+Tab target) |
+| **C. Pi as a Tool Window plugin** | Write a simple IntelliJ plugin that embeds Pi's TUI | Native IDE integration | Development effort (1-3 days) |
+| **D. Split terminal** | Split the Terminal tool window: left=bash, right=pi | Both visible, same tool window | Terminal split management |
+
+**Recommended: Option A** — Create a dedicated terminal tab for Pi.
+
+```
+1. Alt+F12 → open Terminal
+2. In the terminal, Ctrl+Shift+T → new terminal tab
+3. Right-click the tab → "Rename Tab" → "Pi"
+4. cd to project root, run `pi`
+5. Use Alt+F12 to toggle; then Ctrl+Tab between terminal tabs
+```
+
+You can create a **named terminal configuration** (Settings → Tools →
+Terminal → Shell path) or use an **External Tool** to launch Pi in a separate
+terminal window with one keybinding.
+
+### 4.3 Alternate: Run Pi as an external tool
+
+If you prefer a separate window (Option B), create a custom action:
+
+1. **File → Settings → Tools → External Tools → +**
+2. Name: `Pi`
+3. Program: `/home/neddy/.local/share/mise/installs/node/24.16.0/bin/pi`
+4. Arguments: `--session-dir $ProjectFileDir$/.pi-sessions`
+5. Working directory: `$ProjectFileDir$`
+6. Bind to a key: `Settings → Keymap → External Tools → Pi → Add Keyboard Shortcut`
+
+This launches Pi in its own terminal window, which can be placed on a separate
+monitor or workspace.
+
+### 4.4 Using the JetBrains AI Assistant as Pi replacement
+
+Since you already use `Alt+K` for the AI Assistant, and you have `AiAssistant`
+as a tool window on the right, consider whether the built-in AI Assistant (with
+Claude/GPT models) can replace Pi for some tasks. It won't replace the
+agent-driven workflow, but for quick code questions, it's faster.
+
+---
+
+## 5. Recommended `.ideavimrc`
+
+Create `~/.ideavimrc` (or symlink from `~/dotfiles/intellij/ideavimrc`):
+
+```vim
+" ── Leader ──────────────────────────────────────────
+let mapleader = " "
+
+" ── Hand over Ctrl+K to the IDE (VCS Commit) ────────
+" Ctrl+K is owned by Vim in your current settings.
+" Unmap it so the IDE's Commit action fires instead.
+iunmap <C-k>
+nunmap <C-k>
+
+" ── Space-leader mappings (from Neovim muscle memory) ──
+
+" File explorer → Project tool window
+nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
+nnoremap <leader>ef :action SelectInProjectView<CR>
+
+" Find files → Go to File
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader>fr :action RecentFiles<CR>
+nnoremap <leader>fs :action FindInPath<CR>
+nnoremap <leader>fc :action FindInPath<CR>
+
+" TODOs
+nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
+
+" Git / VCS
+nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>
+nnoremap <leader>lc :action CheckinProject<CR>       " commit
+nnoremap <leader>lp :action Vcs.Push<CR>             " push
+nnoremap <leader>lu :action Vcs.UpdateProject<CR>     " pull
+
+" Terminal
+nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>oT :action Terminal.SplitVertically<CR>
+
+" Window management (IDE splits, not Vim windows)
+nnoremap <leader>sv :action SplitVertically<CR>
+nnoremap <leader>sh :action SplitHorizontally<CR>
+nnoremap <leader>sx :action CloseContent<CR>
+nnoremap <leader>sm :action ToggleDistractionFreeMode<CR>
+
+" Diagnostics
+nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>
+nnoremap <leader>xd :action GotoNextError<CR>
+
+" AI Assistant
+nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>
+
+" LSP (most work natively — these are fallbacks for IdeaVim mode)
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gt :action GotoTypeDeclaration<CR>
+nnoremap gR :action FindUsages<CR>
+nnoremap <leader>ca :action ShowIntentionActions<CR>
+nnoremap <leader>rn :action RenameElement<CR>
+
+" Database
+nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
+
+" Build / Run
+nnoremap <leader>rb :action Run<CR>
+nnoremap <leader>rd :action Debug<CR>
+nnoremap <leader>rm :action Maven.RunBuild<CR>
+
+" Maven
+nnoremap <leader>mv :action ActivateMavenToolWindow<CR>
+
+" ── Restore critical IDE shortcuts removed from keymap ──
+" These were removed in your "GNOME Vim" keymap. Add them back.
+" Do this in Settings → Keymap, not in .ideavimrc:
+"   • GotoClass → Ctrl+N
+"   • GotoTest → Ctrl+Shift+T
+"   • Switcher → Ctrl+Tab
+"   • PreviousHighlightedError → Shift+F2 (not RenameElement!)
+"   • RenameElement → Shift+F6 (the standard)
+
+" ── Vim editor quality-of-life ──
+set relativenumber
+set number
+set ignorecase
+set smartcase
+set scrolloff=3
+set clipboard+=unnamedplus
+set incsearch
+set hlsearch
+
+" Use system clipboard
+set clipboard=unnamed,unnamedplus
+
+" ── IDE-specific Vim settings ──
+" Let the IDE handle some things
+set ideajoin
+set ideaput
+```
+
+---
+
+## 6. Keymap Changes in IntelliJ Settings
+
+### 6.1 Changes to "GNOME Vim" keymap
+
+**Add back these removed shortcuts:**
+
+| Action ID | New shortcut | Why |
+|---|---|---|
+| `GotoClass` | `Ctrl+N` | You removed this (Vim conflict). Use `j`/`↓` for movement instead. This is too important to lose. |
+| `GotoTest` | `Ctrl+Shift+T` | You removed this. Critical for Java workflow. |
+| `Switcher` | `Ctrl+Tab` | You removed this. No Vim conflict. Restore it. |
+| `GotoPreviousError` | `Shift+F2` | Currently mapped to `RenameElement` in your keymap. Move RenameElement back to `Shift+F6`. |
+
+**Move these:**
+
+| Action ID | Old shortcut | New shortcut | Why |
+|---|---|---|---|
+| `RenameElement` | `Shift+F2` | `Shift+F6` | Standard IntelliJ. Free up Shift+F2 for errors. |
+| `ActivateProjectToolWindow` | `Alt+1` (default) | (keep `Alt+1`, add `Space+ee` via IdeaVim) | Let IdeaVim handle Space leader. Keep IDE shortcuts as fallback. |
+
+### 6.2 Conflicts to keep resolved in Vim's favor
+
+These Vim shortcuts are worth keeping because the IDE alternatives are accessible:
+
+| Shortcut | Vim action | IDE alternative |
+|---|---|---|
+| `Ctrl+D` | Scroll half-page down | Duplicate line via `Ctrl+C` then `Ctrl+V` or `Ctrl+D` context menu |
+| `Ctrl+U` | Scroll half-page up | — (unused in IDE) |
+| `Ctrl+B` | Page up | — |
+| `Ctrl+F` | Page down | — (Find is `Ctrl+Shift+F` in IDE) |
+| `Ctrl+E` | Scroll line down | Recent Files is accessible via `Ctrl+Tab` or `Space+fr` |
+| `Ctrl+Y` | Scroll line up | Redo is `Ctrl+Shift+Z` in IDE |
+
+---
+
+## 7. What You Lose and What You Gain
+
+### 7.1 What you lose
+
+| Neovim/Zellij feature | In IntelliJ |
+|---|---|
+| `lazygit` TUI | IntelliJ VCS tool window (commit UI, diff viewer, branch manager). Different paradigm — IntelliJ uses forms and trees instead of a git TUI. If you genuinely miss lazygit, run it in a terminal tab. |
+| `snacks.picker` fuzzy finding | IntelliJ's `Search Everywhere` (`Shift+Shift`) and `Go to File` (`Ctrl+Shift+N`). These are actually better for large codebases because they index the project. |
+| `nvim-dbee` (SQL client) | DataGrip built into IntelliJ Ultimate (`Alt+L`). This is a **massive upgrade**. DataGrip is the best SQL client you'll ever use. |
+| `conform.nvim` (format-on-save) | IntelliJ has built-in formatters, reformat-on-save, and code style settings per language/project. **Upgrade.** |
+| `nvim-lint` | IntelliJ inspections engine. **Massive upgrade** — inspections run in real-time, are configurable per-scope, and cover far more than any CLI linter. |
+| `todo-comments` highlighting | IntelliJ has built-in TODO highlighting and the TODO tool window (`Alt+6` by default). |
+| `which-key` (keymap discovery) | IntelliJ doesn't have a which-key equivalent. Use `Ctrl+Shift+A` (Find Action) to search for any action by name. |
+| Terminal-based Pi | You can still run Pi in a terminal tab. See §4. |
+| Zellij pane management | IntelliJ's split editor + tool windows. More structured, less flexible. |
+
+### 7.2 What you gain (IntelliJ Ultimate exclusives)
+
+| Feature | Why it's better |
+|---|---|
+| **Java IDE features** | No Neovim setup can match IntelliJ's Java: refactoring (extract method/class/interface, change signature, inline), intention actions, data flow analysis, dependency structure matrix, Spring/Micronaut framework integration |
+| **DataGrip** built in | Full SQL IDE: query console, schema editor, data editor, import/export, ER diagrams. You already use this (`Alt+L`). |
+| **Debugger** | Step-through debugger with breakpoints, watches, evaluate expression, frame drop, hot method replace. Java, Node.js, and Go. |
+| **Built-in test runner** | Run/debug individual tests, test suites, coverage. No neotest needed. |
+| **Refactoring depth** | Rename across the entire codebase (not just text replace — understands language semantics, renames in comments/strings, updates imports) |
+| **VCS integration** | Commit UI (select hunks to include/exclude), shelve/unshelve, annotate/blame, compare with branch, interactive rebase |
+| **HTTP Client** | `.http` files for API testing, saved in project |
+| **Profiler** | Built-in CPU/memory profiling for Java and Node.js |
+| **Endpoints tool window** | Lists all REST endpoints (Spring/Micronaut/JAX-RS) with URL, method, and a one-click HTTP client test |
+| **TypeScript/React** | Full JS/TS/React/Next.js support with auto-imports, refactoring, JSX awareness |
+| **Nx Console** | Visual Nx task runner for the gSim umbrella |
+| **Low-memory startup** | IntelliJ 2026.1 loads projects fast, even large ones |
+| **Terminal integration** | Terminal has smart command completion (suggests npm/maven/gradle commands from project), runs as a native shell with colors |
+
+---
+
+## 8. Phased Migration Plan
+
+### 8.1 Phase 1 — Foundation (Day 1-2)
+
+1. **Fix the keymap** — Restore the critical IDE shortcuts removed from
+   "GNOME Vim" keymap (§6.1). Without `Ctrl+N`, `Ctrl+Shift+T`, and
+   `Ctrl+Tab`, IntelliJ feels broken.
+2. **Create `.ideavimrc`** — Use the template in §5. Start with just the
+   `mapleader` and the most important Space-leader mappings (`Space+ee`,
+   `Space+ff`, `Space+fs`, `Space+lg`, `Space+ot`).
+3. **Unmap `Ctrl+K` from Vim** — Give it back to the IDE for VCS Commit.
+   Add `iunmap <C-k>` and `nunmap <C-k>` to `.ideavimrc`.
+4. **Open gSim in IntelliJ** — Use `File → Open → ~/Code/gSim`. Make sure
+   Nx Console plugin is installed. Check that Maven imports succeed for
+   `globalSimNaut`.
+
+### 8.2 Phase 2 — Terminal & Pi (Day 3-5)
+
+1. **Set up Pi** in a dedicated terminal tab (§4.2, Option A).
+2. **Create Pi external tool** (§4.3) for a separate window if you prefer.
+3. **Configure terminal** — Set terminal font, colors, and shell to match
+   your current zellij terminal. `Settings → Tools → Terminal`.
+4. **Disable Zellij autostart** for IntelliJ sessions. Use `zellij` only
+   when you actually need a multiplexer.
+
+### 8.3 Phase 3 — Git workflow (Week 1-2)
+
+1. **Learn the VCS tool window** — It's a different paradigm from lazygit.
+   Spend 30 min exploring:
+   - `Commit` tab (left side): stage/unstage hunks, write message, commit
+   - `Log` tab: visual branch graph, filter, search
+   - `Space+lg` → Version Control tool window
+   - `Ctrl+K` → Commit window (once you unmap it from Vim)
+   - `Ctrl+T` → VCS Update (pull)
+   - `Ctrl+Shift+K` → Push
+2. **If you miss lazygit** — Run `lazygit` in a terminal tab. It works.
+   Add a keybinding: `nnoremap <leader>lz :!lazygit<CR>`.
+
+### 8.4 Phase 4 — Multi-project (Week 2-3)
+
+1. **Attach projects** — For repos you work on together, use
+   `File → Attach Project`.
+2. **Set up project groups** — `File → Open Recent → Manage Projects...`
+   lets you save "project groups" that open multiple projects together.
+3. **Learn the Switcher** (`Ctrl+Tab`) — It shows recent files across all
+   attached projects.
+
+### 8.5 Phase 5 — Polish (Week 3-4)
+
+1. **Tune Space-leader mappings** — Add/remove IdeaVim mappings based on
+   what you actually use.
+2. **Create project templates** — For new Micronaut/Quarkus/Next.js
+   projects, IntelliJ's New Project wizard is fast.
+3. **Set up code style** — Import your Eclipse formatter XML for Java
+   projects. `Settings → Editor → Code Style → Java → Scheme → Import`.
+4. **Set up run configurations** — For gSim, create run configs for each
+   service. Save them in the project so they sync via git.
+
+---
+
+## 9. Quick Reference: Keybinding Cheat Sheet
+
+### Navigation
+
+| Action | IntelliJ shortcut | IdeaVim (Space-leader) |
+|---|---|---|
+| Project tool window | `Alt+1` | `Space+ee` |
+| Go to file | `Ctrl+Shift+N` | `Space+ff` |
+| Find in files | `Ctrl+Shift+F` | `Space+fs` |
+| Search everywhere | `Shift+Shift` | — |
+| Go to class | `Ctrl+N` | — |
+| Go to test | `Ctrl+Shift+T` | — |
+| Recent files | `Ctrl+E` | `Space+fr` |
+| Switcher (recent files + tools) | `Ctrl+Tab` | — |
+
+### Editing
+
+| Action | IntelliJ shortcut | Vim keys |
+|---|---|---|
+| Go to declaration | `Ctrl+B` / `Ctrl+Click` | `gd` |
+| Go to implementation | `Ctrl+Alt+B` | `gi` |
+| Find usages | `Alt+F7` | `gR` |
+| Rename | `Shift+F6` | `Space+rn` |
+| Show intentions | `Alt+Enter` | `Space+ca` |
+| Quick documentation | `Ctrl+Q` | `K` |
+| Reformat code | `Ctrl+Alt+L` | — |
+| Optimize imports | `Ctrl+Alt+O` | — |
+
+### Git
+
+| Action | IntelliJ shortcut | IdeaVim |
+|---|---|---|
+| Version Control tool window | `Alt+9` | `Space+lg` |
+| Commit | `Ctrl+K` | `Space+lc` |
+| Push | `Ctrl+Shift+K` | `Space+lp` |
+| Update (pull) | `Ctrl+T` | `Space+lu` |
+
+### Terminal & Tools
+
+| Action | IntelliJ shortcut | IdeaVim |
+|---|---|---|
+| Terminal | `Alt+F12` | `Space+ot` |
+| Database | `Alt+L` | `Space+db` |
+| AI Assistant | `Alt+K` | `Space+pi` |
+| Problems | — | `Space+xx` |
+| Maven | `Alt+H` | `Space+mv` |
+| Run | `Shift+F10` | `Space+rb` |
+| Debug | `Shift+F9` | `Space+rd` |
+
+---
+
+## 10. FAQ
+
+### Q: Am I wishing for too much?
+
+No. You're not wishing for too much. You have two real needs:
+
+1. **Unify keybindings across two environments** — The Space-leader pattern
+   from Neovim CAN be replicated in IdeaVim. The IntelliJ IDE shortcuts that
+   conflict with Vim can be resolved by choosing which system owns each chord.
+   This is configuration work, not impossible. The `.ideavimrc` in §5 handles
+   80% of it.
+
+2. **Multi-project workflow** — IntelliJ's "Attach Project" + Switcher +
+   Recent Projects handles this well. It won't feel exactly like Zellij tabs,
+   but it's more capable (full IDE features per project, not just terminal
+   panes).
+
+### Q: Will I ever be as fast as I am in Neovim?
+
+For **editing text**, Neovim + Vim motions is about as fast as IntelliJ +
+IdeaVim — you keep the Vim editing model either way.
+
+For **code understanding and refactoring**, IntelliJ is faster. Operations
+that take multiple Neovim LSP calls (e.g., "find all callers, then rename
+this method, then update the interface, then fix imports in all callers")
+are a single refactoring action in IntelliJ.
+
+For **git**, lazygit is faster for complex operations (interactive rebase,
+cherry-picking, stash management). IntelliJ's VCS tool window is faster for
+the common operations (commit, push, pull, diff hunks). You can keep both
+by running lazygit in a terminal tab.
+
+### Q: What about Zed / Cursor / VS Code?
+
+You've invested 13 years in IntelliJ and know its advanced features. You
+have IntelliJ Ultimate. You work in Java and TypeScript. Switching to
+another IDE would lose the Java features that are the main reason to use
+IntelliJ. This is the right tool for your stack.
+
+### Q: Can I keep using Neovim for quick edits?
+
+Yes. `nvim` is just a program. You can still open it from the terminal for
+quick config edits, dotfiles, or scripts where you don't need the full IDE.
+IntelliJ and Neovim are not mutually exclusive — they're complementary.
+Use IntelliJ for project work, Neovim for quick terminal edits.
