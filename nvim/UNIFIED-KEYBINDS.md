@@ -135,7 +135,7 @@ These differences are environment-specific and don't affect muscle memory:
 
 | Area | IntelliJ | Neovim |
 |---|---|---|
-| **Project switching** | `Alt+h`/`Alt+l` (RecentFiles/Switcher) | Zellij `Alt+←`/`Alt+→` (tabs) |
+| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | Zellij `Alt+←`/`Alt+→` (tabs) |
 | **Window management** | IDE tool windows (right side) | Zellij panes (top/middle/bottom) |
 | **Editing surface** | IntelliJ editor + IdeaVim | Neovim editor |
 | **Theme** | Default IntelliJ theme | `tokyonight.nvim` (style: night) |

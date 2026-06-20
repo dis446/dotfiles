@@ -96,36 +96,18 @@ tool window, and `Alt+L` is mapped to the Database tool window.
 | `Alt+H` → Maven | Switch to previous project root | Maven → `Space+mv` (already in .ideavimrc) |
 | `Alt+L` → Database | Switch to next project root | Database → `Space+db` (already in .ideavimrc) |
 
-**How to implement (two options):**
+**How to implement:**
 
-**Option A — Navigate attached projects via Project tool window focus.**
-Map `Alt+H` and `Alt+L` to these actions in Settings → Keymap:
-- `Alt+H` → `PreviousProjectWindow` (or a macro: ActivateProjectToolWindow + focus previous root)
-- `Alt+L` → `NextProjectWindow`
+Bind `Alt+H` → `RecentFiles` and `Alt+L` → `Switcher` in Settings → Keymap.
+These give two quick-launch surfaces for cross-project navigation:
+- `Alt+H` opens Recent Files (files from all attached projects, navigable with arrow keys)
+- `Alt+L` opens the Switcher (recent files + tool windows, same idea, denser UI)
 
-Unfortunately IntelliJ does not have a built-in "focus next project root"
-action. But you can create two **macros**:
+The zellij spatial muscle memory maps cleanly: `Alt+H` = left = "go back / recent",
+`Alt+L` = right = "go forward / switch context".
 
-```
-Macro: "Focus Previous Project Root"
-  1. ActivateProjectToolWindow
-  2. EditorUp (moves focus up in the project tree)
-
-Macro: "Focus Next Project Root"
-  1. ActivateProjectToolWindow
-  2. EditorDown
-```
-
-Then bind `Alt+H` and `Alt+L` to these macros. This approximates "switch 
-between project roots" by navigating the Project tool window.
-
-**Option B — Use the Switcher for recent files across projects.**
-Bind `Alt+H` → `RecentFiles` (shows recent files, naturally navigated with
-arrow keys). Bind `Alt+L` → `Switcher` (same concept, different UI). This
-gives two quick-launch surfaces for cross-project navigation.
-
-**Recommendation: Option B** is simpler and more reliable. Option A's macros
-can break if the Project view is collapsed or in a different mode.
+This avoids fragile macros that break when the Project view is collapsed or in
+a different mode. Both surfaces work reliably regardless of IDE state.
 
 ### 2.3 Zellij vs IntelliJ tool window shortcuts
 
@@ -571,9 +553,8 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 1. **Attach projects** — For repos you work on together, use
    `File → Attach Project`.
 2. **Configure Alt+h/Alt+l** — Remap Maven and Database tool windows to
-   `Space+mv` and `Space+db` (already in .ideavimrc). Bind `Alt+H` and
-   `Alt+L` to `RecentFiles` and `Switcher` for cross-project navigation
-   (§2.2, Option B).
+   `Space+mv` and `Space+db` (already in .ideavimrc). Bind `Alt+H` → `RecentFiles`
+   and `Alt+L` → `Switcher` for cross-project navigation (§2.2).
 3. **Learn the Switcher** (`Alt+L` / `Ctrl+Tab`) — Shows recent files
    across all attached projects.
 
