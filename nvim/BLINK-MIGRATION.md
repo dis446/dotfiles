@@ -1,5 +1,24 @@
 # Blink Completion Migration Plan
 
+> **Status: completed (2026-06-20).** `blink.cmp` is live in
+> `nvim/lua/dis446/plugins/blink.lua`, LSP capabilities come from
+> `blink.cmp.get_lsp_capabilities()`, and the `nvim-cmp` stack
+> (`nvim-cmp`, `cmp-nvim-lsp`, `cmp-buffer`, `cmp-path`, `cmp_luasnip`,
+> `lspkind`) has been removed. `LuaSnip` + `friendly-snippets` are kept.
+> The sections below are retained as a record of the plan.
+
+## Multi-machine considerations
+
+`blink.cmp` ships a Rust fuzzy matcher. With `version = "1.*"` pinned, blink
+downloads a **prebuilt** binary matching the release tag on first load — no local
+Rust toolchain required. Verified on this machine: `target/release/libblink_cmp_fuzzy.so`
+downloads automatically and `blink.cmp.fuzzy.rust` loads. On other machines
+(nobara / macos / ubuntu) the same download happens on first `nvim` launch after
+pulling; if a machine is offline or the prebuilt target is unavailable, blink
+falls back to the Lua matcher (`prefer_rust_with_warning`) instead of erroring.
+
+---
+
 This document lays out a practical migration path from `nvim-cmp` to `blink.cmp` for this Neovim config.
 
 ## Goal
