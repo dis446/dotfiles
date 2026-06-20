@@ -24,6 +24,7 @@ link_target "$HOME/dotfiles/claude" "$HOME/.claude"
 sudo_link_target "$HOME/dotfiles/fedora/dnf.conf" "/etc/dnf/dnf.conf"
 mkdir -p "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
 link_target "$HOME/dotfiles/fedora/bashrc" "$HOME/.bashrc"
 source "$HOME/.bashrc"
 

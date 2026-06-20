@@ -29,3 +29,14 @@ claude/*
 # plugins/ holds only machine-specific runtime state (cache, clones, install paths).
 # Reproducibility comes from settings.json: extraKnownMarketplaces + enabledPlugins
 # auto-install everything on startup. So plugins/ stays fully ignored.
+
+# IntelliJ — track config only, ignore machine-local state.
+# Unlike claude/ and pi/, the whole IntelliJ config dir CANNOT be symlinked
+# (version-specific path, machine state mixed with config). Settings Sync
+# handles cross-machine sync for keymaps/codestyles/options. The dotfiles
+# repo tracks only .ideavimrc (symlinked to ~/.ideavimrc) and reference
+# copies of keymaps for version history.
+intellij/*
+!intellij/ideavimrc
+!intellij/keymaps/
+!intellij/MIGRATION-ADVISORY.md
