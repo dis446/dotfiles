@@ -5,6 +5,11 @@
 > is more recent and should take priority over older IntelliJ habits where
 > they conflict. The IDE should feel like "Neovim keybinds in an IntelliJ
 > shell" rather than the reverse.
+>
+> **Dotfiles strategy:** Track `.ideavimrc` + reference keymap in
+> `~/dotfiles/intellij/`. Let JetBrains Settings Sync handle cross-machine
+> sync of everything else (keymaps, codestyles, options, etc.). Symlink
+> `.ideavimrc` to `~/.ideavimrc` via `fedora/install.sh`.
 
 ---
 
@@ -149,7 +154,7 @@ These CAN be replicated in IdeaVim. This is the **best path to unification**.
 | `Space+fs` | Live grep | Find in Files (`Ctrl+Shift+F`) | `nnoremap <leader>fs :action FindInPath<CR>` |
 | `Space+fc` | Grep word under cursor | Find in Files (with selection) | `nnoremap <leader>fc :action FindInPath<CR>` (pre-fills word) |
 | `Space+ft` | TODOs | TODO tool window | `nnoremap <leader>ft :action ActivateTODOToolWindow<CR>` |
-| `Space+lg` | LazyGit | Version Control tool window | `nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>` (lazygit retired; IntelliJ VCS is the new home) |
+| `Space+lg` | LazyGit | Lazygit plugin (full-screen editor tab) | `nnoremap <leader>lg <Action>(Lazygit.Toggle)` (keep lazygit via native IntelliJ plugin) |
 | `Space+pi` | Pi AI pane | AI Assistant | `nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>` |
 | `Space+pI` | New Pi session | New AI chat | — (manual) |
 | `Space+wr` | Restore session | — | No direct equivalent (IntelliJ remembers state) |
@@ -368,11 +373,11 @@ nnoremap <leader>fc :action FindInPath<CR>
 " TODOs
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
-" Git / VCS (lazygit retired — IntelliJ VCS is the new home)
-nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>
-nnoremap <leader>lc :action CheckinProject<CR>       " commit
-nnoremap <leader>lp :action Vcs.Push<CR>             " push
-nnoremap <leader>lu :action Vcs.UpdateProject<CR>     " pull
+" Git / VCS (lazygit via native IntelliJ plugin, Ctrl+Alt+G default)
+nnoremap <leader>lg <Action>(Lazygit.Toggle)
+nnoremap <leader>lc :action CheckinProject<CR>       " commit (IDE)
+nnoremap <leader>lp :action Vcs.Push<CR>             " push (IDE)
+nnoremap <leader>lu :action Vcs.UpdateProject<CR>     " pull (IDE)
 
 " Terminal
 nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
@@ -481,7 +486,7 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 
 | Neovim/Zellij feature | In IntelliJ |
 |---|---|
-| `lazygit` TUI | IntelliJ VCS tool window (commit UI, diff viewer, branch manager). You're intentionally retiring lazygit and adopting the IntelliJ VCS tool window as the primary git interface. `Space+lg` opens VCS. `Space+lc` commits. `Space+lp` pushes. `Space+lu` pulls. |
+| `lazygit` TUI | Keep it. The [Lazygit IntelliJ plugin](https://plugins.jetbrains.com/plugin/30919-lazygit) by ckob embeds lazygit as a full-screen editor tab inside IntelliJ. Press `e` on any file to open it in the IDE. `Space+lg` toggles it. Your lazygit muscle memory carries over directly. |
 | `snacks.picker` fuzzy finding | IntelliJ's `Search Everywhere` (`Shift+Shift`) and `Go to File` (`Ctrl+Shift+N`). These are actually better for large codebases because they index the project. |
 | `nvim-dbee` (SQL client) | DataGrip built into IntelliJ Ultimate (`Alt+L`). This is a **massive upgrade**. DataGrip is the best SQL client you'll ever use. |
 | `conform.nvim` (format-on-save) | IntelliJ has built-in formatters, reformat-on-save, and code style settings per language/project. **Upgrade.** |
@@ -538,14 +543,15 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 
 ### 8.3 Phase 3 — Git workflow (Week 1)
 
-1. **Adopt the VCS tool window** — lazygit is being retired. The IntelliJ
-   VCS tool window becomes your primary git interface:
-   - `Space+lg` → Version Control tool window
-   - `Space+lc` → Commit (CheckinProject)
-   - `Space+lp` → Push
-   - `Space+lu` → Update (pull)
-   - `Commit` tab (left side): stage/unstage hunks, write message, commit
-   - `Log` tab: visual branch graph, filter, search
+1. **Install the Lazygit IntelliJ plugin** ([Marketplace](https://plugins.jetbrains.com/plugin/30919-lazygit))
+   by ckob. This brings lazygit into IntelliJ as a full-screen editor tab —
+   no context-switching to a terminal needed.
+2. **Map `Space+lg`** to `Lazygit.Toggle` in your `.ideavimrc`:
+   `nnoremap <leader>lg <Action>(Lazygit.Toggle)`
+3. **Press `e` on files** in lazygit to open them directly in the IDE editor
+   (zero-config IPC bridge).
+4. **Keep IntelliJ VCS as fallback** — `Space+lc` (commit), `Space+lp` (push),
+   `Space+lu` (pull) still work via the IDE's VCS actions for quick operations.
 
 ### 8.4 Phase 4 — Pi via ACP (Week 1-3, ongoing)
 
@@ -612,12 +618,13 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 
 | Action | IntelliJ shortcut | IdeaVim (Space-leader) |
 |---|---|---|
-| Version Control tool window | `Alt+9` | `Space+lg` |
-| Commit | `Ctrl+K` | `Space+lc` |
-| Push | `Ctrl+Shift+K` | `Space+lp` |
-| Update (pull) | `Ctrl+T` | `Space+lu` |
+| Lazygit (full TUI) | `Ctrl+Alt+G` | `Space+lg` |
+| Commit (IDE) | `Ctrl+K` | `Space+lc` |
+| Push (IDE) | `Ctrl+Shift+K` | `Space+lp` |
+| Update/pull (IDE) | `Ctrl+T` | `Space+lu` |
 
-**Note:** `Ctrl+K` is retained by Vim (cursor up). Use `Space+lc` for commit.
+**Lazygit plugin:** Install from [Marketplace](https://plugins.jetbrains.com/plugin/30919-lazygit).
+Press `e` on any file in lazygit to open it in the IDE editor.
 
 ### Terminal & Tools
 
@@ -660,11 +667,10 @@ that take multiple Neovim LSP calls (e.g., "find all callers, then rename
 this method, then update the interface, then fix imports in all callers")
 are a single refactoring action in IntelliJ.
 
-For **git**, you've chosen to retire lazygit and use IntelliJ's VCS tool
-window. The VCS UI is different but covers all the same operations: commit
-with hunk staging, push/pull, branch management, log/diff/blame. If you
-miss lazygit for complex operations (interactive rebase, cherry-pick),
-you can always run it in a terminal tab — no conflict with the migration.
+For **git**, the [Lazygit IntelliJ plugin](https://plugins.jetbrains.com/plugin/30919-lazygit)
+lets you keep your lazygit workflow inside IntelliJ. `Space+lg` toggles it
+as a full-screen editor tab. Press `e` on any file to open it in the IDE.
+Your lazygit muscle memory transfers directly — no compromise needed.
 
 ### Q: What about Zed / Cursor / VS Code?
 
@@ -679,3 +685,83 @@ Yes. `nvim` is just a program. You can still open it from the terminal for
 quick config edits, dotfiles, or scripts where you don't need the full IDE.
 IntelliJ and Neovim are not mutually exclusive — they're complementary.
 Use IntelliJ for project work, Neovim for quick terminal edits.
+
+---
+
+## 11. Dotfiles Integration
+
+### 11.1 What can be tracked
+
+Unlike neovim/zellij/pi — where the entire config directory is symlinked into
+`~/.config/` — IntelliJ's config directory is **version-specific**
+(`~/.config/JetBrains/IntelliJIdea2026.1/`) and contains machine-local state
+(recent projects, window layouts, JDK tables, licenses). You cannot symlink
+the whole thing.
+
+**JetBrains Settings Sync** already handles cross-machine sync for:
+- Keymaps (`keymaps/`)
+- Code styles (`codestyles/`)
+- Color schemes (`colors/`)
+- File templates (`fileTemplates/`)
+- Inspection profiles (`inspection/`)
+- Most options (`options/vim_settings.xml`, `options/editor.xml`, etc.)
+
+**The only file Settings Sync does NOT handle** is `~/.ideavimrc` (IdeaVim
+reads it from the home directory, not from the IntelliJ config tree).
+
+### 11.2 Dotfiles directory structure
+
+```
+~/dotfiles/intellij/
+  .gitignore            ← whitelist: ignore *, unignore specific files
+  ideavimrc             ← ~/.ideavimrc (symlinked)
+  keymaps/
+    GNOME Vim.xml       ← reference copy (Settings Sync handles live sync)
+  MIGRATION-ADVISORY.md ← this file
+```
+
+### 11.3 `.gitignore` whitelist
+
+Add to `~/dotfiles/.gitignore`:
+
+```gitignore
+# IntelliJ — track config only
+intellij/*
+!intellij/ideavimrc
+!intellij/keymaps/
+!intellij/MIGRATION-ADVISORY.md
+```
+
+### 11.4 `fedora/install.sh` additions
+
+```bash
+# IntelliJ IdeaVim config (home directory, version-independent)
+ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
+```
+
+### 11.5 Why not symlink the keymap?
+
+The keymap XML lives at a version-specific path:
+`~/.config/JetBrains/IntelliJIdea2026.1/keymaps/GNOME Vim.xml`
+
+When IntelliJ upgrades to `2026.2`, that path changes. Symlinking would break.
+Instead:
+
+1. **Settings Sync** keeps the live keymap in sync across machines
+2. **The dotfiles copy** (`intellij/keymaps/GNOME Vim.xml`) serves as a
+   version-controlled backup with full git history
+3. For first-time setup, you can manually copy it into the current IntelliJ
+   config dir, or just let Settings Sync pull it from the cloud
+
+### 11.6 Creating `ideavimrc` from the template
+
+Once you finalize your `.ideavimrc` (using the template in §5), save it as
+`~/dotfiles/intellij/ideavimrc`. The `fedora/install.sh` symlink will take
+effect on the next run.
+
+```bash
+# First time: create the file, then let install.sh symlink it
+cp ~/.ideavimrc ~/dotfiles/intellij/ideavimrc
+# On future machines: install.sh does:
+#   ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
+```

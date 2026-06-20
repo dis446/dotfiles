@@ -1,0 +1,87 @@
+<keymap version="1" name="GNOME Vim" parent="Default for GNOME">
+  <action id="ActivateAIAssistantToolWindow">
+    <keyboard-shortcut first-keystroke="alt k" />
+  </action>
+  <action id="ActivateBigDataToolWindowToolWindow">
+    <keyboard-shortcut first-keystroke="shift ctrl alt b" />
+  </action>
+  <action id="ActivateDatabaseToolWindow">
+    <keyboard-shortcut first-keystroke="alt l" />
+  </action>
+  <action id="ActivateGitHubActionsToolWindow">
+    <keyboard-shortcut first-keystroke="alt g" />
+    <keyboard-shortcut first-keystroke="ctrl alt g" />
+  </action>
+  <action id="ActivateMavenToolWindow">
+    <keyboard-shortcut first-keystroke="alt h" />
+  </action>
+  <action id="BigDataTools.ViewSourceAction" />
+  <action id="CloseActiveTab" />
+  <action id="CloseAllEditors">
+    <keyboard-shortcut first-keystroke="shift ctrl w" />
+  </action>
+  <action id="CloseContent">
+    <keyboard-shortcut first-keystroke="ctrl w" />
+  </action>
+  <action id="CollapseExpandableComponent">
+    <keyboard-shortcut first-keystroke="ctrl subtract" />
+    <keyboard-shortcut first-keystroke="ctrl minus" />
+  </action>
+  <action id="Console.SplitLine" />
+  <action id="Console.TableResult.EditValueMaximized">
+    <keyboard-shortcut first-keystroke="shift alt enter" />
+  </action>
+  <action id="Console.TableResult.SubmitAndCommit" />
+  <action id="DatabaseView.PropertiesAction" />
+  <action id="DatabaseView.Tools.SubmitChanges" />
+  <action id="Diff.FocusOppositePane" />
+  <action id="DirDiffMenu.SynchronizeDiff.All" />
+  <action id="Docker.RemoteServers.StartComposeService" />
+  <action id="Docker.RemoteServers.StartContainer" />
+  <action id="EditorSelectWord" />
+  <action id="EditorSplitLine" />
+  <action id="EditorStartNewLine" />
+  <action id="ExpandExpandableComponent">
+    <keyboard-shortcut first-keystroke="ctrl add" />
+    <keyboard-shortcut first-keystroke="ctrl equals" />
+  </action>
+  <action id="FileChooser.NewFolder">
+    <keyboard-shortcut first-keystroke="alt insert" />
+  </action>
+  <action id="GotoClass" />
+  <action id="GotoPreviousError" />
+  <action id="GotoTest" />
+  <action id="KotlinShellExecute" />
+  <action id="MainMenuButton.ShowMenu" />
+  <action id="NewFile">
+    <keyboard-shortcut first-keystroke="alt n" />
+  </action>
+  <action id="NextTab">
+    <keyboard-shortcut first-keystroke="ctrl tab" />
+  </action>
+  <action id="OpenInRightSplit">
+    <mouse-shortcut keystroke="alt button1 doubleClick" />
+  </action>
+  <action id="PreviousTab">
+    <keyboard-shortcut first-keystroke="shift ctrl tab" />
+  </action>
+  <action id="RenameElement">
+    <keyboard-shortcut first-keystroke="shift f2" />
+  </action>
+  <action id="ReopenClosedTab">
+    <keyboard-shortcut first-keystroke="shift ctrl t" />
+  </action>
+  <action id="ResourceExplorer.show" />
+  <action id="ServiceView.ShowServices" />
+  <action id="SmartSelect" />
+  <action id="SplitChooser.Duplicate" />
+  <action id="Switcher" />
+  <action id="SwitcherPreviousProblem" />
+  <action id="TableResult.GrowSelection" />
+  <action id="Terminal.NewTab" />
+  <action id="Terminal.SmartCommandExecution.Run" />
+  <action id="UsageFiltering.WriteAccess" />
+  <action id="ViewSource" />
+  <action id="WebInspector.Locators.Add.Current" />
+  <action id="android.emulator.tilt" />
+</keymap>

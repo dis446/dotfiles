@@ -16,9 +16,11 @@ Each OS/distro has its own idempotent install script that symlinks config into `
 
 To pick up alias changes after editing, re-source the shell (`src` alias = `source ~/.bashrc`).
 
-Symlinks created by all setup scripts: `nvim`→`~/.config/nvim`, `zellij`→`~/.config/zellij`, ghostty config, `lazygit/config.yml`, the Pi agent dirs (`pi/agent`→`~/.agents`, `pi`→`~/.pi`, `.ai`→`~/.ai`), and Claude Code (`claude`→`~/.claude`).
+Symlinks created by all setup scripts: `nvim`→`~/.config/nvim`, `zellij`→`~/.config/zellij`, ghostty config, `lazygit/config.yml`, the Pi agent dirs (`pi/agent`→`~/.agents`, `pi`→`~/.pi`, `.ai`→`~/.ai`), Claude Code (`claude`→`~/.claude`), and IntelliJ IdeaVim config (`intellij/ideavimrc`→`~/.ideavimrc`).
 
 `claude/` and the `pi/` dirs follow the same convention: the whole directory is symlinked into `$HOME`, but only hand-managed config is tracked — runtime state and secrets are gitignored. For `claude/` the `.gitignore` uses a whitelist (`claude/*` ignored, then `settings.json`, `keybindings.json`, `CLAUDE.md`, `hooks/`, `commands/`, `agents/`, `skills/` re-included), so anything Claude Code writes at runtime (`projects/`, `sessions/`, `plugins/`, `.credentials.json`, `history.jsonl`, caches) stays out of git automatically.
+
+`intellij/` follows a different pattern: IntelliJ's config lives in a version-specific path (`~/.config/JetBrains/IntelliJIdea2026.1/`) and mixes portable config with machine state, so the entire directory cannot be symlinked. Instead, only `.ideavimrc` is symlinked to `~/.ideavimrc`. JetBrains Settings Sync handles cross-machine sync for everything else (keymaps, codestyles, options). The `intellij/keymaps/` directory holds reference copies of custom keymaps for version history.
 
 ## Shell alias architecture
 
