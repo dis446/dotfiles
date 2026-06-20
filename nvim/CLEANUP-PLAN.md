@@ -17,26 +17,26 @@ is always a **single-pane, full-size editor** inside a zellij pane. You never:
   not Ctrl+hjkl)
 
 You run Pi in a separate zellij pane (middle pane, between neovim and bash).
-The `pi.lua` neovim plugin that opened Pi as a right-side split has never
-been used — it's also being removed in this cleanup.
+The `pi.lua` neovim plugin that opened Pi as a right-side split is being kept as requested.
 
 ---
 
 ## 2. Changes
 
-### 2.1 Remove tab keybinds
+### 2.1 Update tab keybinds
 
 **File:** `nvim/lua/dis446/core/keymaps.lua`
 
-Remove these lines:
+Instead of removing tab keybinds, we are keeping them but adding standard browser-style shortcuts for switching:
 
-| Keybind | What it does | Why remove |
+| Keybind | What it does | Change |
 |---|---|---|
-| `<leader>tt` → `tabnew` | Open new tab | Never used |
-| `<leader>tw` → `tabclose` | Close current tab | Never used |
-| `<leader>tl` → `tabn` | Next tab | Never used |
-| `<leader>th` → `tabp` | Previous tab | Never used |
-| `<leader>ty` → `tabnew %` | Buffer to new tab | Never used |
+| `<C-Tab>` | Next tab | **New** |
+| `<C-S-Tab>` | Previous tab | **New** |
+| `<leader>tt` | Open new tab | Keep |
+| `<leader>tw` | Close current tab | Keep |
+
+We will still remove the leader-based navigation (`<leader>tl`, `<leader>th`) to free up those keys, as `Ctrl+Tab` is more ergonomic.
 
 ### 2.2 Remove split/pane keybinds
 
@@ -153,19 +153,8 @@ auto_session.setup({
 -- No manual keybinds needed. Just open nvim and it restores.
 ```
 
-### 2.8 Remove Pi integration
 
-**File:** `nvim/lua/dis446/plugins/pi.lua`
-
-Delete this file. You've never used it — Pi runs in its own zellij pane,
-not embedded inside neovim. This removes:
-
-- Keybinds: `<leader>pi` (toggle Pi pane), `<leader>pI` (new Pi session)
-- User commands: `:Pi`, `:PiToggle`, `:PiNew`
-- The `botright vsplit` Pi pane
-- Per-project session dirs under `~/.local/state/nvim/pi-sessions/`
-
-### 2.9 Remove DBee (database client)
+### 2.8 Remove DBee (database client)
 
 **Files:** `nvim/lua/dis446/plugins/dbee.lua` + `nvim/lua/dis446/dbee/` directory
 
@@ -178,7 +167,7 @@ IntelliJ Ultimate, `Alt+L`) is objectively better for SQL work. This removes:
   `:DbeeRepoEditConfig`, `:DbeeRepoEditLocalConfig`
 - The entire `dis446.dbee` module (repo-scoped connection loading)
 
-### 2.10 Terminal keybinds: keep or remove?
+### 2.9 Terminal keybinds: keep or remove?
 
 **File:** `nvim/lua/dis446/plugins/snacks.lua`
 
@@ -209,19 +198,15 @@ After cleanup, these leader-key combinations become available for future use:
 | `<leader>se` | Removed equalize splits |
 | `<leader>sx` | Removed close split |
 | `<leader>sm` | Removed maximize split |
-| `<leader>tt` | Removed new tab |
-| `<leader>tw` | Removed close tab |
 | `<leader>tl` | Removed next tab |
 | `<leader>th` | Removed previous tab |
 | `<leader>ty` | Removed buffer to new tab |
 | `<leader>wr` | Removed manual session restore |
 | `<leader>ws` | Removed manual session save |
-| `<leader>pi` | Removed Pi pane |
-| `<leader>pI` | Removed new Pi session |
 | `<leader>od` | Removed DBee |
 | `<leader>oD` | Removed DBee reload |
 
-That's **16 freed leader-key combinations**. The `s` prefix group (window
+That's **12 freed leader-key combinations**. The `s` prefix group (window
 splits), `t` prefix group (tabs), `p` prefix group, and `o` prefix group
 are now available.
 
@@ -233,7 +218,6 @@ are now available.
 
 ```
 nvim/lua/dis446/plugins/bufferline.lua    (if choosing Option A)
-nvim/lua/dis446/plugins/pi.lua
 nvim/lua/dis446/plugins/dbee.lua
 nvim/lua/dis446/dbee/                     (entire directory)
 ```
@@ -242,7 +226,7 @@ nvim/lua/dis446/dbee/                     (entire directory)
 
 | File | Change |
 |---|---|
-| `nvim/lua/dis446/core/keymaps.lua` | Remove tab keybinds (5 lines) + split keybinds (4 lines) |
+| `nvim/lua/dis446/core/keymaps.lua` | Update tab keybinds (add Ctrl+Tab/Ctrl+Shift+Tab) + remove split keybinds |
 | `nvim/lua/dis446/core/options.lua` | Remove `splitright` and `splitbelow` |
 | `nvim/lua/dis446/plugins/snacks.lua` | Remove `<leader>sm` keymap |
 | `nvim/lua/dis446/plugins/auto-session.lua` | Enable `auto_restore_enabled`, add `auto_save_enabled`, remove manual keybinds |
@@ -254,8 +238,8 @@ nvim/lua/dis446/dbee/                     (entire directory)
 
 | File | Change |
 |---|---|
-| `nvim/README.md` | Remove tab/split/Pi/DBee sections, update session docs |
-| `nvim/CHEATSHEET.md` | Remove tab/split/Pi/DBee entries, update session entry |
+| `nvim/README.md` | Remove split/DBee sections, update tab/session docs |
+| `nvim/CHEATSHEET.md` | Remove split/DBee entries, update tab/session entry |
 | `nvim/REVIEW-2026.md` | Note cleanup |
 
 ---
@@ -264,6 +248,8 @@ nvim/lua/dis446/dbee/                     (entire directory)
 
 | Feature | Why keep it |
 |---|---|
+| Tabs | Useful for workflow (now with Ctrl+Tab navigation) |
+| Pi | Keeping as requested |
 | Dashboard (snacks) | Entry point when opening nvim without a file |
 | Explorer (snacks) | `Space+ee` file navigation |
 | Picker (snacks) | `Space+ff`, `Space+fs`, `Space+fr`, `Space+ft` |

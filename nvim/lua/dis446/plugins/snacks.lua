@@ -20,9 +20,9 @@ return {
 					{
 						icon = " ",
 						key = "SPC ee",
-						desc = "Open file explorer",
+						desc = "Toggle file explorer",
 						action = function()
-							Snacks.explorer.open()
+							Snacks.explorer()
 						end,
 					},
 					{
@@ -155,8 +155,8 @@ return {
 		local keymap = vim.keymap
 
 		keymap.set("n", "<leader>ee", function()
-			Snacks.explorer.open()
-		end, { desc = "Open file explorer" })
+			Snacks.explorer()
+		end, { desc = "Toggle file explorer" })
 
 		keymap.set("n", "<leader>ef", function()
 			Snacks.explorer.reveal()
@@ -230,8 +230,8 @@ return {
 		end, { desc = "Open todos list" })
 
 		vim.api.nvim_create_user_command("SnacksExplorer", function()
-			Snacks.explorer.open()
-		end, { desc = "Open Snacks explorer" })
+			Snacks.explorer()
+		end, { desc = "Toggle Snacks explorer" })
 
 		vim.api.nvim_create_user_command("SnacksReveal", function()
 			Snacks.explorer.reveal()

@@ -15,7 +15,7 @@ nunmap <C-k>
 iunmap <C-k>
 
 " ── Space-leader: File explorer / navigation ───────
-nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
+nnoremap <leader>ee :action Toolwindow.Project.Toggle<CR>
 nnoremap <leader>ef :action SelectInProjectView<CR>
 nnoremap <leader>ff :action GotoFile<CR>
 nnoremap <leader>fr :action RecentFiles<CR>
@@ -30,7 +30,7 @@ nnoremap <leader>lp :action Vcs.Push<CR>
 nnoremap <leader>lu :action Vcs.UpdateProject<CR>
 
 " ── Space-leader: Terminal ─────────────────────────
-nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>ot :action Toolwindow.Terminal.Toggle<CR>
 nnoremap <leader>oT :action Terminal.SplitVertically<CR>
 
 " ── Space-leader: Window / split management ─────────
@@ -40,20 +40,20 @@ nnoremap <leader>sx :action CloseContent<CR>
 nnoremap <leader>sm :action ToggleDistractionFreeMode<CR>
 
 " ── Space-leader: Diagnostics ──────────────────────
-nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>
+nnoremap <leader>xx :action Toolwindow.Problems.Toggle<CR>
 nnoremap <leader>xd :action GotoNextError<CR>
 
 " ── Space-leader: AI Assistant ─────────────────────
-nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>
+nnoremap <leader>pi :action Toolwindow.AIAssistant.Toggle<CR>
 
 " ── Space-leader: Database ─────────────────────────
-nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
+nnoremap <leader>db :action Toolwindow.Database.Toggle<CR>
 
 " ── Space-leader: Build / Run / Maven ──────────────
 nnoremap <leader>rb :action Run<CR>
 nnoremap <leader>rd :action Debug<CR>
 nnoremap <leader>rm :action Maven.RunBuild<CR>
-nnoremap <leader>mv :action ActivateMavenToolWindow<CR>
+nnoremap <leader>mv :action Toolwindow.Maven.Toggle<CR>
 
 " ── LSP (fallbacks — most work natively in IntelliJ) ──
 nnoremap gd :action GotoDeclaration<CR>
