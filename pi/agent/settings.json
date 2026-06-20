@@ -9,8 +9,8 @@
   "autocompleteMaxVisible": 5,
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
-  "defaultProvider": "github-copilot",
-  "defaultModel": "gpt-5.4-mini",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-flash",
   "enabledModels": [
     "deepseek/deepseek-v4-flash",
     "deepseek/deepseek-v4-pro",
