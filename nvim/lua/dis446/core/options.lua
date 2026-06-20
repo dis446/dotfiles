@@ -30,6 +30,3 @@ opt.clipboard:append("unnamedplus")
 -- mise shims: ensures nvim finds mise-managed tools even outside a login shell
 vim.env.PATH = vim.env.HOME .. "/.local/share/mise/shims:" .. vim.env.PATH
 
--- split windows
-opt.splitright = true -- split veritcal window to the right
-opt.splitbelow = true -- split horizontal window to the bottom

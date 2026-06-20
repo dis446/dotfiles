@@ -201,9 +201,6 @@ return {
 			})
 		end, { desc = "Open floating terminal" })
 
-		keymap.set("n", "<leader>sm", function()
-			Snacks.zen.zoom()
-		end, { desc = "Maximize/minimize a split" })
 
 		keymap.set("n", "<leader>xx", function()
 			Snacks.picker.diagnostics()

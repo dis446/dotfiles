@@ -74,9 +74,9 @@ This is **production-ready** for Java work.
 
 `nvim/lua/dis446/plugins/java.backup` is a remnant of an earlier `nvim-java` experiment. It is not loaded by lazy.nvim (no `.lua` extension) and does no harm, but it's dead weight. Consider deleting it.
 
-### 2. Session management is basic
+### 2. Session management is automatic
 
-`auto-session` with `auto_restore_enabled = false` and manual `<leader>wr`/`<leader>ws` controls is perfectly usable, but some users prefer automatic restore with directory exclusions. This is a preference call, not a defect.
+`auto-session` is now configured with `auto_restore_enabled = true` and `auto_save_enabled = true`. Manual `<leader>wr`/`<leader>ws` controls have been removed. This makes the editor feel more like a modern IDE that just picks up where you left off.
 
 ### 3. Picker `explorer` layout width
 
@@ -107,10 +107,8 @@ The blink.cmp spec uses `version = "1.*"` which is sensible for stability. Just 
 - `which-key.nvim`
 - `Comment.nvim`
 - `nvim-surround` + `substitute.nvim`
-- `bufferline.nvim`
 - `lualine.nvim` (custom theme, repo-relative filename)
-- `auto-session`
-- `nvim-dbee` (repo-scoped DB connections)
+- `auto-session` (now fully automatic)
 - `tokyonight.nvim` colorscheme (custom overrides)
 - The `Snacks` config and keymap set
 - The `blink.cmp` config
