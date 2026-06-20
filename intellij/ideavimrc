@@ -77,3 +77,13 @@ set clipboard=unnamed,unnamedplus
 " ── IDE-specific Vim settings ──────────────────────
 set ideajoin
 set ideaput
+
+" ── NERDTree (Simulates Snacks Explorer behavior) ──
+set NERDTree
+let g:NERDTreeMapActivateNode = 'l'
+let g:NERDTreeMapJumpParent = 'h'
+let g:NERDTreeMapQuit = 'q'
+let g:NERDTreeMapRefreshRoot = 'r'
+let g:NERDTreeMapDeleteNode = 'd'
+let g:NERDTreeMapOpenExpl = 'o'
+let g:NERDTreeMapPreview = 'p'
