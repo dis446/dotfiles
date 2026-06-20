@@ -140,7 +140,7 @@ These CAN be replicated in IdeaVim. This is the **best path to unification**.
 | `Space+fs` | Live grep | Find in Files (`Ctrl+Shift+F`) | `nnoremap <leader>fs :action FindInPath<CR>` |
 | `Space+fc` | Grep word under cursor | Find in Files (with selection) | `nnoremap <leader>fc :action FindInPath<CR>` (pre-fills word) |
 | `Space+ft` | TODOs | TODO tool window | `nnoremap <leader>ft :action ActivateTODOToolWindow<CR>` |
-| `Space+lg` | LazyGit | Lazygit plugin (full-screen editor tab) | `nnoremap <leader>lg <Action>(Lazygit.Toggle)` (keep lazygit via native IntelliJ plugin) |
+| `Space+lg` | LazyGit | Lazygit plugin (full-screen editor tab) | `nnoremap <leader>lg :action Lazygit.Toggle<CR>` (keep lazygit via native IntelliJ plugin) |
 | `Space+pi` | Pi AI pane | AI Assistant | `nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>` |
 | `Space+pI` | New Pi session | New AI chat | — (manual) |
 | `Space+wr` | Restore session | — | No direct equivalent (IntelliJ remembers state) |
@@ -320,7 +320,7 @@ nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " Git / VCS (lazygit via native IntelliJ plugin, Ctrl+Alt+G default)
-nnoremap <leader>lg <Action>(Lazygit.Toggle)
+nnoremap <leader>lg :action Lazygit.Toggle<CR>
 nnoremap <leader>lc :action CheckinProject<CR>       " commit (IDE)
 nnoremap <leader>lp :action Vcs.Push<CR>             " push (IDE)
 nnoremap <leader>lu :action Vcs.UpdateProject<CR>     " pull (IDE)
@@ -487,13 +487,13 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 3. **Disable Zellij autostart** for IntelliJ sessions. Use `zellij` only
    when you actually need a multiplexer.
 
-### 8.3 Phase 3 — Git workflow (Week 1)
+### 8.3 Phase 3 — Git workflow ✅ (COMPLETED, Week 1)
 
 1. **Install the Lazygit IntelliJ plugin** ([Marketplace](https://plugins.jetbrains.com/plugin/30919-lazygit))
    by ckob. This brings lazygit into IntelliJ as a full-screen editor tab —
    no context-switching to a terminal needed.
 2. **Map `Space+lg`** to `Lazygit.Toggle` in your `.ideavimrc`:
-   `nnoremap <leader>lg <Action>(Lazygit.Toggle)`
+   `nnoremap <leader>lg :action Lazygit.Toggle<CR>`
 3. **Press `e` on files** in lazygit to open them directly in the IDE editor
    (zero-config IPC bridge).
 4. **Keep IntelliJ VCS as fallback** — `Space+lc` (commit), `Space+lp` (push),

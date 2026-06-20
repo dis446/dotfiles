@@ -24,7 +24,7 @@ nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Space-leader: Git / VCS ────────────────────────
-nnoremap <leader>lg <Action>(Lazygit.Toggle)
+nnoremap <leader>lg :action Lazygit.Toggle<CR>
 nnoremap <leader>lc :action CheckinProject<CR>
 nnoremap <leader>lp :action Vcs.Push<CR>
 nnoremap <leader>lu :action Vcs.UpdateProject<CR>
