@@ -5,7 +5,7 @@
 let mapleader = " "
 
 " ── File & project navigation ───────────────────────
-nnoremap <leader>ee :action Toolwindow.Project.Toggle<CR>
+nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ef :action SelectInProjectView<CR>
 nnoremap <leader>ff :action GotoFile<CR>
 nnoremap <leader>fr :action RecentFiles<CR>
@@ -30,8 +30,7 @@ nnoremap <leader>xx :action Toolwindow.Problems.Toggle<CR>
 nnoremap <leader>xd :action GotoNextError<CR>
 
 " ── Terminal ────────────────────────────────────────
-nnoremap <leader>ot :action Toolwindow.Terminal.Toggle<CR>
-nnoremap <leader>oT :action Terminal.SplitVertically<CR>
+nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
 
 " ── Build & run ─────────────────────────────────────
 nnoremap <leader>rb :action Run<CR>
