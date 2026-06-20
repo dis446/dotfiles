@@ -1,8 +1,10 @@
 # IntelliJ Migration Advisory
 
 > **Goal:** Transition primary development from zellij+neovim to IntelliJ IDEA
-> Ultimate, unify keybindings, and consolidate 13 years of IntelliJ muscle memory
-> with 6 months of zellij+neovim muscle memory.
+> Ultimate and unify keybindings. Zellij/Neovim muscle memory (last 6 months)
+> is more recent and should take priority over older IntelliJ habits where
+> they conflict. The IDE should feel like "Neovim keybinds in an IntelliJ
+> shell" rather than the reverse.
 
 ---
 
@@ -42,11 +44,11 @@ compatible with the Nx Console IntelliJ plugin.
 
 There are **three** active muscle-memory layers, not two:
 
-| Layer | Origin | Examples |
-|---|---|---|
-| **IntelliJ IDE** | 10+ years | `Ctrl+K` commit, `Ctrl+T` pull, `Alt+1` project, `Alt+L` DB, `Shift+Shift` search |
-| **Vim editor** | Years (via IdeaVim + Neovim) | `hjkl` movement, `gd` defs, `gi` impls, `dt`/`ci` text objects |
-| **Zellij + Neovim leader** | 6 months | `Alt+hjkl` panes, `Space+ff` files, `Space+lg` lazygit |
+| Layer | Origin | Priority | Examples |
+|---|---|---|---|
+| **Zellij + Neovim leader** | Last 6 months (most recent) | **Primary** | `Alt+hjkl` pane/tab nav, `Space+ff` files, `Space+lg` git, `Space+ee` explorer |
+| **Vim editor** | Years (IdeaVim + Neovim) | **Primary** | `hjkl` movement, `gd` defs, `gi` impls, `dt`/`ci` text objects |
+| **IntelliJ IDE** | 10+ years (less recent) | **Fallback** | `Ctrl+N` class, `Ctrl+Shift+T` test, `Shift+Shift` search |
 
 ### 2.1 IntelliJ IDE vs Vim editor (within IntelliJ)
 
@@ -55,7 +57,7 @@ single-key chords.
 
 | Keystroke | IntelliJ IDE action | Vim normal-mode action | Current resolution | Recommendation |
 |---|---|---|---|---|
-| `Ctrl+K` | **VCS Commit** (Git commit window) | Move cursor up | **Vim owns it** (from vim_settings.xml) | **Give to IDE.** Use `k`/`↑` for movement. Commit is too important. |
+| `Ctrl+K` | **VCS Commit** (Git commit window) | Move cursor up | **Vim owns it** (from vim_settings.xml) | **Keep Vim owning it.** You navigate git via `Space+lg` (VCS tool window) and `Space+lc` (commit). The IntelliJ `Ctrl+K` commit shortcut is less important given your Space-leader git workflow. Use `k`/`↑` for movement regardless. |
 | `Ctrl+R` | Replace (find & replace) | Redo | **Vim owns it** | **Give to IDE.** Use `u`/`Ctrl+R` for undo/redo via `<C-r>` in IdeaVim. Actually `Ctrl+R` in Vim IS redo... IdeaVim supports this natively. This one is actually fine as-is. |
 | `Ctrl+J` | — (mostly unused) | Move cursor down | No conflict | Keep Vim |
 | `Ctrl+N` | Go to Class | Move cursor down | **Removed from keymap!** | **Restore to IDE.** `Ctrl+N` = Go to Class is one of the most-used IntelliJ shortcuts. Use `j`/`↓` for movement. |
@@ -68,23 +70,67 @@ single-key chords.
 | `Ctrl+W` | Extend selection | Previous window (`Ctrl+W` prefix in Vim) | Custom: `Ctrl+W` closes content (IntelliJ) | **Tricky.** In Vim, `Ctrl+W` is the window command prefix. In IntelliJ, `Ctrl+W` is Extend Selection. You mapped it to "Close Content" in your custom keymap. **Recommendation:** Keep `Ctrl+W` for IntelliJ (close tab works well), and use `Ctrl+W` + `h/j/k/l` via IdeaVim window commands only when Vim is in control. This is a known tension. |
 | `Ctrl+D` | Duplicate line | Scroll down half-page | Potential conflict | In IdeaVim, `Ctrl+D` scrolls. In IntelliJ, duplicates line. **Test which you use more.** |
 
-### 2.2 Zellij vs IntelliJ tool window shortcuts
+### 2.2 Alt+h/Alt+l: Zellij tab nav → IntelliJ project switching
+
+In zellij, `Alt+←`/`Alt+→` switches tabs (repos), and `Alt+h`/`Alt+l` moves
+focus between panes within a tab. Your request is to use **`Alt+h` and `Alt+l`**
+to switch between IntelliJ projects — carrying the spatial muscle memory from
+zellij's left/right navigation.
+
+**Current conflict:** In your IntelliJ keymap, `Alt+H` is mapped to the Maven
+tool window, and `Alt+L` is mapped to the Database tool window.
+
+**Solution:** Remap Alt+h/Alt+l to project switching actions.
+
+| Current binding | Action to remap to | New home for displaced action |
+|---|---|---|
+| `Alt+H` → Maven | Switch to previous project root | Maven → `Space+mv` (already in .ideavimrc) |
+| `Alt+L` → Database | Switch to next project root | Database → `Space+db` (already in .ideavimrc) |
+
+**How to implement (two options):**
+
+**Option A — Navigate attached projects via Project tool window focus.**
+Map `Alt+H` and `Alt+L` to these actions in Settings → Keymap:
+- `Alt+H` → `PreviousProjectWindow` (or a macro: ActivateProjectToolWindow + focus previous root)
+- `Alt+L` → `NextProjectWindow`
+
+Unfortunately IntelliJ does not have a built-in "focus next project root"
+action. But you can create two **macros**:
+
+```
+Macro: "Focus Previous Project Root"
+  1. ActivateProjectToolWindow
+  2. EditorUp (moves focus up in the project tree)
+
+Macro: "Focus Next Project Root"
+  1. ActivateProjectToolWindow
+  2. EditorDown
+```
+
+Then bind `Alt+H` and `Alt+L` to these macros. This approximates "switch 
+between project roots" by navigating the Project tool window.
+
+**Option B — Use the Switcher for recent files across projects.**
+Bind `Alt+H` → `RecentFiles` (shows recent files, naturally navigated with
+arrow keys). Bind `Alt+L` → `Switcher` (same concept, different UI). This
+gives two quick-launch surfaces for cross-project navigation.
+
+**Recommendation: Option B** is simpler and more reliable. Option A's macros
+can break if the Project view is collapsed or in a different mode.
+
+### 2.3 Zellij vs IntelliJ tool window shortcuts
 
 These **only conflict when Zellij is active**. When IntelliJ is the foreground
 GUI app, Zellij keybinds don't fire.
 
-| Keystroke | Zellij action | IntelliJ custom keymap | Conflict only when |
+| Keystroke | Zellij action | IntelliJ custom keymap | Resolution |
 |---|---|---|---|
-| `Alt+H` | Move focus left | Maven tool window | Zellij focused |
-| `Alt+J` | Move focus down | — | Zellij focused |
-| `Alt+K` | Move focus up | AI Assistant tool window | Zellij focused |
-| `Alt+L` | Move focus right | Database tool window | Zellij focused |
-| `Alt+←` | Move focus or tab left | — | Zellij focused |
-| `Alt+→` | Move focus or tab right | — | Zellij focused |
-| `Alt+↑` | Move focus up | — | Zellij focused |
-| `Alt+↓` | Move focus down | — | Zellij focused |
-| `Alt+N` | New pane | New file | Zellij focused |
-| `Alt+G` | — | GitHub Actions tool window | Zellij focused |
+| `Alt+H` | Move focus left | Maven tool window | **Repurposed** → project switching (§2.2). Maven via `Space+mv`. |
+| `Alt+L` | Move focus right | Database tool window | **Repurposed** → project switching (§2.2). Database via `Space+db`. |
+| `Alt+J` | Move focus down | — | No conflict |
+| `Alt+K` | Move focus up | AI Assistant tool window | Keep AI Assistant. `Alt+↑` also moves focus up in zellij. |
+| `Alt+N` | New pane | New file | No conflict (different contexts) |
+| `Alt+G` | — | GitHub Actions | No conflict |
 
 **Key insight:** If you stop using Zellij as your primary terminal multiplexer
 and use IntelliJ's built-in terminal instead, **all Zellij conflicts disappear.**
@@ -103,7 +149,7 @@ These CAN be replicated in IdeaVim. This is the **best path to unification**.
 | `Space+fs` | Live grep | Find in Files (`Ctrl+Shift+F`) | `nnoremap <leader>fs :action FindInPath<CR>` |
 | `Space+fc` | Grep word under cursor | Find in Files (with selection) | `nnoremap <leader>fc :action FindInPath<CR>` (pre-fills word) |
 | `Space+ft` | TODOs | TODO tool window | `nnoremap <leader>ft :action ActivateTODOToolWindow<CR>` |
-| `Space+lg` | LazyGit | Version Control tool window | `nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>` |
+| `Space+lg` | LazyGit | Version Control tool window | `nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>` (lazygit retired; IntelliJ VCS is the new home) |
 | `Space+pi` | Pi AI pane | AI Assistant | `nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>` |
 | `Space+pI` | New Pi session | New AI chat | — (manual) |
 | `Space+wr` | Restore session | — | No direct equivalent (IntelliJ remembers state) |
@@ -213,54 +259,86 @@ current `window.layouts.xml` configuration):
 
 ## 4. Pi Integration in IntelliJ
 
-### 4.1 The problem
+### 4.1 The goal
 
-Pi runs as a terminal TUI. You don't want to run it inside the built-in
-terminal (Alt+F12) because that terminal is for project-specific bash commands.
+Integrate pi.dev as the backend agent for IntelliJ's built-in AI chat via ACP
+(Agent Communication Protocol). Instead of running pi as a separate terminal
+TUI, pi acts as the AI engine behind the IntelliJ AI Assistant tool window.
 
-### 4.2 Options
+### 4.2 What is ACP?
 
-| Option | How | Pros | Cons |
-|---|---|---|---|
-| **A. Terminal tab** | Dedicated terminal tab for Pi (`Ctrl+Shift+T` in terminal, or new terminal tab) | Easy, works immediately | Pi and bash share Terminal tool window space |
-| **B. External terminal** | Run Pi in a standalone terminal (GNOME Terminal, Kitty, Alacritty) outside IntelliJ | Dedicated space, full TUI support | Window management (another Alt+Tab target) |
-| **C. Pi as a Tool Window plugin** | Write a simple IntelliJ plugin that embeds Pi's TUI | Native IDE integration | Development effort (1-3 days) |
-| **D. Split terminal** | Split the Terminal tool window: left=bash, right=pi | Both visible, same tool window | Terminal split management |
+ACP (Agent Communication Protocol) is JetBrains' protocol for external AI agents
+to integrate with the IntelliJ AI Assistant. An ACP agent:
+- Connects to IntelliJ via an agent registry
+- Receives chat messages and code context from the IDE
+- Returns responses that the IDE renders in the AI Assistant tool window
+- Has access to IDE APIs (files, project structure, editor state)
 
-**Recommended: Option A** — Create a dedicated terminal tab for Pi.
+You already have one ACP agent configured: **Junie** (`acp.registry.junie`,
+auth: `MANAGED_EXTERNALLY`). The goal is to register pi as a second agent.
+
+### 4.3 The bridge: pi RPC mode → IntelliJ ACP
+
+Pi has an `--mode rpc` flag that enables a JSON protocol over stdin/stdout
+(see `docs/rpc.md` in the pi package). This is an ideal foundation for an
+ACP-compatible wrapper:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ IntelliJ AI Assistant                               │
+│  ┌─────────┐    ACP     ┌───────────────┐          │
+│  │ AI Chat │◄──────────►│ ACP bridge    │          │
+│  │ tool    │  (JSON)    │ (thin adapter)│          │
+│  │ window  │            │               │          │
+│  └─────────┘            │ stdin/stdout  │          │
+│                         │    ┌──────┐   │          │
+│                         │    │ pi   │   │          │
+│                         │    │ --rpc│   │          │
+│                         │    └──────┘   │          │
+│                         └───────────────┘          │
+└─────────────────────────────────────────────────────┘
+```
+
+### 4.4 Implementation options
+
+| Option | Effort | Description |
+|---|---|---|
+| **A. Wait for official pi ACP support** | None | Check if pi.dev plans to ship ACP as a first-class feature. Ask in the pi community. |
+| **B. Build a thin Node.js ACP bridge** | 1-2 days | Write a small Node.js script that speaks ACP on one side and spawns `pi --mode rpc` on the other. Register it as a custom agent. |
+| **C. Use JetBrains AI Assistant with pi-matching prompts** | 0 days (immediate) | Configure the existing AI Assistant (which already supports Claude/GPT) with system prompts that match pi's behavior. Use `~/.pi/settings.yaml` prompts as the base. |
+| **D. Terminal tab (fallback)** | 0 days | Keep running pi in a terminal tab until ACP integration is ready. See §4.6. |
+
+**Recommendation:** Start with **Option C** immediately (configure AI Assistant
+prompts). In parallel, explore **Option A** (check if pi is adding ACP support)
+or **Option B** (build it yourself if needed soon).
+
+### 4.5 Option C details: Matching pi behavior in JetBrains AI
+
+1. **Settings → Tools → AI Assistant → Prompts**
+2. Add a custom prompt that mirrors pi's system prompt from
+   `~/.pi/prompts/default.md` (or wherever you've configured it)
+3. Key behaviors to replicate:
+   - Agent-style tool calling (read files, execute commands, edit code)
+   - Project context from AGENTS.md / CLAUDE.md files
+   - Your custom skill prompts (pi skills like `caveman`, `and-audit-publish-*`)
+
+JetBrains AI Assistant 2026.1+ supports agent mode with code editing tools.
+If you set a matching system prompt and use Claude as the backend model, the
+experience will be very close to pi.
+
+### 4.6 Terminal tab fallback (interim)
+
+Until ACP integration is ready, run pi in a dedicated terminal tab:
 
 ```
 1. Alt+F12 → open Terminal
-2. In the terminal, Ctrl+Shift+T → new terminal tab
-3. Right-click the tab → "Rename Tab" → "Pi"
-4. cd to project root, run `pi`
-5. Use Alt+F12 to toggle; then Ctrl+Tab between terminal tabs
+2. Ctrl+Shift+T → new terminal tab, rename to "Pi"
+3. cd $PROJECT_DIR && pi
+4. Switch between bash terminal and Pi terminal with Ctrl+Tab
 ```
 
-You can create a **named terminal configuration** (Settings → Tools →
-Terminal → Shell path) or use an **External Tool** to launch Pi in a separate
-terminal window with one keybinding.
-
-### 4.3 Alternate: Run Pi as an external tool
-
-If you prefer a separate window (Option B), create a custom action:
-
-1. **File → Settings → Tools → External Tools → +**
-2. Name: `Pi`
-3. Program: `/home/neddy/.local/share/mise/installs/node/24.16.0/bin/pi`
-4. Arguments: `--session-dir $ProjectFileDir$/.pi-sessions`
-5. Working directory: `$ProjectFileDir$`
-6. Bind to a key: `Settings → Keymap → External Tools → Pi → Add Keyboard Shortcut`
-
-This launches Pi in its own terminal window, which can be placed on a separate
-monitor or workspace.
-
-### 4.4 Using the JetBrains AI Assistant as Pi replacement
-
-Since you already use `Alt+K` for the AI Assistant, and you have `AiAssistant`
-as a tool window on the right, consider whether the built-in AI Assistant (with
-Claude/GPT models) can replace Pi for some tasks. It won't replace the
-agent-driven workflow, but for quick code questions, it's faster.
+Or use an External Tool (Settings → Tools → External Tools) bound to
+`Space+pI` to launch pi in a separate terminal window.
 
 ---
 
@@ -272,11 +350,8 @@ Create `~/.ideavimrc` (or symlink from `~/dotfiles/intellij/ideavimrc`):
 " ── Leader ──────────────────────────────────────────
 let mapleader = " "
 
-" ── Hand over Ctrl+K to the IDE (VCS Commit) ────────
-" Ctrl+K is owned by Vim in your current settings.
-" Unmap it so the IDE's Commit action fires instead.
-iunmap <C-k>
-nunmap <C-k>
+" Ctrl+K stays with Vim (cursor up). You navigate git via Space-leader.
+" No need to unmap it — keep the Vim default.
 
 " ── Space-leader mappings (from Neovim muscle memory) ──
 
@@ -293,7 +368,7 @@ nnoremap <leader>fc :action FindInPath<CR>
 " TODOs
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
-" Git / VCS
+" Git / VCS (lazygit retired — IntelliJ VCS is the new home)
 nnoremap <leader>lg :action ActivateVersionControlToolWindow<CR>
 nnoremap <leader>lc :action CheckinProject<CR>       " commit
 nnoremap <leader>lp :action Vcs.Push<CR>             " push
@@ -406,7 +481,7 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 
 | Neovim/Zellij feature | In IntelliJ |
 |---|---|
-| `lazygit` TUI | IntelliJ VCS tool window (commit UI, diff viewer, branch manager). Different paradigm — IntelliJ uses forms and trees instead of a git TUI. If you genuinely miss lazygit, run it in a terminal tab. |
+| `lazygit` TUI | IntelliJ VCS tool window (commit UI, diff viewer, branch manager). You're intentionally retiring lazygit and adopting the IntelliJ VCS tool window as the primary git interface. `Space+lg` opens VCS. `Space+lc` commits. `Space+lp` pushes. `Space+lu` pulls. |
 | `snacks.picker` fuzzy finding | IntelliJ's `Search Everywhere` (`Shift+Shift`) and `Go to File` (`Ctrl+Shift+N`). These are actually better for large codebases because they index the project. |
 | `nvim-dbee` (SQL client) | DataGrip built into IntelliJ Ultimate (`Alt+L`). This is a **massive upgrade**. DataGrip is the best SQL client you'll ever use. |
 | `conform.nvim` (format-on-save) | IntelliJ has built-in formatters, reformat-on-save, and code style settings per language/project. **Upgrade.** |
@@ -461,29 +536,38 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 4. **Disable Zellij autostart** for IntelliJ sessions. Use `zellij` only
    when you actually need a multiplexer.
 
-### 8.3 Phase 3 — Git workflow (Week 1-2)
+### 8.3 Phase 3 — Git workflow (Week 1)
 
-1. **Learn the VCS tool window** — It's a different paradigm from lazygit.
-   Spend 30 min exploring:
+1. **Adopt the VCS tool window** — lazygit is being retired. The IntelliJ
+   VCS tool window becomes your primary git interface:
+   - `Space+lg` → Version Control tool window
+   - `Space+lc` → Commit (CheckinProject)
+   - `Space+lp` → Push
+   - `Space+lu` → Update (pull)
    - `Commit` tab (left side): stage/unstage hunks, write message, commit
    - `Log` tab: visual branch graph, filter, search
-   - `Space+lg` → Version Control tool window
-   - `Ctrl+K` → Commit window (once you unmap it from Vim)
-   - `Ctrl+T` → VCS Update (pull)
-   - `Ctrl+Shift+K` → Push
-2. **If you miss lazygit** — Run `lazygit` in a terminal tab. It works.
-   Add a keybinding: `nnoremap <leader>lz :!lazygit<CR>`.
 
-### 8.4 Phase 4 — Multi-project (Week 2-3)
+### 8.4 Phase 4 — Pi via ACP (Week 1-3, ongoing)
+
+1. **Immediate:** Configure JetBrains AI Assistant with pi-matching prompts
+   (§4.5, Option C). This gives you pi-like behavior in the AI chat today.
+2. **Short-term:** Check pi.dev roadmap / community for ACP support plans.
+3. **If needed:** Build a thin ACP bridge that spawns `pi --mode rpc` (§4.4,
+   Option B). This gives full pi agent capabilities inside the IDE.
+4. **Fallback:** Keep a Pi terminal tab until ACP integration is ready.
+
+### 8.5 Phase 5 — Multi-project + Alt+h/Alt+l (Week 2-3)
 
 1. **Attach projects** — For repos you work on together, use
    `File → Attach Project`.
-2. **Set up project groups** — `File → Open Recent → Manage Projects...`
-   lets you save "project groups" that open multiple projects together.
-3. **Learn the Switcher** (`Ctrl+Tab`) — It shows recent files across all
-   attached projects.
+2. **Configure Alt+h/Alt+l** — Remap Maven and Database tool windows to
+   `Space+mv` and `Space+db` (already in .ideavimrc). Bind `Alt+H` and
+   `Alt+L` to `RecentFiles` and `Switcher` for cross-project navigation
+   (§2.2, Option B).
+3. **Learn the Switcher** (`Alt+L` / `Ctrl+Tab`) — Shows recent files
+   across all attached projects.
 
-### 8.5 Phase 5 — Polish (Week 3-4)
+### 8.6 Phase 6 — Polish (Week 3-4)
 
 1. **Tune Space-leader mappings** — Add/remove IdeaVim mappings based on
    what you actually use.
@@ -526,12 +610,14 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 
 ### Git
 
-| Action | IntelliJ shortcut | IdeaVim |
+| Action | IntelliJ shortcut | IdeaVim (Space-leader) |
 |---|---|---|
 | Version Control tool window | `Alt+9` | `Space+lg` |
 | Commit | `Ctrl+K` | `Space+lc` |
 | Push | `Ctrl+Shift+K` | `Space+lp` |
 | Update (pull) | `Ctrl+T` | `Space+lu` |
+
+**Note:** `Ctrl+K` is retained by Vim (cursor up). Use `Space+lc` for commit.
 
 ### Terminal & Tools
 
@@ -574,10 +660,11 @@ that take multiple Neovim LSP calls (e.g., "find all callers, then rename
 this method, then update the interface, then fix imports in all callers")
 are a single refactoring action in IntelliJ.
 
-For **git**, lazygit is faster for complex operations (interactive rebase,
-cherry-picking, stash management). IntelliJ's VCS tool window is faster for
-the common operations (commit, push, pull, diff hunks). You can keep both
-by running lazygit in a terminal tab.
+For **git**, you've chosen to retire lazygit and use IntelliJ's VCS tool
+window. The VCS UI is different but covers all the same operations: commit
+with hunk staging, push/pull, branch management, log/diff/blame. If you
+miss lazygit for complex operations (interactive rebase, cherry-pick),
+you can always run it in a terminal tab — no conflict with the migration.
 
 ### Q: What about Zed / Cursor / VS Code?
 
