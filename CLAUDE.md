@@ -22,6 +22,8 @@ Symlinks created by all setup scripts: `nvim`→`~/.config/nvim`, `zellij`→`~/
 
 `intellij/` follows a different pattern: IntelliJ's config lives in a version-specific path (`~/.config/JetBrains/IntelliJIdea2026.1/`) and mixes portable config with machine state, so the entire directory cannot be symlinked. Instead, only `.ideavimrc` is symlinked to `~/.ideavimrc`. JetBrains Settings Sync handles cross-machine sync for everything else (keymaps, codestyles, options). The `intellij/keymaps/` directory holds reference copies of custom keymaps for version history.
 
+**Unified keybindings:** `nvim/UNIFIED-KEYBINDS.md` is the canonical reference for keybindings shared across both the Neovim config and the IntelliJ `.ideavimrc`. On the Ryzen 5800X3D, these run inside IntelliJ via IdeaVim. On weaker machines (Optiplex 3050), they run inside Neovim via zellij. The muscle memory is the same — only the backend differs.
+
 ## Shell alias architecture
 
 The per-OS `bashrc`/`bash_alias` files all do the same thing: loop over `~/dotfiles/bash/*` and source every file, then source the OS-specific alias file. So:

@@ -6,6 +6,10 @@
 > they conflict. The IDE should feel like "Neovim keybinds in an IntelliJ
 > shell" rather than the reverse.
 >
+> **See also:** [`nvim/UNIFIED-KEYBINDS.md`](../nvim/UNIFIED-KEYBINDS.md) — the
+> canonical keybinding reference shared with the Neovim config. Both setups
+> implement this same keybinding set; only the backend differs.
+>
 > **Dotfiles strategy:** Track `.ideavimrc` + reference keymap in
 > `~/dotfiles/intellij/`. Let JetBrains Settings Sync handle cross-machine
 > sync of everything else (keymaps, codestyles, options, etc.). Symlink
