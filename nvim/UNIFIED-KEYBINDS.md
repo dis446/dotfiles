@@ -15,7 +15,7 @@ In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 
 | Key | Action | IntelliJ backend | Neovim backend |
 |---|---|---|---|
-| `Space+ee` | Toggle file explorer / project tree | `Toolwindow.Project.Toggle` | `Snacks.explorer()` |
+| `Space+ee` | Toggle file explorer / project tree | `ActivateProjectToolWindow` | `Snacks.explorer()` |
 | `Space+ef` | Reveal current file in tree | `SelectInProjectView` | `Snacks.explorer.reveal()` |
 | `Space+ff` | Find file by name | `GotoFile` | `Snacks.picker.files()` |
 | `Space+fr` | Recent files | `RecentFiles` | `Snacks.picker.recent()` |
@@ -47,14 +47,14 @@ Neovim, perform commit/push/pull inside lazygit.
 | `Space+ca` | Code actions / intentions | `ShowIntentionActions` / `vim.lsp.buf.code_action` |
 | `Space+rn` | Rename | `RenameElement` / `vim.lsp.buf.rename` |
 | `[d` / `]d` | Previous / next diagnostic | Works in both |
-| `Space+xx` | Toggle diagnostics list | `Toolwindow.Problems.Toggle` | `Snacks.picker.diagnostics()` |
+| `Space+xx` | Toggle diagnostics list | `ActivateProblemsViewToolWindow` | `Snacks.picker.diagnostics()` |
 | `Space+xd` | Buffer diagnostics | `GotoNextError` / `Snacks.picker.diagnostics_buffer()` |
 
 ## Terminal
 
 | Key | Action | IntelliJ backend | Neovim backend |
 |---|---|---|---|
-| `Space+ot` | Toggle terminal | `Toolwindow.Terminal.Toggle` | `Snacks.terminal()` |
+| `Space+ot` | Toggle terminal | `ActivateTerminalToolWindow` | `Snacks.terminal()` |
 | `Space+oT` | Floating / split terminal | `Terminal.SplitVertically` | `Snacks.terminal()` (floating) |
 
 **Note on Neovim + zellij:** When running Neovim inside a zellij session, you
@@ -72,9 +72,9 @@ standalone (outside zellij).
 
 | Key | Action | IntelliJ backend | Neovim backend |
 |---|---|---|---|
-| `Space+db` | Toggle database | `Toolwindow.Database.Toggle` | — (use DataGrip) |
-| `Space+mv` | Toggle maven | `Toolwindow.Maven.Toggle` | — (use zellij bash pane) |
-| `Space+pi` | Toggle AI Assistant | `Toolwindow.AIAssistant.Toggle` | — (Pi in separate zellij pane) |
+| `Space+db` | Toggle database | `ActivateDatabaseToolWindow` | — (use DataGrip) |
+| `Space+mv` | Toggle maven | `ActivateMavenToolWindow` | — (use zellij bash pane) |
+| `Space+pi` | Toggle AI Assistant | `ActivateAIAssistantToolWindow` | — (Pi in separate zellij pane) |
 
 ## Vim editing
 

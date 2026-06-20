@@ -26,8 +26,6 @@ nnoremap gt :action GotoTypeDeclaration<CR>
 nnoremap gR :action FindUsages<CR>
 nnoremap <leader>ca :action ShowIntentionActions<CR>
 nnoremap <leader>rn :action RenameElement<CR>
-nnoremap <leader>xx :action Toolwindow.Problems.Toggle<CR>
-nnoremap <leader>xd :action GotoNextError<CR>
 
 " ── Terminal ────────────────────────────────────────
 nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
@@ -37,11 +35,13 @@ nnoremap <leader>rb :action Run<CR>
 nnoremap <leader>rd :action Debug<CR>
 
 " ── Tools ───────────────────────────────────────────
-nnoremap <leader>db :action Toolwindow.Database.Toggle<CR>
-nnoremap <leader>mv :action Toolwindow.Maven.Toggle<CR>
-nnoremap <leader>pi :action Toolwindow.AIAssistant.Toggle<CR>
+nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
+nnoremap <leader>mv :action ActivateMavenToolWindow<CR>
+nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>
 
-" ── Environment-specific defaults ───────────────────
+" ── Diagnostics ────────────────────────────────────
+nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>
+nnoremap <leader>xd :action GotoNextError<CR>
 set relativenumber
 set number
 set ignorecase
@@ -62,3 +62,4 @@ let g:NERDTreeMapRefreshRoot = 'r'
 let g:NERDTreeMapDeleteNode = 'd'
 let g:NERDTreeMapOpenExpl = 'o'
 let g:NERDTreeMapPreview = 'p'
+let g:NERDTreeQuitOnOpen = 1
