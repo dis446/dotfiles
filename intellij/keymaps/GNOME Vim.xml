@@ -48,17 +48,21 @@
   <action id="FileChooser.NewFolder">
     <keyboard-shortcut first-keystroke="alt insert" />
   </action>
-  <action id="GotoClass" />
-  <action id="GotoPreviousError" />
-  <action id="GotoTest" />
+  <action id="GotoClass">
+    <keyboard-shortcut first-keystroke="ctrl n" />
+  </action>
+  <action id="GotoPreviousError">
+    <keyboard-shortcut first-keystroke="shift f2" />
+  </action>
+  <action id="GotoTest">
+    <keyboard-shortcut first-keystroke="shift ctrl t" />
+  </action>
   <action id="KotlinShellExecute" />
   <action id="MainMenuButton.ShowMenu" />
   <action id="NewFile">
     <keyboard-shortcut first-keystroke="alt n" />
   </action>
-  <action id="NextTab">
-    <keyboard-shortcut first-keystroke="ctrl tab" />
-  </action>
+  <action id="NextTab" />
   <action id="OpenInRightSplit">
     <mouse-shortcut keystroke="alt button1 doubleClick" />
   </action>
@@ -66,7 +70,7 @@
     <keyboard-shortcut first-keystroke="shift ctrl tab" />
   </action>
   <action id="RenameElement">
-    <keyboard-shortcut first-keystroke="shift f2" />
+    <keyboard-shortcut first-keystroke="shift f6" />
   </action>
   <action id="ReopenClosedTab">
     <keyboard-shortcut first-keystroke="shift ctrl t" />
@@ -75,7 +79,9 @@
   <action id="ServiceView.ShowServices" />
   <action id="SmartSelect" />
   <action id="SplitChooser.Duplicate" />
-  <action id="Switcher" />
+  <action id="Switcher">
+    <keyboard-shortcut first-keystroke="ctrl tab" />
+  </action>
   <action id="SwitcherPreviousProblem" />
   <action id="TableResult.GrowSelection" />
   <action id="Terminal.NewTab" />

@@ -40,3 +40,4 @@ intellij/*
 !intellij/ideavimrc
 !intellij/keymaps/
 !intellij/MIGRATION-ADVISORY.md
+/pi/pi-acp/session-map.json

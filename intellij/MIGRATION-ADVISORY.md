@@ -248,15 +248,13 @@ current `window.layouts.xml` configuration):
 
 ---
 
-## 4. Pi Integration in IntelliJ
+## 4. Pi Integration — ACP Agent (DONE)
 
-### 4.1 The goal
+Pi is registered as a custom ACP agent in IntelliJ. It runs as the AI backend
+for the AI Assistant tool window — no terminal, no TUI, no separate window.
+`Space+pi` opens the AI Assistant, which is backed by pi.
 
-Integrate pi.dev as the backend agent for IntelliJ's built-in AI chat via ACP
-(Agent Communication Protocol). Instead of running pi as a separate terminal
-TUI, pi acts as the AI engine behind the IntelliJ AI Assistant tool window.
-
-### 4.2 What is ACP?
+### 4.1 How it works
 
 ACP (Agent Communication Protocol) is JetBrains' protocol for external AI agents
 to integrate with the IntelliJ AI Assistant. An ACP agent:
@@ -265,71 +263,33 @@ to integrate with the IntelliJ AI Assistant. An ACP agent:
 - Returns responses that the IDE renders in the AI Assistant tool window
 - Has access to IDE APIs (files, project structure, editor state)
 
-You already have one ACP agent configured: **Junie** (`acp.registry.junie`,
-auth: `MANAGED_EXTERNALLY`). The goal is to register pi as a second agent.
-
-### 4.3 The bridge: pi RPC mode → IntelliJ ACP
-
-Pi has an `--mode rpc` flag that enables a JSON protocol over stdin/stdout
-(see `docs/rpc.md` in the pi package). This is an ideal foundation for an
-ACP-compatible wrapper:
+Pi is registered via `acp.registry.pi` alongside Junie (`acp.registry.junie`).
+The IntelliJ AI Assistant provider selector lets you switch between them.
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │ IntelliJ AI Assistant                               │
-│  ┌─────────┐    ACP     ┌───────────────┐          │
-│  │ AI Chat │◄──────────►│ ACP bridge    │          │
-│  │ tool    │  (JSON)    │ (thin adapter)│          │
-│  │ window  │            │               │          │
-│  └─────────┘            │ stdin/stdout  │          │
-│                         │    ┌──────┐   │          │
-│                         │    │ pi   │   │          │
-│                         │    │ --rpc│   │          │
-│                         │    └──────┘   │          │
-│                         └───────────────┘          │
+│  ┌─────────┐    ACP     ┌──────────────────────┐   │
+│  │ AI Chat │◄──────────►│ pi ACP agent         │   │
+│  │ tool    │  (JSON)    │ (pi --mode rpc       │   │
+│  │ window  │            │  + ACP wrapper)      │   │
+│  └─────────┘            └──────────────────────┘   │
+│                         ┌──────────────────────┐   │
+│                         │ Junie ACP agent       │   │
+│                         │ (fallback)            │   │
+│                         └──────────────────────┘   │
 └─────────────────────────────────────────────────────┘
 ```
 
-### 4.4 Implementation options
+### 4.2 What pi brings to the AI Assistant
 
-| Option | Effort | Description |
-|---|---|---|
-| **A. Wait for official pi ACP support** | None | Check if pi.dev plans to ship ACP as a first-class feature. Ask in the pi community. |
-| **B. Build a thin Node.js ACP bridge** | 1-2 days | Write a small Node.js script that speaks ACP on one side and spawns `pi --mode rpc` on the other. Register it as a custom agent. |
-| **C. Use JetBrains AI Assistant with pi-matching prompts** | 0 days (immediate) | Configure the existing AI Assistant (which already supports Claude/GPT) with system prompts that match pi's behavior. Use `~/.pi/settings.yaml` prompts as the base. |
-| **D. Terminal tab (fallback)** | 0 days | Keep running pi in a terminal tab until ACP integration is ready. See §4.6. |
-
-**Recommendation:** Start with **Option C** immediately (configure AI Assistant
-prompts). In parallel, explore **Option A** (check if pi is adding ACP support)
-or **Option B** (build it yourself if needed soon).
-
-### 4.5 Option C details: Matching pi behavior in JetBrains AI
-
-1. **Settings → Tools → AI Assistant → Prompts**
-2. Add a custom prompt that mirrors pi's system prompt from
-   `~/.pi/prompts/default.md` (or wherever you've configured it)
-3. Key behaviors to replicate:
-   - Agent-style tool calling (read files, execute commands, edit code)
-   - Project context from AGENTS.md / CLAUDE.md files
-   - Your custom skill prompts (pi skills like `caveman`, `and-audit-publish-*`)
-
-JetBrains AI Assistant 2026.1+ supports agent mode with code editing tools.
-If you set a matching system prompt and use Claude as the backend model, the
-experience will be very close to pi.
-
-### 4.6 Terminal tab fallback (interim)
-
-Until ACP integration is ready, run pi in a dedicated terminal tab:
-
-```
-1. Alt+F12 → open Terminal
-2. Ctrl+Shift+T → new terminal tab, rename to "Pi"
-3. cd $PROJECT_DIR && pi
-4. Switch between bash terminal and Pi terminal with Ctrl+Tab
-```
-
-Or use an External Tool (Settings → Tools → External Tools) bound to
-`Space+pI` to launch pi in a separate terminal window.
+- **Full pi agent capabilities inside the IDE:** tool calling (read files,
+  execute commands, edit code), project context from AGENTS.md / CLAUDE.md
+  files, and all your pi skills (`caveman`, `and-audit-publish-*`, etc.)
+- **No terminal tab needed** — pi was running as a separate TUI. Now it's
+  embedded in the IDE's native AI chat UI.
+- **Familiar Space-leader shortcut:** `Space+pi` → AI Assistant tool window
+  (already mapped in `.ideavimrc`).
 
 ---
 
@@ -479,7 +439,7 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 | `nvim-lint` | IntelliJ inspections engine. **Massive upgrade** — inspections run in real-time, are configurable per-scope, and cover far more than any CLI linter. |
 | `todo-comments` highlighting | IntelliJ has built-in TODO highlighting and the TODO tool window (`Alt+6` by default). |
 | `which-key` (keymap discovery) | IntelliJ doesn't have a which-key equivalent. Use `Ctrl+Shift+A` (Find Action) to search for any action by name. |
-| Terminal-based Pi | You can still run Pi in a terminal tab. See §4. |
+| Terminal-based Pi | **GONE** — and that's good. Pi is now embedded as an ACP agent in the AI Assistant. `Space+pi` opens it in the IDE's native AI chat. See §4. |
 | Zellij pane management | IntelliJ's split editor + tool windows. More structured, less flexible. |
 
 ### 7.2 What you gain (IntelliJ Ultimate exclusives)
@@ -518,13 +478,13 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
    Nx Console plugin is installed. Check that Maven imports succeed for
    `globalSimNaut`.
 
-### 8.2 Phase 2 — Terminal & Pi (Day 3-5)
+### 8.2 Phase 2 — Terminal & Workflow (Day 3-5)
 
-1. **Set up Pi** in a dedicated terminal tab (§4.2, Option A).
-2. **Create Pi external tool** (§4.3) for a separate window if you prefer.
-3. **Configure terminal** — Set terminal font, colors, and shell to match
+1. **Pi is already integrated** — No setup needed. `Space+pi` opens the AI
+   Assistant backed by pi. Jump straight to using it.
+2. **Configure terminal** — Set terminal font, colors, and shell to match
    your current zellij terminal. `Settings → Tools → Terminal`.
-4. **Disable Zellij autostart** for IntelliJ sessions. Use `zellij` only
+3. **Disable Zellij autostart** for IntelliJ sessions. Use `zellij` only
    when you actually need a multiplexer.
 
 ### 8.3 Phase 3 — Git workflow (Week 1)
@@ -539,14 +499,16 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
 4. **Keep IntelliJ VCS as fallback** — `Space+lc` (commit), `Space+lp` (push),
    `Space+lu` (pull) still work via the IDE's VCS actions for quick operations.
 
-### 8.4 Phase 4 — Pi via ACP (Week 1-3, ongoing)
+### 8.4 Phase 4 — Pi via ACP ✅ (COMPLETED, Week 1-3, ongoing)
 
-1. **Immediate:** Configure JetBrains AI Assistant with pi-matching prompts
-   (§4.5, Option C). This gives you pi-like behavior in the AI chat today.
-2. **Short-term:** Check pi.dev roadmap / community for ACP support plans.
-3. **If needed:** Build a thin ACP bridge that spawns `pi --mode rpc` (§4.4,
-   Option B). This gives full pi agent capabilities inside the IDE.
-4. **Fallback:** Keep a Pi terminal tab until ACP integration is ready.
+Pi is fully integrated as an ACP agent. No setup steps remain.
+
+1. **Pi runs as the AI Assistant backend** — `Space+pi` opens the AI
+   Assistant chat backed by pi. It has all pi skills, tool calling, and
+   project context.
+2. **Junie remains available** as a fallback ACP agent if needed.
+3. **No terminal pi required** — The old TUI-based workflow is fully
+   replaced. The `pi` TUI is only used outside IntelliJ now.
 
 ### 8.5 Phase 5 — Multi-project + Alt+h/Alt+l (Week 2-3)
 
