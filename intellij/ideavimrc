@@ -1,0 +1,79 @@
+" ── IntelliJ IdeaVim Configuration ──────────────────
+" See: nvim/UNIFIED-KEYBINDS.md for canonical keybinding reference
+" See: intellij/MIGRATION-ADVISORY.md for migration context
+"
+" Leader ─────────────────────────────────────────────
+let mapleader = " "
+
+" ── Ctrl+K: Give back to IDE for VCS Commit ────────
+" Vim default: Ctrl+K moves cursor up (insertion of digraphs).
+" IntelliJ: Ctrl+K opens the Commit dialog.
+" Your git workflow uses Space+lg (lazygit) and Space+lc (commit).
+" But when you want the IDE commit UI, Ctrl+K should work.
+" Remove Vim's claim on it so the IDE shortcut reaches IntelliJ.
+nunmap <C-k>
+iunmap <C-k>
+
+" ── Space-leader: File explorer / navigation ───────
+nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
+nnoremap <leader>ef :action SelectInProjectView<CR>
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader>fr :action RecentFiles<CR>
+nnoremap <leader>fs :action FindInPath<CR>
+nnoremap <leader>fc :action FindInPath<CR>
+nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
+
+" ── Space-leader: Git / VCS ────────────────────────
+nnoremap <leader>lg <Action>(Lazygit.Toggle)
+nnoremap <leader>lc :action CheckinProject<CR>
+nnoremap <leader>lp :action Vcs.Push<CR>
+nnoremap <leader>lu :action Vcs.UpdateProject<CR>
+
+" ── Space-leader: Terminal ─────────────────────────
+nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
+nnoremap <leader>oT :action Terminal.SplitVertically<CR>
+
+" ── Space-leader: Window / split management ─────────
+nnoremap <leader>sv :action SplitVertically<CR>
+nnoremap <leader>sh :action SplitHorizontally<CR>
+nnoremap <leader>sx :action CloseContent<CR>
+nnoremap <leader>sm :action ToggleDistractionFreeMode<CR>
+
+" ── Space-leader: Diagnostics ──────────────────────
+nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>
+nnoremap <leader>xd :action GotoNextError<CR>
+
+" ── Space-leader: AI Assistant ─────────────────────
+nnoremap <leader>pi :action ActivateAIAssistantToolWindow<CR>
+
+" ── Space-leader: Database ─────────────────────────
+nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
+
+" ── Space-leader: Build / Run / Maven ──────────────
+nnoremap <leader>rb :action Run<CR>
+nnoremap <leader>rd :action Debug<CR>
+nnoremap <leader>rm :action Maven.RunBuild<CR>
+nnoremap <leader>mv :action ActivateMavenToolWindow<CR>
+
+" ── LSP (fallbacks — most work natively in IntelliJ) ──
+nnoremap gd :action GotoDeclaration<CR>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gt :action GotoTypeDeclaration<CR>
+nnoremap gR :action FindUsages<CR>
+nnoremap <leader>ca :action ShowIntentionActions<CR>
+nnoremap <leader>rn :action RenameElement<CR>
+
+" ── Vim editor quality-of-life ──────────────────────
+set relativenumber
+set number
+set ignorecase
+set smartcase
+set scrolloff=3
+set clipboard+=unnamedplus
+set incsearch
+set hlsearch
+set clipboard=unnamed,unnamedplus
+
+" ── IDE-specific Vim settings ──────────────────────
+set ideajoin
+set ideaput
