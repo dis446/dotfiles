@@ -44,7 +44,7 @@ sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
 sudo dnf install cargo
 cargo install cargo-binstall
-cargo binstall zellij
+cargo binstall -y zellij
 
 source "$HOME/.bashrc"
 
