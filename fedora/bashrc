@@ -6,3 +6,4 @@ done
 
 PS1='\u@\h \W\$ '
 eval "$(mise activate bash)"
+export PATH="$HOME/.cargo/bin:$PATH"
