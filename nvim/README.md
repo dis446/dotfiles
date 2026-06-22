@@ -268,20 +268,20 @@ Configures language servers and shared LSP behavior.
 - `graphql` supports GraphQL, `gql`, `typescriptreact`, and `javascriptreact`
 - `emmet_ls` supports HTML, React, and common style languages
 
-### `blink.cmp`
-Provides insert-mode completion. LSP, buffer, path, and snippet sources are
-built in, so no per-source adapter plugins are needed. Kind icons are rendered
-by blink itself (no `lspkind`). Nothing is preselected — `<CR>` only confirms an
-item you explicitly moved to.
+### `nvim-cmp`
+Provides insert-mode completion powered by nvim-cmp with LSP, buffer, path, and
+LuaSnip sources. Kind icons are rendered by `lspkind.nvim`. Nothing is
+preselected — `<CR>` only confirms an item you explicitly moved to.
 
 Dependencies:
-- `LuaSnip` — snippet engine (blink uses it via `snippets.preset = "luasnip"`)
-- `friendly-snippets`
-
-Snippet expansion still flows through `LuaSnip` + `friendly-snippets`.
+- `LuaSnip` — snippet engine
+- `friendly-snippets` — snippet library
+- `cmp-buffer`, `cmp-path`, `cmp_luasnip` — completion sources
+- `cmp-nvim-lsp` — LSP capabilities for servers
+- `lspkind.nvim` — kind icons in the menu
 
 Keymaps:
-- `<C-Space>` — trigger completion / toggle documentation
+- `<C-Space>` — trigger completion
 - `<C-j>` / `<C-k>` — next / previous item
 - `<C-b>` / `<C-f>` — scroll documentation
 - `<C-e>` — abort completion

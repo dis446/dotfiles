@@ -1,3 +1,4 @@
+--[[
 return {
   "saghen/blink.cmp",
   event = "InsertEnter",
@@ -64,3 +65,8 @@ return {
     })
   end,
 }
+--]]
+
+-- Return empty table so lazy.nvim's spec loader doesn't error — keep the
+-- commented-out blink config above as a reference for future re-enabling.
+return {}
