@@ -42,6 +42,9 @@ mise use -g java@temurin-21
 
 sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
+sudo dnf install cargo
+cargo install cargo-binstall
+cargo binstall zellij
 
 source "$HOME/.bashrc"
 
