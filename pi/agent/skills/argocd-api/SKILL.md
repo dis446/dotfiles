@@ -23,28 +23,28 @@ Edit `.env` with your ArgoCD server URLs and API tokens:
 ARGOCD_ENV=dev
 
 # Dev environment
-ARGOCD_DEV_URL=https://argocd.dev.example.com
-ARGOCD_DEV_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+ALPHA_ARGOCD_DEV_SERVER=argocd.dev.example.com
+ALPHA_ARGOCD_DEV_API_KEY=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Test environment
-ARGOCD_TEST_URL=https://argocd.test.example.com
-ARGOCD_TEST_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+ALPHA_ARGOCD_TEST_SERVER=argocd.test.example.com
+ALPHA_ARGOCD_TEST_API_KEY=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **Never commit `.env`** (already gitignored via `pi/agent/skills/**/*.env*`).
 
 ### Activating
 
-Source the env file to set variables:
+Source the helper script to set variables:
 
 ```bash
-source /home/ubby/.pi/agent/skills/argocd-api/.env
+source $HOME/.pi/agent/skills/argocd-api/helpers.sh
 ```
 
 Or source directly if working from the dotfiles repo:
 
 ```bash
-source /home/ubby/dotfiles/pi/agent/skills/argocd-api/.env
+source $HOME/dotfiles/pi/agent/skills/argocd-api/helpers.sh
 ```
 
 After sourcing, use the helper variables and functions below.
@@ -56,28 +56,28 @@ The skill provides helper variables that resolve to the active environment:
 | Variable | Description |
 |----------|-------------|
 | `ARGOCD_ENV` | Active environment: `dev` or `test` |
-| `ARGOCD_URL` | Resolves to the active env's URL |
-| `ARGOCD_TOKEN` | Resolves to the active env's API token |
+| `ARGOCD_URL` | Resolves to `https://$ALPHA_ARGOCD_{ENV}_SERVER` |
+| `ARGOCD_TOKEN` | Resolves to `$ALPHA_ARGOCD_{ENV}_API_KEY` |
 
-After sourcing `.env`, you can switch environments by changing `ARGOCD_ENV` and re-sourcing:
+After sourcing `helpers.sh`, you can switch environments by changing `ARGOCD_ENV` and re-sourcing:
 
 ```bash
 # Switch to test
 ARGOCD_ENV=test
-source /home/ubby/.pi/agent/skills/argocd-api/.env
+source $HOME/.pi/agent/skills/argocd-api/helpers.sh
 
 # Switch back to dev
 ARGOCD_ENV=dev
-source /home/ubby/.pi/agent/skills/argocd-api/.env
+source $HOME/.pi/agent/skills/argocd-api/helpers.sh
 ```
 
 ### Helper Script
 
-Use the included helper to resolve env vars:
+The included `helpers.sh` sources `.env` (if it exists) and resolves `ARGOCD_URL`/`ARGOCD_TOKEN` from OS-level `ALPHA_ARGOCD_*` vars:
 
 ```bash
 # Source the skill helper (keeps ARGOCD_URL/ARGOCD_TOKEN in sync with ARGOCD_ENV)
-source /home/ubby/.pi/agent/skills/argocd-api/helpers.sh
+source $HOME/.pi/agent/skills/argocd-api/helpers.sh
 ```
 
 ## API Basics
@@ -427,7 +427,7 @@ argocd_sync() {
 # Switch environment
 argocd_env() {
   export ARGOCD_ENV="$1"
-  source /home/ubby/.pi/agent/skills/argocd-api/.env
+  source $HOME/.pi/agent/skills/argocd-api/helpers.sh
   echo "Switched to ARGOCD_ENV=$ARGOCD_ENV ($ARGOCD_URL)"
 }
 ```
