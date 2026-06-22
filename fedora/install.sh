@@ -30,12 +30,11 @@ source "$HOME/.bashrc"
 
 sudo dnf copr enable dejan/lazygit -y 
 sudo dnf copr enable jdxcode/mise -y
-sudo dnf copr enable varlad/zellij -y
 sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit zellij mise htop ncdu speedtest-cli pip3 -y --skip-unavailable
+sudo dnf install git vim neovim lazygit mise htop ncdu speedtest-cli pip3 -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
