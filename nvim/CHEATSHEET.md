@@ -6,6 +6,9 @@
 - `<leader>nh` — clear search highlights
 - `<leader>+` / `<leader>-` — increment / decrement number under cursor
 
+## Markdown
+- `<leader>tm` — toggle rendered markdown view (`:RenderMarkdown toggle`)
+
 ## Tabs
 - `<leader>tt` — new tab
 - `<leader>tw` — close tab
