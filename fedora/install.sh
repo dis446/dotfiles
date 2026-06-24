@@ -34,7 +34,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit mise htop ncdu speedtest-cli pip3 golang -y --skip-unavailable
+sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 golang -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
