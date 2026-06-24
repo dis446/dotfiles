@@ -139,7 +139,16 @@ return {
 		},
 		input = { enabled = true },
 		indent = { enabled = true },
-		lazygit = { enabled = true },
+		lazygit = { enabled = true,
+			-- Open files from lazygit in current window, not a new tab
+			config = {
+				os = {
+					editPreset = "custom",
+					editCommand = "nvim",
+					editArgs = { "--remote", "+set bufhidden=delete", "--" },
+				},
+			},
+		},
 		rename = { enabled = true },
 		terminal = {},
 		zen = { enabled = true },
