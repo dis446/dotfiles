@@ -77,6 +77,7 @@ return {
 						"**/target/**",
 						"**/build/**",
 						"**/dist/**",
+						"**/.nx/**",
 					},
 					-- make explorer wider: set sidebar width (fraction of total width). Default ~0.33, set to 0.66 for ~2x width
 					layout = { preset = "sidebar", preview = false, width = 0.66 },
@@ -103,6 +104,7 @@ return {
 						"**/build/**",
 						"**/dist/**",
 						"**/logs/**",
+						"**/.nx/**",
 					},
 				},
 				grep = {
@@ -118,6 +120,7 @@ return {
 						"**/build/**",
 						"**/dist/**",
 						"**/logs/**",
+						"**/.nx/**",
 					},
 				},
 				grep_word = {
@@ -133,6 +136,7 @@ return {
 						"**/build/**",
 						"**/dist/**",
 						"**/logs/**",
+						"**/.nx/**",
 					},
 				},
 			},
