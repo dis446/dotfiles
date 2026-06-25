@@ -4,6 +4,7 @@ font-family = "Iosevka Term SS04"
 font-size = 8
 
 background-opacity = 0.9
+background-opacity-policy = always
 
 window-padding-balance = true
 window-padding-y = 4
