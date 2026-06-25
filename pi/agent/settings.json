@@ -10,7 +10,7 @@
   "showHardwareCursor": false,
   "hideThinkingBlock": true,
   "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "deepseek-v4-flash",
   "enabledModels": [
     "deepseek/deepseek-v4-flash",
     "deepseek/deepseek-v4-pro",
@@ -55,6 +55,6 @@
   "prompts": [],
   "themes": [],
   "enableSkillCommands": true,
-  "lastChangelogVersion": "0.79.9",
+  "lastChangelogVersion": "0.80.2",
   "defaultThinkingLevel": "high"
 }
