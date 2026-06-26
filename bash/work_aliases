@@ -4,3 +4,5 @@ alias oc="opencode"
 alias wvpnc="globalprotect connect --portal vpn.andsolutions.net --browser-type default-browser"
 alias wvpns="globalprotect show --status"
 alias wvpnd="globalprotect disconnect"
+
+alias ptfvpnc="sudo openfortivpn vpn.aeonfinance.com.vn --saml-login"
