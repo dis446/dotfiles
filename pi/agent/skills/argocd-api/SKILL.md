@@ -101,6 +101,57 @@ BASE_URL="$ARGOCD_URL/api/v1"
 
 ## Common Operations
 
+### Pod logs (the most common task — read this first)
+
+ArgoCD proxies container logs, so you can pull a pod's logs through the same API
+token without `kubectl`/cluster access. **This endpoint is not in ArgoCD's swagger
+docs but it works:**
+
+```
+GET /api/v1/applications/{app}/pods/{pod}/logs?namespace={ns}&tailLines={n}&follow=false
+```
+
+- The response is **NDJSON**, one object per line: `{"result":{"content":"…","timeStamp":"…"}}`.
+  Decode the text with `jq -r '.result.content // empty'`.
+- There is **no pod-list endpoint** — get pod names from the **resource-tree**
+  (`/applications/{app}/resource-tree`, filter `.nodes[] | select(.kind=="Pod")`).
+- `namespace` is required; on these clusters app workloads live in **`alpha`**.
+- Apps often have **multiple pods** (e.g. `*-worker`, `gotenberg`, sidecars) — check
+  each; the error you want may be in the worker, not the main pod.
+- An app showing **Synced + Healthy** can still be failing at runtime — health is
+  liveness, not correctness. Always read the logs.
+
+Use the helper functions (defined in `helpers.sh`):
+
+```bash
+source $HOME/dotfiles/pi/agent/skills/argocd-api/helpers.sh
+
+argocd_pods contract-manager                  # name  namespace  health
+argocd_logs contract-manager <pod> 800        # last 800 lines, namespace defaults to alpha
+argocd_logs <app> <pod> 800 <ns> <container>  # full form
+argocd_logs_all template-manager 600          # every pod of the app (worker/sidecars included)
+```
+
+Raw curl equivalent:
+
+```bash
+# 1. find the pod
+curl -s -H "Authorization: Bearer $ARGOCD_TOKEN" \
+  "$ARGOCD_URL/api/v1/applications/contract-manager/resource-tree" \
+  | jq -r '.nodes[] | select(.kind=="Pod") | "\(.name)\t\(.namespace)"'
+
+# 2. fetch its logs
+curl -s -H "Authorization: Bearer $ARGOCD_TOKEN" \
+  "$ARGOCD_URL/api/v1/applications/contract-manager/pods/<pod>/logs?namespace=alpha&tailLines=800&follow=false" \
+  | jq -r '.result.content // empty'
+```
+
+> **Env notes.** `dev` reaches ArgoCD directly. `test` is inside the VPC — route
+> through the bastion SOCKS proxy (`ALL_PROXY=socks5h://…`; see `test-bastion-tunnel`).
+> In sandboxes that intercept `curl` (e.g. context-mode), run these from the code
+> sandbox so the large log body never enters the conversation — filter/grep in code
+> and print only the decisive lines.
+
 ### Authentication
 
 ArgoCD API tokens are long-lived and environment-specific. Create a token via the ArgoCD UI or CLI:
@@ -440,7 +491,8 @@ ArgoCD REST API v1 — full docs at `<your-argocd-server>/swagger-ui`.
 |--------|----------|-------------|
 | GET | `/api/v1/applications` | List applications |
 | GET | `/api/v1/applications/{name}` | Get application details |
-| GET | `/api/v1/applications/{name}/resource-tree` | Get resource tree |
+| GET | `/api/v1/applications/{name}/resource-tree` | Get resource tree (source of pod names) |
+| GET | `/api/v1/applications/{name}/pods/{pod}/logs` | **Get pod logs** (params: `namespace`, `tailLines`, `container`, `follow`; NDJSON `.result.content`) |
 | GET | `/api/v1/applications/{name}/events` | Get events |
 | POST | `/api/v1/applications/{name}/sync` | Sync application |
 | POST | `/api/v1/applications/{name}/rollback` | Rollback application |
