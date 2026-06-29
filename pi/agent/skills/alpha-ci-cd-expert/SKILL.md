@@ -693,6 +693,154 @@ argocd app get <app-name>
 
 ---
 
+## Refactoring Existing CI/CD Configs
+
+When a service's `.gitlab-ci.yml` needs to be brought inline with the canonical pattern (auth / relation-store), apply this checklist. The goal is structural consistency so all alpha-backend services are maintainable by the same mental model.
+
+### Canonical Pattern (Reference: auth, relation-store)
+
+```yaml
+include:
+  - project: "internal/gitlab-ci/templates"
+    ref: main
+    file: "singlec-auto-devops.gitlab-ci.yml"
+  - project: "internal/gitlab-ci/templates"
+    ref: main
+    file: "argocd-auto-devops-release.gitlab-ci.yaml"
+
+# --- Deploy jobs ---
+alpha-dev:
+  extends: .dev_deploy
+  variables:
+    VALUES_FILE: ".gitlab/alpha-dev.yaml"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  environment:
+    name: alpha-dev
+
+alpha-sit:
+  extends: .sit_deploy
+  variables:
+    VALUES_FILE: ".gitlab/alpha-ptf-sit.yaml"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+  environment:
+    name: alpha-ptf-sit
+
+alpha-test:
+  extends: .test_deploy
+  variables:
+    VALUES_FILE: ".gitlab/alpha-test.yaml"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  environment:
+    name: alpha-test
+
+# --- SIT-specific build (separate tag, different build args) ---
+build-sit:
+  extends: build
+  variables:
+    CI_APPLICATION_TAG: "${CI_COMMIT_SHA}-sit"
+    AUDIT_LOG_BACKEND: "log"
+    AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS: "--build-arg MAVEN_BUILD_ARGS=$MAVEN_BUILD_ARGS --build-arg OTEL_ENABLED=true --build-arg OTEL_TRACES_ENABLED=true --build-arg OTEL_METRICS_ENABLED=true --build-arg OTEL_METRICS_EXPORTER=cdi --build-arg OTEL_TRACES_EXPORTER=cdi --build-arg AUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}"
+
+# --- MR-only test jobs ---
+sonarqube-check:
+  stage: test
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/maven:3.9-eclipse-temurin-21
+  variables:
+    GIT_DEPTH: "0"
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  before_script:
+    - mkdir -p ~/.m2
+    - cp $CI_PROJECT_DIR/.m2/settings.xml ~/.m2/settings.xml
+    - chmod +x mvnw
+  script:
+    - ./mvnw compile org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar -DskipTests -s ~/.m2/settings.xml -Dsonar.qualitygate.wait=true -Dsonar.projectKey=$SONAR_PROJECT_KEY -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.token=$SONAR_TOKEN -DAUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}
+  allow_failure: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+code-style:
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/maven:3.9-eclipse-temurin-21
+  stage: test
+  before_script:
+    - mkdir -p ~/.m2
+    - cp $CI_PROJECT_DIR/.m2/settings.xml ~/.m2/settings.xml
+  script:
+    - ./mvnw spotless:check -s ~/.m2/settings.xml -U
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  allow_failure: false
+
+# --- Static checks ---
+gitleaks-secret-check:
+  stage: test
+  image:
+    name: ghcr.io/gitleaks/gitleaks:v8.27.2
+    entrypoint: [""] # Disable the default entrypoint
+  script:
+    - gitleaks detect -c gitleaks.toml --source . --no-git --verbose --redact=0 --exit-code=0
+
+# --- Disable default production ---
+production:
+  script:
+    - echo "Skipping production deployment"
+  rules:
+    - when: never
+
+# --- Global variables at the bottom ---
+variables:
+  BASE_PATH: "/my-service"
+  OPENAPI_PATH: "/deployments/generated/openapi.yaml"
+  DOCKERFILE_PATH: docker/Dockerfile
+  OTEL_ENABLED: "false"
+  OTEL_TRACES_ENABLED: "false"
+  OTEL_METRICS_ENABLED: "false"
+  OTEL_METRICS_EXPORTER: "otlp"
+  OTEL_TRACES_EXPORTER: "otlp"
+  AUDIT_LOG_BACKEND: "azure"
+  AUTO_DEVOPS_DEPLOY_DEBUG: "true"
+  AUTO_DEVOPS_COMMON_NAME: "false"
+  AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS: "--build-arg MAVEN_BUILD_ARGS=$MAVEN_BUILD_ARGS --build-arg OTEL_ENABLED=${OTEL_ENABLED} --build-arg OTEL_TRACES_ENABLED=${OTEL_TRACES_ENABLED} --build-arg OTEL_METRICS_ENABLED=${OTEL_METRICS_ENABLED} --build-arg OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER} --build-arg OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER} --build-arg AUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}"
+```
+
+### Refactoring Checklist
+
+Apply these changes in order when bringing a `.gitlab-ci.yml` into the canonical pattern:
+
+| # | Change | Why |
+|---|---|---|
+| 1 | **Remove `workflow:rules:`** | Branch-specific OTEL overrides are handled by `build-sit`'s hardcoded build args instead. The base `build` job uses the global defaults (`OTEL_ENABLED=false`, `AUDIT_LOG_BACKEND=azure`). |
+| 2 | **Remove explicit `stages:`** | Stages come from the included templates (`singlec-auto-devops.gitlab-ci.yml` → `Auto-DevOps.gitlab-ci.yml`). Defining them locally overrides template stages and can cause ordering issues. |
+| 3 | **Remove SAST includes** | Auth/relation-store don't use `Security/SAST.gitlab-ci.yml` or `Security/SAST-IaC.latest.gitlab-ci.yml`. Remove both the `include:` entries and any `.sast-analyzer` rule anchors. |
+| 4 | **Remove SAST variables** | e.g. `SAST_STAGE`, `SAST_DISABLED`. These are only relevant if SAST is included. |
+| 5 | **Reorder jobs** | Canonical order: deploy jobs (`alpha-dev`, `alpha-sit`, `alpha-test`) → `build-sit` → MR test jobs (`integration-test`, `unit-test`, `sonarqube-check`, `code-style`) → `gitleaks-secret-check` → `production` → `variables`. |
+| 6 | **Move `variables:` to the bottom** | This is the convention in auth and relation-store. Keeps the main job definitions readable before the configuration block. |
+| 7 | **Add `-DAUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}` to `sonarqube-check`** | The canonical pattern passes this Maven property to every `mvnw` invocation so the shared audit library resolves the correct profile. |
+| 8 | **Make `code-style` MR-only** | Remove `- if: '$CI_COMMIT_BRANCH == "dev"'` from `code-style` rules. Spotless formatting should only gate MRs, not branch pushes. |
+| 9 | **Remove `stage: production` from `production` job** | The canonical pattern omits the explicit `stage:` since `production` is already in the deploy stage from the template. |
+| 10 | **Ensure `build-sit` overrides `AUDIT_LOG_BACKEND`** | The `build-sit` job must set `AUDIT_LOG_BACKEND: "log"` so that `${AUDIT_LOG_BACKEND}` in `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS` resolves correctly for the SIT image build. |
+| 11 | **If service has an inline `unit-test` job, keep it** | Unlike relation-store (which uses `integration-test` for MRs), services that already have a working `unit-test` job providing coverage data should keep it. Add `-DAUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}` if not already present in the Maven invocation. |
+| 12 | **Standardize quote style** | Use double quotes consistently (`"true"` not `'true'`). The canonical pattern uses double quotes throughout. |
+
+### SIT Helm values checklist
+
+After refactoring `.gitlab-ci.yml`, verify `.gitlab/alpha-ptf-sit.yaml`:
+
+```yaml
+    - name: AUDIT_LOG_BACKEND
+      value: "log"                         # Must be "log" for SIT
+image:
+  tag: \${CI_COMMIT_SHA}-sit                # Must match build-sit's CI_APPLICATION_TAG
+```
+
+---
+
 ## Working with `glab` for CI/CD
 
 ### View pipelines
