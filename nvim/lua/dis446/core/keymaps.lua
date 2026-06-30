@@ -4,6 +4,7 @@ local keymap = vim.keymap
 
 -- ── File & project navigation ───────────────────────
 keymap.set("n", "<leader>ee", function() Snacks.explorer() end, { desc = "Toggle file explorer" })
+keymap.set("n", "<M-1>", function() Snacks.explorer() end, { desc = "Toggle file explorer (Alt+1)" })
 keymap.set("n", "<leader>ef", function() Snacks.explorer.reveal() end, { desc = "Reveal current file in explorer" })
 keymap.set("n", "<leader>ff", function() Snacks.picker.files() end, { desc = "Find file by name" })
 keymap.set("n", "<leader>fr", function() Snacks.picker.recent() end, { desc = "Recent files" })
