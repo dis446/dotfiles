@@ -1,0 +1,7 @@
+# glab (GitLab CLI) aliases and completion
+if type glab &>/dev/null; then
+  alias gl="glab"
+  source /usr/share/bash-completion/bash_completion 2>/dev/null
+  source <(glab completion bash)
+  complete -o default -F __start_glab gl 2>/dev/null
+fi
