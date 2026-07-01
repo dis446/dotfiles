@@ -1,0 +1,8 @@
+# kubectl aliases and completion
+if type kubectl &>/dev/null; then
+  alias k="kubectl"
+  # source bash-completion framework first (needed by kubectl completion)
+  source /usr/share/bash-completion/bash_completion 2>/dev/null
+  source <(kubectl completion bash)
+  complete -o default -F __start_kubectl k
+fi
