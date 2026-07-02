@@ -46,7 +46,7 @@ Do **not** publish noisy low-value events like:
 <parent>
   <groupId>mn.and</groupId>
   <artifactId>quarkus-parent</artifactId>
-  <version>1.4.1</version>
+  <version>1.4.2</version>
   <relativePath/>
 </parent>
 ```
@@ -177,7 +177,7 @@ Ensure `quarkus-common` and parent version are current:
 <parent>
   <groupId>mn.and</groupId>
   <artifactId>quarkus-parent</artifactId>
-  <version>1.4.1</version>
+  <version>1.4.2</version>
 </parent>
 ```
 
@@ -207,14 +207,14 @@ Note: `AuditPublisher` automatically resolves organization and user from `ApiHea
 
 Rename old Azure-specific env vars to the unified AMQP vars:
 
-| Old (remove) | New (use) |
-|---|---|
+| Old (remove)                        | New (use)                                                                                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `AUDIT_LOG_AZURE_CONNECTION_STRING` | `AUDIT_LOG_AMQP_HOST`, `AUDIT_LOG_AMQP_USERNAME`, `AUDIT_LOG_AMQP_PASSWORD`, `AUDIT_LOG_AMQP_PORT`, `AUDIT_LOG_AMQP_USE_SSL`, `AUDIT_LOG_AMQP_ADDRESS` |
-| `AUDIT_LOG_AZURE_ENTITY_TYPE` | removed (no equivalent needed) |
-| `AUDIT_LOG_AZURE_QUEUE_NAME` | `AUDIT_LOG_AMQP_ADDRESS` |
-| `AUDIT_LOG_AZURE_TOPIC_NAME` | `AUDIT_LOG_AMQP_ADDRESS` |
-| `AUDIT_LOG_RABBITMQ_*` | `AUDIT_LOG_AMQP_*` |
-| `MP_MESSAGING_OUTGOING_AUDIT_*` | `AUDIT_LOG_AMQP_*` |
+| `AUDIT_LOG_AZURE_ENTITY_TYPE`       | removed (no equivalent needed)                                                                                                                         |
+| `AUDIT_LOG_AZURE_QUEUE_NAME`        | `AUDIT_LOG_AMQP_ADDRESS`                                                                                                                               |
+| `AUDIT_LOG_AZURE_TOPIC_NAME`        | `AUDIT_LOG_AMQP_ADDRESS`                                                                                                                               |
+| `AUDIT_LOG_RABBITMQ_*`              | `AUDIT_LOG_AMQP_*`                                                                                                                                     |
+| `MP_MESSAGING_OUTGOING_AUDIT_*`     | `AUDIT_LOG_AMQP_*`                                                                                                                                     |
 
 If the old code referenced `azure-messaging-servicebus` import or `ServiceBusSenderClient`, remove those entirely.
 
@@ -230,7 +230,7 @@ The `AUDIT_LOG_BACKEND` must be forwarded to the Docker build stage so the corre
 
 ```yaml
 variables:
-  AUDIT_LOG_BACKEND: "amqp"              # or "log" / "kafka" / "sqs"
+  AUDIT_LOG_BACKEND: "amqp" # or "log" / "kafka" / "sqs"
   AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS: >
     --build-arg AUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}
 ```
@@ -309,14 +309,14 @@ application:
 
 Key differences between RabbitMQ and Azure Service Bus config:
 
-| Property | RabbitMQ | Azure Service Bus |
-|---|---|---|
-| `AUDIT_LOG_AMQP_HOST` | cluster-internal DNS | `<namespace>.servicebus.windows.net` |
-| `AUDIT_LOG_AMQP_PORT` | `5672` | `5671` |
-| `AUDIT_LOG_AMQP_USE_SSL` | `false` (omit) | `true` |
-| `AUDIT_LOG_AMQP_ADDRESS` | not needed | queue or topic name |
-| `AUDIT_LOG_AMQP_EXCHANGE` | e.g. `audit-log-exchange` | not needed |
-| `AUDIT_LOG_AMQP_ROUTING_KEYS` | e.g. `alpha-audit-log` | not needed |
+| Property                      | RabbitMQ                  | Azure Service Bus                    |
+| ----------------------------- | ------------------------- | ------------------------------------ |
+| `AUDIT_LOG_AMQP_HOST`         | cluster-internal DNS      | `<namespace>.servicebus.windows.net` |
+| `AUDIT_LOG_AMQP_PORT`         | `5672`                    | `5671`                               |
+| `AUDIT_LOG_AMQP_USE_SSL`      | `false` (omit)            | `true`                               |
+| `AUDIT_LOG_AMQP_ADDRESS`      | not needed                | queue or topic name                  |
+| `AUDIT_LOG_AMQP_EXCHANGE`     | e.g. `audit-log-exchange` | not needed                           |
+| `AUDIT_LOG_AMQP_ROUTING_KEYS` | e.g. `alpha-audit-log`    | not needed                           |
 
 For `log` or SIT environments where audit is not forwarded to a broker, just set:
 
@@ -331,8 +331,8 @@ No AMQP env vars needed.
 
 The platform team must add these CI/CD variables for any environment that uses `amqp` backend:
 
-| Variable | Example value |
-|---|---|
+| Variable                  | Example value                  |
+| ------------------------- | ------------------------------ |
 | `AUDIT_LOG_AMQP_PASSWORD` | the broker password or SAS key |
 
 ### Kubernetes secrets
@@ -368,7 +368,7 @@ Use this checklist when reviewing audit log PRs or debugging why events aren't r
 
 ### CI/CD review
 
-- [ ] Does the parent POM version resolve to `1.4.1` or later?
+- [ ] Does the parent POM version resolve to `1.4.2` or later?
 - [ ] Does the service POM have the legacy `azure-messaging-servicebus` dependency removed?
 - [ ] Does the Docker build stage pass `AUDIT_LOG_BACKEND` as a build arg?
 - [ ] Does the Dockerfile forward `-DAUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}` to Maven?
@@ -402,7 +402,7 @@ Target platform pattern for AND microservices:
 - use `mn.and.common.logging.audit.AuditPayload` to build compact payloads
 - use `mn.and.common.logging.audit.AuditStatus` for standard statuses
 - keep `mn.and.common.logging.audit.AuditLogger` as lower-level transport API
-- align service with `mn.and:quarkus-common:1.4.1` (minimum)
+- align service with `mn.and:quarkus-common:1.4.2` (minimum)
 - use one **domain audit facade/service** per microservice, for example:
   - `CaseAuditService`
   - `ContractAuditService`
@@ -424,12 +424,12 @@ The AMQP audit logger handles both **RabbitMQ** and **Azure Service Bus** via th
 
 Set `AUDIT_LOG_BACKEND` (build-time system property and runtime env var):
 
-| Value   | Transport       |
-|---------|----------------|
-| `log`   | application logger only (default) |
+| Value   | Transport                                  |
+| ------- | ------------------------------------------ |
+| `log`   | application logger only (default)          |
 | `amqp`  | RabbitMQ or Azure Service Bus via AMQP 1.0 |
-| `kafka` | Apache Kafka |
-| `sqs`   | Amazon SQS |
+| `kafka` | Apache Kafka                               |
+| `sqs`   | Amazon SQS                                 |
 
 ### Maven profile
 
@@ -459,19 +459,19 @@ Both RabbitMQ and Azure Service Bus use the same env vars — just different val
 - name: AUDIT_LOG_AMQP_HOST
   value: "<hostname>"
 - name: AUDIT_LOG_AMQP_PORT
-  value: "5672"                          # 5671 for Azure SB with SSL
+  value: "5672" # 5671 for Azure SB with SSL
 - name: AUDIT_LOG_AMQP_USE_SSL
-  value: "false"                         # true for Azure SB
+  value: "false" # true for Azure SB
 - name: AUDIT_LOG_AMQP_USERNAME
   value: "<username>"
 - name: AUDIT_LOG_AMQP_PASSWORD
   value: "$AUDIT_LOG_AMQP_PASSWORD"
 - name: AUDIT_LOG_AMQP_ADDRESS
-  value: "<queue-or-topic-name>"         # Azure SB only; not needed for RabbitMQ
+  value: "<queue-or-topic-name>" # Azure SB only; not needed for RabbitMQ
 - name: AUDIT_LOG_AMQP_EXCHANGE
-  value: "audit-log-exchange"            # RabbitMQ only
+  value: "audit-log-exchange" # RabbitMQ only
 - name: AUDIT_LOG_AMQP_ROUTING_KEYS
-  value: "alpha-audit-log"              # RabbitMQ only
+  value: "alpha-audit-log" # RabbitMQ only
 ```
 
 Relevant common implementation:
