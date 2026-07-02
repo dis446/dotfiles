@@ -39,7 +39,7 @@ Target platform pattern for AND microservices:
 - use `mn.and.common.logging.audit.AuditPayload` to build compact payloads
 - use `mn.and.common.logging.audit.AuditStatus` for standard statuses
 - keep `mn.and.common.logging.audit.AuditLogger` as lower-level transport API
-- align service with `mn.and:quarkus-common:1.3.5`
+- align service with `mn.and:quarkus-common:1.4.1` (minimum)
 - use one **domain audit facade/service** per microservice, for example:
   - `CaseAuditService`
   - `ContractAuditService`
@@ -55,28 +55,61 @@ Do **not** scatter raw `auditLogger.send(...)` calls everywhere once repo grows.
 
 ## Environment and Backend
 
-In dev environment, audit log transport is **Azure Service Bus** via common-lib.
+The AMQP audit logger handles both **RabbitMQ** and **Azure Service Bus** via the SmallRye Reactive Messaging AMQP connector (`quarkus-messaging-amqp`).
 
-CD dev env yaml files must also set these env vars, e.g. `.gitlab/alpha-dev.yaml` and similar:
+### Backend selection
 
-- `AUDIT_LOG_SOURCE`
-- `AUDIT_LOG_BACKEND`
-- `AUDIT_LOG_AZURE_CONNECTION_STRING`
-- `AUDIT_LOG_AZURE_ENTITY_TYPE` (optional; `queue` default)
-- `AUDIT_LOG_AZURE_QUEUE_NAME` (optional)
-- `AUDIT_LOG_AZURE_TOPIC_NAME` (optional)
+Set `AUDIT_LOG_BACKEND` (build-time system property and runtime env var):
 
-Important build-time rule:
+| Value   | Transport       |
+|---------|----------------|
+| `log`   | application logger only (default) |
+| `amqp`  | RabbitMQ or Azure Service Bus via AMQP 1.0 |
+| `kafka` | Apache Kafka |
+| `sqs`   | Amazon SQS |
 
-- `mn.and.audit.backend` is selected at **build time** in `quarkus-common` via `@IfBuildProperty`
-- if backend is not passed into Docker/Maven build stage, Quarkus will wire `DefaultAuditLogger`
-- so `AUDIT_LOG_BACKEND=azure` must be forwarded to the **docker build stage** / Maven package stage, not only set at runtime
+### Maven profile
 
-Runtime config still needed:
+The `quarkus-parent` POM provides profiles that wire the correct dependency:
 
-- `AUDIT_LOG_SOURCE` for event source
-- `AUDIT_LOG_AZURE_CONNECTION_STRING` for Azure Service Bus auth
-- any other Azure-specific vars required by the deployed chart/secret
+```bash
+./mvnw package -DAUDIT_LOG_BACKEND=amqp
+```
+
+This activates the `audit-backend-amqp` profile, pulling `quarkus-messaging-amqp`. No manual dependency declaration needed in the service POM.
+
+### Build-time rule
+
+- `mn.and.audit.backend` is checked at **build time** by `@IfBuildProperty` to decide which `AuditLogger` bean is compiled in
+- if `AUDIT_LOG_BACKEND=amqp` is not passed during Docker/Maven build, only `DefaultAuditLogger` is available and AMQP transport won't work
+- always forward `AUDIT_LOG_BACKEND` to the **Docker build stage** / Maven package stage, not only at runtime
+
+### Runtime config (`AUDIT_LOG_AMQP_*` env vars)
+
+Both RabbitMQ and Azure Service Bus use the same env vars — just different values:
+
+```yaml
+- name: AUDIT_LOG_SOURCE
+  value: "my-service"
+- name: AUDIT_LOG_BACKEND
+  value: "amqp"
+- name: AUDIT_LOG_AMQP_HOST
+  value: "<hostname>"
+- name: AUDIT_LOG_AMQP_PORT
+  value: "5672"                          # 5671 for Azure SB with SSL
+- name: AUDIT_LOG_AMQP_USE_SSL
+  value: "false"                         # true for Azure SB
+- name: AUDIT_LOG_AMQP_USERNAME
+  value: "<username>"
+- name: AUDIT_LOG_AMQP_PASSWORD
+  value: "$AUDIT_LOG_AMQP_PASSWORD"
+- name: AUDIT_LOG_AMQP_ADDRESS
+  value: "<queue-or-topic-name>"          # Azure SB only; not needed for RabbitMQ
+- name: AUDIT_LOG_AMQP_EXCHANGE
+  value: "audit-log-exchange"            # RabbitMQ only
+- name: AUDIT_LOG_AMQP_ROUTING_KEYS
+  value: "alpha-audit-log"               # RabbitMQ only
+```
 
 Relevant common implementation:
 
@@ -84,13 +117,14 @@ Relevant common implementation:
 - `mn.and.common.logging.audit.AuditPayload`
 - `mn.and.common.logging.audit.AuditStatus`
 - `mn.and.common.logging.audit.AuditLogger`
-- `mn.and.common.logging.audit.AzureServiceBusAuditLogger`
+- `mn.and.common.logging.audit.AmqpAuditLogger`
 - `mn.and.common.logging.audit.DefaultAuditLogger`
+- `mn.and.common.logging.audit.SqsAuditLogger`
 
 Meaning:
 
 - request-driven business code should usually call `AuditPublisher`
-- service code should **not** implement Azure Service Bus details directly
+- service code should **not** implement broker details directly
 - service code should **not** add extra transport-level try/catch around audit publishing only to protect broker publishing
 - transport/logger implementation already handles serialization/send failures internally
 
