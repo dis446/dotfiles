@@ -335,18 +335,6 @@ The platform team must add these CI/CD variables for any environment that uses `
 | ------------------------- | ------------------------------ |
 | `AUDIT_LOG_AMQP_PASSWORD` | the broker password or SAS key |
 
-### Kubernetes secrets
-
-If the password is stored in a K8s secret instead of CI/CD variables, reference it in the helm values:
-
-```yaml
-- name: AUDIT_LOG_AMQP_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: my-service-secret
-      key: amqp-audit-password
-```
-
 ---
 
 ## Verification Checklist
@@ -388,9 +376,8 @@ If audit events are not reaching the broker:
    - `"AMQP-based audit logger..."` — correct bean is active
    - `"Default audit logger initialized (logs only)"` — wrong bean, build-time `AUDIT_LOG_BACKEND` was not `amqp`
 2. Check for `"Failed to send audit event via AMQP"` errors
-3. Verify environment variables are actually set in the pod: `kubectl exec <pod> -- env | grep AUDIT_LOG`
-4. If connecting to Azure Service Bus, verify the `AUDIT_LOG_AMQP_PASSWORD` SAS key is correct (it rotates periodically)
-5. If using RabbitMQ, verify the exchange exists: `rabbitmqadmin -u <user> -p <pass> list exchanges`
+3. If connecting to Azure Service Bus, verify the `AUDIT_LOG_AMQP_PASSWORD` SAS key is correct (it rotates periodically)
+4. If using RabbitMQ, verify the exchange exists: `rabbitmqadmin -u <user> -p <pass> list exchanges`
 
 ---
 
