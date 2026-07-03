@@ -1,4 +1,4 @@
 alias zw="zellij attach work || zellij --session work"
 alias zh="zellij attach home || zellij --session home"
-alias zOrg="zellij attach <org-session> || zellij --session work"
+alias zOrg="zellij attach <org-session> || zellij --session <org-session>"
 alias zPlatform2="zellij attach platform-2 || zellij --session work"
