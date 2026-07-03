@@ -67,7 +67,7 @@ glab auth login
 # List merge requests
 glab mr list
 
-# View a pipeline
+# View a pipeline (interactive — requires TTY)
 glab ci view
 
 # Create an issue
@@ -75,6 +75,53 @@ glab issue create --title "My issue" --description "Description"
 
 # Run a pipeline
 glab ci retry --pipeline <id>
+```
+
+## Non-Interactive Usage (AI agents, scripts)
+
+AI agents **do not have a TTY**, so interactive commands (`glab ci view`, `glab mr view`) will fail with:
+```
+ERROR: Ci view requires an interactive terminal (TTY).
+```
+
+Use these alternatives instead:
+
+### Get pipeline details by ID
+```bash
+glab ci get --pipeline-id <id> --output json
+```
+Flags:
+- `--pipeline-id` / `-p` — pipeline ID number
+- `--output json` / `-F json` — machine-readable JSON (omit for text table)
+- `--with-job-details` / `-d` — include all jobs
+- `--status` / `-s` — filter jobs by state (passed, failed, running, pending)
+- `--branch` / `-b` — get latest pipeline for a branch
+- `--merge-request` — get head pipeline for an MR by IID
+
+### Check pipeline status (latest on current branch)
+```bash
+glab ci status
+```
+
+### List pipelines for a branch
+```bash
+glab ci list --branch dev --per-page 5
+```
+
+### Real-world pattern: get a specific pipeline
+```bash
+# Finds pipeline 243273, outputs JSON
+glab ci get --pipeline-id 243273 -F json
+
+# Show only failed jobs
+glab ci get --pipeline-id 243273 --status=failed --with-job-details
+```
+
+### Self-Managed GitLab (e.g., git.and.global)
+Set host via env var before any glab command:
+```bash
+export GITLAB_HOST=https://git.and.global
+glab ci get --pipeline-id 12345 -F json
 ```
 
 ## Authentication
