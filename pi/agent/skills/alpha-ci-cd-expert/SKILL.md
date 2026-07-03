@@ -1,6 +1,6 @@
 ---
 name: alpha-ci-cd-expert
-description: Deploy, diagnose, and fix CI/CD for any alpha-backend service (NestJS and Quarkus). Covers new microservice setup, existing repo troubleshooting, template chain understanding, build-vs-runtime variable distinctions, and ArgoCD Helm deployments.
+description: Set up, audit, and standardize CI/CD configs for any alpha-backend service (NestJS and Quarkus). Covers new microservice setup, existing repo config review, template chain understanding, build-vs-runtime variable distinctions, and canonical patterns for Dockerfiles, GitLab CI, and Helm values.
 ---
 
 # Alpha CI/CD Expert
@@ -690,6 +690,124 @@ variables:
   AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS: "--build-arg NEXUS_TOKEN=$NEXUS_TOKEN"
 ```
 
+### NestJS Audit Module Pattern
+
+NestJS services use `@and/nest-common` which provides `CommonModule`. This module already registers the full audit infrastructure:
+
+- `AuditConfigService` — reads `mn.and.audit.*` / `AUDIT_LOG_*` env vars
+- `AmqpAuditLogger` / `KafkaAuditLogger` / `DefaultAuditLogger` — concrete logger implementations
+- `AuditPublisher` — high-level publish API with identity enrichment
+- `AUDIT_LOGGER` — injection token that the factory resolves based on `AUDIT_LOG_BACKEND`
+
+**Critical rule: Do NOT re-provide these in feature modules.**
+
+A common mistake is adding `AmqpAuditLogger`, `AuditPublisher`, and the `AUDIT_LOGGER` factory to a feature module's `providers` array. This creates **separate instances** with their own AMQP connections — each calling `onModuleInit()` and opening a new TCP socket to the broker. This is wasteful and causes duplicate connection logs at startup.
+
+**Canonical NestJS audit module pattern:**
+
+```typescript
+// src/audit/my-service-audit.module.ts
+import { Module } from '@nestjs/common';
+import { CommonModule } from '@and/nest-common';
+import { MyServiceAuditService } from './my-service-audit.service';
+import { MY_SERVICE_AUDIT_SERVICE } from './my-service-audit.tokens';
+
+@Module({
+  imports: [CommonModule],
+  providers: [
+    MyServiceAuditService,
+    {
+      provide: MY_SERVICE_AUDIT_SERVICE,
+      useExisting: MyServiceAuditService,
+    },
+  ],
+  exports: [MY_SERVICE_AUDIT_SERVICE],
+})
+export class MyServiceAuditModule {}
+```
+
+The audit service only injects `AuditPublisher` (from `CommonModule`):
+
+```typescript
+// src/audit/my-service-audit.service.ts
+import { Injectable } from '@nestjs/common';
+import { AuditPublisher, AuditPayload, AuditStatus } from '@and/nest-common';
+
+@Injectable()
+export class MyServiceAuditService {
+  constructor(private readonly auditPublisher: AuditPublisher) {}
+
+  async somethingHappened(id: string) {
+    const payload = AuditPayload.builder()
+      .add('objectId', id)
+      .build();
+
+    await this.auditPublisher.publish(
+      'my-feature',
+      id,
+      payload,
+      AuditStatus.SUCCESS,
+      'SOMETHING_HAPPENED',
+      `Something happened: ${id}`,
+    );
+  }
+}
+```
+
+**How it works:**
+- `AuditPublisher` is provided and instantiated once by `CommonModule`
+- `AuditPublisher` injects `AUDIT_LOGGER` (also from `CommonModule`)
+- `AUDIT_LOGGER` factory resolves to `AmqpAuditLogger` when `AUDIT_LOG_BACKEND=amqp`
+- `AmqpAuditLogger.onModuleInit()` opens the AMQP connection — this happens **once**
+- Feature modules never touch these providers; they only inject `AuditPublisher`
+
+### NestJS Audit Environment Variables
+
+The `AuditConfigService` maps `mn.and.audit.*` config keys to `AUDIT_LOG_*` env vars. The canonical Helm values:
+
+```yaml
+    # Audit Log Configuration
+    - name: AUDIT_LOG_SOURCE
+      value: "my-service"
+    - name: AUDIT_LOG_ENABLED
+      value: "true"
+    - name: AUDIT_LOG_BACKEND
+      value: "amqp"
+    - name: AUDIT_LOG_AMQP_HOST
+      value: "sb-alpha-dev-02.servicebus.windows.net"
+    - name: AUDIT_LOG_AMQP_PORT
+      value: "5671"
+    - name: AUDIT_LOG_AMQP_USE_SSL
+      value: "true"
+    - name: AUDIT_LOG_AMQP_ADDRESS
+      value: "audit-queue"
+    - name: AUDIT_LOG_AMQP_USERNAME
+      value: "app_log_mgmt"
+    - name: AUDIT_LOG_AMQP_PASSWORD
+      value: "$AUDIT_LOG_AMQP_PASSWORD"
+```
+
+| Env var | Maps to | Default | Notes |
+|---|---|---|---|
+| `AUDIT_LOG_ENABLED` | `mn.and.audit.enabled` | `true` | Set to `false` to disable audit entirely |
+| `AUDIT_LOG_BACKEND` | `mn.and.audit.backend` | `log` | `amqp` for Azure SB / RabbitMQ, `log` for stdout-only, `kafka` for Kafka |
+| `AUDIT_LOG_SOURCE` | `mn.and.audit.source` | — | Identifies the service in audit logs (e.g., `rule-engine`, `mdm`) |
+| `AUDIT_LOG_AMQP_HOST` | `mn.and.audit.amqp.host` | — | Azure SB: `sb-*-02.servicebus.windows.net`. SIT: `rabbitmq.rabbitmq.svc.cluster.local` |
+| `AUDIT_LOG_AMQP_PORT` | `mn.and.audit.amqp.port` | `5672` | Azure SB uses `5671` (TLS), RabbitMQ uses `5672` |
+| `AUDIT_LOG_AMQP_USE_SSL` | `mn.and.audit.amqp.use-ssl` | `false` | Azure SB requires `true` (rhea transport becomes `tls`) |
+| `AUDIT_LOG_AMQP_ADDRESS` | `mn.and.audit.amqp.address` | `audit` | Queue/topic name for the audit target |
+| `AUDIT_LOG_AMQP_USERNAME` | `mn.and.audit.amqp.username` | — | Shared Access Policy name for Azure SB, or RabbitMQ user |
+| `AUDIT_LOG_AMQP_PASSWORD` | `mn.and.audit.amqp.password` | — | Secret; pass via `$VAR` reference from GitLab CI variable |
+| `AUDIT_LOG_AMQP_SASL_MECHANISM` | `mn.and.audit.amqp.sasl-mechanism` | — | Azure SB: `PLAIN`. Not set → rhea defaults to PLAIN when username is provided |
+
+**SIT/RabbitMQ vs Dev/Azure SB differences:**
+
+| Env | Host | Port | SSL | Notes |
+|---|---|---|---|---|
+| Dev | `sb-alpha-dev-02.servicebus.windows.net` | `5671` | `true` | Azure Service Bus, needs `app_log_mgmt` user/pass |
+| SIT | `rabbitmq.rabbitmq.svc.cluster.local` | `5672` | `false` or omit | Internal RabbitMQ in cluster, different credentials |
+| Test | Same as Dev but test-instance host | `5671` | `true` | Separate Azure SB instance |
+
 ---
 
 ## Setting Up a Brand New Microservice
@@ -737,199 +855,6 @@ variables:
 
 ---
 
-## Diagnosing CI/CD Problems
-
-### Step 1: Identify the failing job
-
-```bash
-glab ci get --pipeline-id <ID> --status=failed --with-job-details
-# or
-glab ci status --branch dev
-```
-
-### Step 2: Read the job trace
-
-```bash
-glab ci trace <job-id>
-```
-
-### Step 3: Common failure patterns and fixes
-
-#### Pattern A: SIT deployment pulls stale/wrong image
-
-**Symptoms:**
-- SIT deploy succeeds but uses old code
-- `alpha-ptf-sit.yaml` image tag doesn't match what `build-sit` produces
-
-**Diagnosis:**
-```bash
-# Check what build-sit tags
-grep "CI_APPLICATION_TAG" .gitlab-ci.yml
-# Check what SIT deploy expects
-grep "tag:" .gitlab/alpha-ptf-sit.yaml
-```
-
-**Fix:** Ensure `alpha-ptf-sit.yaml`'s `tag` matches `build-sit`'s `CI_APPLICATION_TAG`. In the canonical pattern, both use `${CI_COMMIT_SHA}-sit`.
-
-#### Pattern B: Wrong audit log backend at runtime
-
-**Symptoms:**
-- `AUDIT_LOG_BACKEND=amqp` errors in SIT (e.g. Azure Service Bus connection failures)
-- SIT should use `log` backend but tries to connect to AMQP
-
-**Diagnosis:**
-```bash
-# Check build-time value (BUILD_AUDIT_LOG_BACKEND in canonical pattern)
-glab ci trace <build-sit-job-id> | grep "BUILD_AUDIT_LOG_BACKEND"
-# Check runtime value
-grep "AUDIT_LOG_BACKEND" .gitlab/alpha-ptf-sit.yaml
-```
-
-**Fix:** Both must be consistent. If SIT should use `log`:
-- `.gitlab-ci.yml`: set `BUILD_AUDIT_LOG_BACKEND: "log"` on the `build-sit` job (if the image needs to compile a different backend)
-- `.gitlab/alpha-ptf-sit.yaml`: set `AUDIT_LOG_BACKEND: "log"` in the env section
-
-#### Pattern C: Build uses wrong OTEL configuration
-
-**Symptoms:**
-- Quarkus app fails to start in dev with `cdi` exporter errors
-- Dev environment shows OTEL connectivity errors
-- OTEL endpoint is expected in SIT but not configured
-
-**Diagnosis:**
-```bash
-# Check what OTEL args were passed at build time
-glab ci trace <build-job-id> | grep "BUILD_OTEL"
-# Check what OTEL env vars are set at runtime
-grep "OTEL" .gitlab/alpha-dev.yaml
-```
-
-**Fix:** Align build args and runtime env vars per environment:
-- Dev: `BUILD_OTEL_ENABLED=true`, `BUILD_OTEL_*_EXPORTER=cdi` (no external collector needed) + OTEL helm env vars pointing to collector
-- SIT/Test: `BUILD_OTEL_ENABLED=false` or `BUILD_OTEL_*=otlp` with actual collector endpoint
-
-#### Pattern D: `extract-openapi` fails
-
-**Symptoms:**
-- `extract-openapi` job fails with image not found
-- `extract-openapi` artifact missing
-
-**Diagnosis:**
-```bash
-glab ci trace <extract-openapi-job-id>
-```
-
-**Common causes:**
-- Image was tagged with `-dev` suffix but `extract-openapi` uses the base `$CI_COMMIT_SHA` (no suffix). In the canonical pattern with per-environment builds, the `build` job is disabled so no image with the bare `$CI_COMMIT_SHA` tag exists.
-- The `extract-openapi` job pulls `$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG` from the dotenv artifact of whichever `build` job ran.
-
-**Fix:** The canonical pattern disables the base `build` job and defines per-environment builds. The `extract-openapi` job runs once per pipeline, reading the dotenv of the last `build` variant that ran. If multiple builds run on the same branch (e.g., `build-dev` and `build-sit` both on `dev`), the dotenv may come from whichever finished last. Ensure all per-environment builds produce the same OpenAPI spec (they should, since OpenAPI is independent of build args).
-
-#### Pattern E: Image tag mismatch between build and deploy
-
-**Symptoms:**
-- Deploy job fails with `ImagePullBackOff`
-- Kubernetes can't find the image tag
-
-**Diagnosis:**
-```bash
-# What the deploy job expects
-grep "tag:" .gitlab/alpha-*.yaml
-# What the build job produces
-grep "CI_APPLICATION_TAG" .gitlab-ci.yml
-```
-
-**Fix:** Ensure the tag in the Helm values file exactly matches what the per-environment build job produces. Canonical mapping:
-- `build-dev` → `alpha-dev.yaml`: `${CI_COMMIT_SHA}-dev`
-- `build-sit` → `alpha-ptf-sit.yaml`: `${CI_COMMIT_SHA}-sit`
-- `build-test` → `alpha-test.yaml`: `${CI_COMMIT_SHA}-test`
-
-#### Pattern F: Pipeline doesn't trigger on push
-
-**Symptoms:**
-- Pushing to `dev` doesn't start a pipeline
-- Jobs show as skipped
-
-**Diagnosis:**
-```bash
-# Check workflow rules
-grep -A5 "workflow:" .gitlab-ci.yml
-# Check job rules
-grep -B2 -A5 "rules:" .gitlab-ci.yml | head -40
-```
-
-**Fix:** Ensure no `workflow:rules:` block excludes branch pushes. The canonical pattern relies on each job's `rules:` rather than a global workflow rule. If a `workflow:rules:` exists, it must include `$CI_COMMIT_BRANCH == "dev"` and `$CI_COMMIT_BRANCH == "main"`.
-
-#### Pattern G: Per-environment builds have same image
-
-**Symptoms:**
-- `build-dev` and `build-sit` produce identical images despite different `BUILD_*` variables expected
-- Running `build-dev` trace shows same `BUILD_AUDIT_LOG_BACKEND` as `build-sit`
-
-**Diagnosis:**
-```bash
-# Check per-job variable overrides
-grep -A6 "build-dev:" .gitlab-ci.yml
-grep -A6 "build-sit:" .gitlab-ci.yml
-```
-
-**Fix:** Ensure each per-environment build job overrides the `BUILD_*` variables it needs to differ. Inheriting the global default silently is the most common bug. In the canonical pattern, all three builds set `BUILD_AUDIT_LOG_BACKEND: "amqp"` explicitly — they don't rely on the global default.
-
-#### Pattern H: Quarkus `build` fails on Maven dependency resolution
-
-**Symptoms:**
-- `[ERROR] Failed to execute goal on project ... Could not resolve dependencies`
-- Maven build fails in Docker
-
-**Diagnosis:**
-```bash
-glab ci trace <build-job-id> | grep "ERROR" | head -20
-```
-
-**Common causes:**
-- `.m2/settings.xml` references internal repos that aren't available during Docker build
-- The Docker build runs inside Docker-in-Docker and doesn't have access to the CI runner's Maven cache
-- The `mvnw` file isn't executable or is corrupted
-
-**Fix:**
-- Ensure Dockerfile copies `.m2/settings.xml` into the builder stage (the canonical Dockerfile does this before POM copy)
-- Ensure the `mvnw` has `+x` permission in the repo (`COPY --chown=1001 mvnw /opt/app/mvnw`)
-- Use `dependency:go-offline` to pre-cache dependencies (the canonical Dockerfile does this)
-
-#### Pattern I: ArgoCD deployment stuck or failing
-
-**Symptoms:**
-- Deploy job succeeds but no new pods are rolled out
-- ArgoCD shows `OutOfSync` or `Progressing`
-
-**Diagnosis:**
-```bash
-# Check ArgoCD app status via glab
-argocd app get <app-name>
-```
-
-**Common causes:**
-- Helm values rendering failed — check `deploy-utils` output in the deploy job trace
-- APISIX route generation failed — OpenAPI file is malformed
-- ImagePullBackOff — check the image tag in the rendered values
-- Registry pull secret missing or wrong — verify `image.secrets` and `image.pullSecrets` in the Helm values
-
-#### Pattern J: `unit-test` / `code-style` / `sonarqube-check` missing from pipeline
-
-**Symptoms:**
-- MR pipeline shows only `prepare-maven-deps` and SAST jobs, no test/style/sonar
-- MR pipeline is green but no test results
-
-**Diagnosis:**
-```bash
-# Check if template jobs are disabled via feature flags
-grep "UNIT_TEST_DISABLED\|CODE_STYLE_DISABLED\|SONAR_DISABLED" .gitlab-ci.yml
-```
-
-**Fix:** The template has feature flags (`UNIT_TEST_DISABLED`, `CODE_STYLE_DISABLED`, `SONAR_DISABLED`) that default to `"false"`. If a project sets any to `"true"`, that job is skipped. Remove or set to `"false"` to re-enable.
-
----
-
 ## Refactoring Existing CI/CD Configs
 
 When a service's `.gitlab-ci.yml` needs to be brought inline with the canonical Quarkus pattern, apply this checklist. The goal is structural consistency so all alpha-backend Quarkus services are maintainable by the same mental model.
@@ -946,7 +871,7 @@ When a service's `.gitlab-ci.yml` needs to be brought inline with the canonical 
 | `unit-test` may use `maven:3.9-eclipse-temurin-21` image directly | Template provides Docker-in-Docker services for Testcontainers |
 | Simple Helm values (no probes, no pull secrets) | Full Helm values with health probes, pull secrets, registry secrets |
 
-### Refactoring Checklist
+### Refactoring Checklist (Quarkus)
 
 Apply these changes in order when bringing a Quarkus `.gitlab-ci.yml` into the canonical pattern:
 
@@ -983,46 +908,17 @@ ingress:
 
 ---
 
-## Working with `glab` for CI/CD
+### Refactoring Checklist (NestJS)
 
-### View pipelines
+When bringing a NestJS service into the canonical pattern, apply these checks in order:
 
-```bash
-# Latest pipeline for current branch
-glab ci status --output json
-
-# Specific pipeline
-glab ci get --pipeline-id <ID> --output json
-
-# Specific pipeline from another project
-glab ci get -R alpha/back-end/my-service --pipeline-id 242169
-```
-
-### View job logs
-
-```bash
-glab ci trace <job-id>
-```
-
-### Get pipeline for a specific commit
-
-```bash
-glab ci get -b dev
-```
-
-### View CI variables used in a pipeline
-
-```bash
-glab ci get --pipeline-id <ID> --with-variables
-```
-
-### Inspect build args used in a build job
-
-```bash
-glab ci trace <build-job-id> | grep -E "(BUILD_AUDIT_LOG|BUILD_OTEL|build-arg|Docker Build Args|=== Docker Build Args ==="
-```
-
----
+| # | Check | Why |
+|---|---|---|
+| 1 | **Verify `CommonModule` is imported** in `app.module.ts` and all feature modules that need audit | Without it, `AuditPublisher` won't be available for injection |
+| 2 | **Remove audit provider duplication** from any feature module | `AmqpAuditLogger`, `AuditPublisher`, `AUDIT_LOGGER` factory belong only in `CommonModule`. Re-providing them creates duplicate AMQP connections |
+| 3 | **Verify audit module imports `CommonModule`** instead of re-providing its tokens | Feature audit modules should only provide their domain audit service, not the infrastructure |
+| 4 | **Check audit env vars** in each Helm values file | Ensure `AUDIT_LOG_BACKEND` matches the environment (Azure SB vs RabbitMQ), `AUDIT_LOG_AMQP_USE_SSL` is correct per env, and `AUDIT_LOG_SOURCE` identifies the service |
+| 5 | **Check `AUDIT_LOG_ENABLED`** | Defaults to `true`. Set explicitly to `"false"` only in environments where audit is intentionally disabled |
 
 ## Required Files Checklist Per Service
 
@@ -1041,6 +937,10 @@ glab ci trace <build-job-id> | grep -E "(BUILD_AUDIT_LOG|BUILD_OTEL|build-arg|Do
 | `pom.xml` | ✅ | ❌ |
 | `package.json` | ❌ | ✅ |
 | `.npmrc` | ❌ | ✅ |
+| NestJS audit module (`src/audit/`) | ❌ | ✅ |
+| `src/audit/*-audit.module.ts` | ❌ | ✅ |
+| `src/audit/*-audit.service.ts` | ❌ | ✅ |
+| `src/audit/*-audit.tokens.ts` | ❌ | ✅ |
 
 ---
 
@@ -1062,12 +962,8 @@ glab ci trace <build-job-id> | grep -E "(BUILD_AUDIT_LOG|BUILD_OTEL|build-arg|Do
 
 8. **NestJS services** typically don't need per-environment builds since NestJS doesn't have Maven profiles. The same Docker image works for all environments; only runtime env vars differ.
 
-9. **MR test jobs come from the template.** The `quarkus-maven-auto-devops.gitlab-ci.yml` template provides `prepare-maven-deps`, `unit-test`, `code-style`, and `sonarqube-check` for MRs. No need to redefine them. Use `MAVEN_TEST_EXTRA_ARGS`, `MAVEN_SONAR_EXTRA_ARGS` for customization.
+9. **Do NOT re-provide audit infrastructure in NestJS feature modules.** `CommonModule` from `@and/nest-common` already provides `AmqpAuditLogger`, `AuditPublisher`, `AuditConfigService`, and the `AUDIT_LOGGER` factory. Re-listing them in a feature module's `providers` array creates separate AMQP connections — one per provider entry.
 
-10. **Coverage is scoped via `COVERAGE_AWK_PATTERN`.** Set it to a regex matching your service's Java package (e.g., `"mn[.\\/]and[.\\/]myservice[.\\/]service"`) so JaCoCo coverage counts only your code, not dependencies.
+10. **MR test jobs come from the template.** The `quarkus-maven-auto-devops.gitlab-ci.yml` template provides `prepare-maven-deps`, `unit-test`, `code-style`, and `sonarqube-check` for MRs. No need to redefine them. Use `MAVEN_TEST_EXTRA_ARGS`, `MAVEN_SONAR_EXTRA_ARGS` for customization.
 
-11. **When unsure why a build behaves differently than expected**, compare the trace output of `build-dev` vs `build-sit`:
-    ```bash
-    glab ci trace <build-dev-job-id> | grep -E "(BUILD_AUDIT_LOG|build-arg|Docker Build Args)"
-    glab ci trace <build-sit-job-id> | grep -E "(BUILD_AUDIT_LOG|build-arg|Docker Build Args)"
-    ```
+11. **Coverage is scoped via `COVERAGE_AWK_PATTERN`.** Set it to a regex matching your service's Java package (e.g., `"mn[.\\/]and[.\\/]myservice[.\\/]service"`) so JaCoCo coverage counts only your code, not dependencies.
