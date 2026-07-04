@@ -46,7 +46,7 @@ Do **not** publish noisy low-value events like:
 <parent>
   <groupId>mn.and</groupId>
   <artifactId>quarkus-parent</artifactId>
-  <version>1.4.3</version>
+  <version>1.4.5</version>
   <relativePath/>
 </parent>
 ```
@@ -177,7 +177,7 @@ Ensure `quarkus-common` and parent version are current:
 <parent>
   <groupId>mn.and</groupId>
   <artifactId>quarkus-parent</artifactId>
-  <version>1.4.3</version>
+  <version>1.4.5</version>
 </parent>
 ```
 
@@ -356,7 +356,7 @@ Use this checklist when reviewing audit log PRs or debugging why events aren't r
 
 ### CI/CD review
 
-- [ ] Does the parent POM version resolve to `1.4.3` or later?
+- [ ] Does the parent POM version resolve to `1.4.5` or later?
 - [ ] Does the service POM have the legacy `azure-messaging-servicebus` dependency removed?
 - [ ] Does the Docker build stage pass `AUDIT_LOG_BACKEND` as a build arg?
 - [ ] Does the Dockerfile forward `-DAUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}` to Maven?
@@ -389,7 +389,7 @@ Target platform pattern for AND microservices:
 - use `mn.and.common.logging.audit.AuditPayload` to build compact payloads
 - use `mn.and.common.logging.audit.AuditStatus` for standard statuses
 - keep `mn.and.common.logging.audit.AuditLogger` as lower-level transport API
-- align service with `mn.and:quarkus-common:1.4.3` (minimum)
+- align service with `mn.and:quarkus-common:1.4.5` (minimum)
 - use one **domain audit facade/service** per microservice, for example:
   - `CaseAuditService`
   - `ContractAuditService`
