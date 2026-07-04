@@ -114,7 +114,6 @@ The canonical Quarkus pattern uses `BUILD_*` prefixed variables for build-time k
 | `AUDIT_LOG_BACKEND: "azure"` | `BUILD_AUDIT_LOG_BACKEND: "amqp"` |
 | `OTEL_ENABLED: "true"` | `BUILD_OTEL_ENABLED: "true"` |
 | `OTEL_TRACES_ENABLED: "false"` | `BUILD_OTEL_TRACES_ENABLED: "false"` |
-| `OTEL_METRICS_EXPORTER: "cdi"` | `BUILD_OTEL_METRICS_EXPORTER: "cdi"` |
 
 ### Why `BUILD_*`?
 
@@ -134,8 +133,6 @@ These are passed as Docker `--build-arg` entries by the template's `AUTO_DEVOPS_
 | `BUILD_OTEL_ENABLED` | `"true"` / `"false"` | Enable OpenTelemetry during Maven compile |
 | `BUILD_OTEL_TRACES_ENABLED` | `"true"` / `"false"` | Quarkus OTEL traces |
 | `BUILD_OTEL_METRICS_ENABLED` | `"true"` / `"false"` | Quarkus OTEL metrics |
-| `BUILD_OTEL_METRICS_EXPORTER` | `"cdi"` / `"otlp"` | Which OTEL metrics exporter to compile |
-| `BUILD_OTEL_TRACES_EXPORTER` | `"cdi"` / `"otlp"` | Which OTEL traces exporter to compile |
 
 ### Project variables (set in `.gitlab-ci.yml`)
 
@@ -193,8 +190,6 @@ variables:
     --build-arg BUILD_OTEL_ENABLED=${BUILD_OTEL_ENABLED}
     --build-arg BUILD_OTEL_TRACES_ENABLED=${BUILD_OTEL_TRACES_ENABLED}
     --build-arg BUILD_OTEL_METRICS_ENABLED=${BUILD_OTEL_METRICS_ENABLED}
-    --build-arg BUILD_OTEL_METRICS_EXPORTER=${BUILD_OTEL_METRICS_EXPORTER}
-    --build-arg BUILD_OTEL_TRACES_EXPORTER=${BUILD_OTEL_TRACES_EXPORTER}
     --build-arg BUILD_AUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}
 ```
 
@@ -338,56 +333,68 @@ Key details about this pattern:
 This is the gold-standard Dockerfile with POM-first layer caching and clear `BUILD_*` args:
 
 ```dockerfile
+# syntax=docker/dockerfile:1.7
+
 # Stage 1 : build with maven builder image with native capabilities
-FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 AS build
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.23 AS build
 
 ENV MAVEN_CLI_OPTS='-s /opt/app/.m2/settings.xml --batch-mode'
+ENV MAVEN_BUILD_OPTS='-Dmaven.test.skip=true -DskipTests -DskipITs -Djacoco.skip=true'
+ENV MAVEN_OPTS='-Dmaven.repo.local=/opt/app/.m2/repository'
+ENV MAVEN_USER_HOME='/opt/app/.m2'
+
 ARG BUILD_OTEL_ENABLED=false
 ARG BUILD_OTEL_TRACES_ENABLED=false
 ARG BUILD_OTEL_METRICS_ENABLED=false
-ARG BUILD_OTEL_METRICS_EXPORTER="cdi"
-ARG BUILD_OTEL_TRACES_EXPORTER="cdi"
-ARG BUILD_AUDIT_LOG_BACKEND=amqp
+ARG BUILD_AUDIT_LOG_BACKEND=log
+
+# Relay build args to bare names so the rest of the build works unchanged
+ENV OTEL_ENABLED=${BUILD_OTEL_ENABLED}
+ENV OTEL_TRACES_ENABLED=${BUILD_OTEL_TRACES_ENABLED}
+ENV OTEL_METRICS_ENABLED=${BUILD_OTEL_METRICS_ENABLED}
+ENV AUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}
 
 # Copy only the POM file first to cache dependencies
-COPY --chown=1001 mvnw /opt/app/mvnw
-COPY .mvn /opt/app/.mvn
-COPY .m2/settings.xml /opt/app/.m2/
-COPY pom.xml /opt/app/
+COPY --link --chown=1001 mvnw /opt/app/mvnw
+COPY --link --chown=1001 .mvn /opt/app/.mvn
+COPY --link --chown=1001 .m2/settings.xml /opt/app/.m2/
+COPY --link --chown=1001 pom.xml /opt/app/
 WORKDIR /opt/app
 
-# Debug output (helpful)
-RUN echo "=== Docker Build Args ===" && \
-    echo "BUILD_OTEL_ENABLED = ${BUILD_OTEL_ENABLED}" && \
-    echo "BUILD_AUDIT_LOG_BACKEND = ${BUILD_AUDIT_LOG_BACKEND}" && \
-    echo "========================="
+USER 0
+RUN microdnf install -y gzip tar && microdnf clean all && mkdir -p /opt/app/.m2/repository && chown -R 1001:0 /opt/app
+USER 1001
 
-# Download dependencies. This layer will be cached unless pom.xml changes
-RUN chmod +x mvnw && \
-  ./mvnw $MAVEN_CLI_OPTS dependency:go-offline
+# Keep Maven repo in image filesystem so buildx layer cache can persist it across CI jobs.
+# Pre-resolve Maven build plugins too, otherwise package step still downloads them on every source change.
+# Quarkus needs quarkus:go-offline here; dependency:go-offline misses Quarkus build-time/deployment deps.
+RUN ./mvnw $MAVEN_CLI_OPTS $MAVEN_BUILD_OPTS dependency:resolve-plugins quarkus:go-offline
 
-# Copy the rest of the application and build
-COPY src /opt/app/src
-RUN ./mvnw $MAVEN_CLI_OPTS clean package -DskipTests \
-  -DOTEL_ENABLED=${BUILD_OTEL_ENABLED} \
-  -DOTEL_TRACES_ENABLED=${BUILD_OTEL_TRACES_ENABLED} \
-  -DOTEL_METRICS_ENABLED=${BUILD_OTEL_METRICS_ENABLED} \
-  -DOTEL_METRICS_EXPORTER=${BUILD_OTEL_METRICS_EXPORTER} \
-  -DOTEL_TRACES_EXPORTER=${BUILD_OTEL_TRACES_EXPORTER} \
-  -DAUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}
+# Copy application source after dependency warmup to maximize Docker cache hits
+COPY --link --chown=1001 src /opt/app/src
+RUN echo "OTEL_ENABLED=${OTEL_ENABLED}" && \
+  echo "OTEL_TRACES_ENABLED=${OTEL_TRACES_ENABLED}" && \
+  echo "OTEL_METRICS_ENABLED=${OTEL_METRICS_ENABLED}" && \
+  echo "AUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}" && \
+  ./mvnw $MAVEN_CLI_OPTS $MAVEN_BUILD_OPTS package \
+  -DOTEL_ENABLED=${OTEL_ENABLED} \
+  -DOTEL_TRACES_ENABLED=${OTEL_TRACES_ENABLED} \
+  -DOTEL_METRICS_ENABLED=${OTEL_METRICS_ENABLED} \
+  -DAUDIT_LOG_BACKEND=${AUDIT_LOG_BACKEND}
 
 # Stage 2: Create the docker final image
-FROM registry.access.redhat.com/ubi8/openjdk-21:1.20
+FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.23 
 
 ENV LANGUAGE='en_US:en'
 
-# We make four distinct layers so if there are application changes
-# the library layers can be re-used
-COPY --from=build  --chown=185 opt/app/target/quarkus-app/lib/ /deployments/lib/
-COPY --from=build  --chown=185 opt/app/target/quarkus-app/*.jar /deployments/
-COPY --from=build  --chown=185 opt/app/target/quarkus-app/app/ /deployments/app/
-COPY --from=build  --chown=185 opt/app/target/quarkus-app/quarkus/ /deployments/quarkus/
-COPY --from=build --chown=185 /opt/app/target/generated/openapi.yaml /deployments/generated/openapi.yaml
+# We make four distinct layers so if there are application changes the library layers can be re-used
+COPY --link --from=build --chown=185 /opt/app/target/quarkus-app/lib/ /deployments/lib/
+COPY --link --from=build --chown=185 /opt/app/target/quarkus-app/*.jar /deployments/
+COPY --link --from=build --chown=185 /opt/app/target/quarkus-app/app/ /deployments/app/
+COPY --link --from=build --chown=185 /opt/app/target/quarkus-app/quarkus/ /deployments/quarkus/
+COPY --link --from=build --chown=185 /opt/app/target/generated/openapi.yaml /deployments/generated/openapi.yaml
+
+RUN mkdir -p /tmp/uploads /tmp/downloads
 
 EXPOSE 8080
 USER 185
@@ -399,11 +406,19 @@ ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
 
 Key Dockerfile practices:
 
-- **POM-first copy** — `pom.xml`, `mvnw`, `.m2/settings.xml` copied before `src/`. The `dependency:go-offline` layer only invalidates when POM or settings change.
-- **`ARG` names match `BUILD_*` variables** — the CI template passes `--build-arg BUILD_AUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}` which maps directly to `ARG BUILD_AUDIT_LOG_BACKEND=...` in the Dockerfile.
-- **Debug echo** at build time so pipeline traces show the effective args.
-- **Four distinct runtime layers** — `lib/`, `*.jar`, `app/`, `quarkus/` so library layers cache across app changes.
+- **`# syntax=docker/dockerfile:1.7`** — enables `--link` COPY flag and other modern Dockerfile features.
+- **POM-first copy with `--link`** — `pom.xml`, `mvnw`, `.mvn`, `.m2/settings.xml` copied before `src/`. The `dependency:resolve-plugins quarkus:go-offline` layer only invalidates when POM or settings change.
+- **Local Maven repo in image filesystem** — `MAVEN_OPTS='-Dmaven.repo.local=/opt/app/.m2/repository'` keeps the repo inside the image so buildx layer cache persists it across CI jobs.
+- **`USER 0` / `microdnf` / `chown` block** — installs `gzip` and `tar` (needed by build tools), creates the local repo directory, and sets correct ownership for user 1001.
+- **`dependency:resolve-plugins quarkus:go-offline`** — pre-resolves Maven build plugins and Quarkus deployment dependencies. Plain `dependency:go-offline` misses Quarkus build-time/deployment deps.
+- **`ARG`→`ENV` relay** — build args are relayed to bare `ENV` names after declaration so the rest of the build uses consistent env vars.
+- **`BUILD_*` args** — `BUILD_OTEL_ENABLED`, `BUILD_OTEL_TRACES_ENABLED`, `BUILD_OTEL_METRICS_ENABLED`, `BUILD_AUDIT_LOG_BACKEND`. The CI template passes matching `--build-arg BUILD_*=...` flags.
+- **`MAVEN_BUILD_OPTS`** — standard Maven skip flags (`-Dmaven.test.skip=true -DskipTests -DskipITs -Djacoco.skip=true`) applied to both `dependency:resolve-plugins quarkus:go-offline` and the `package` command.
+- **Debug echo** at build time using relayed `ENV` vars — pipeline traces show the effective args without revealing the `BUILD_*` → bare mapping.
+- **Four distinct runtime layers** — `lib/`, `*.jar`, `app/`, `quarkus/` with `--link` flag so library layers cache across app changes.
+- **Runtime base image** — `registry.access.redhat.com/ubi9/openjdk-21-runtime:1.23` (not `ubi8`).
 - **OpenAPI spec** is copied out of the build stage for the `extract-openapi` job.
+- **Upload/download dirs** — `RUN mkdir -p /tmp/uploads /tmp/downloads` for file handling at runtime.
 
 ### Helm values pattern (`.gitlab/alpha-dev.yaml`)
 
@@ -885,7 +900,7 @@ Apply these changes in order when bringing a Quarkus `.gitlab-ci.yml` into the c
 | 6 | **Disable base `build` job** with `when: never` | The template's `build` job runs on any branch push. In the canonical pattern, only per-environment builds run. |
 | 7 | **Replace `build-sit`** with per-environment builds (`build-dev`, `build-sit`, `build-test`) | Each gets its own tag suffix and `BUILD_*` overrides. `build-dev` and `build-sit` both trigger on `dev`; `build-test` triggers on `main`. |
 | 8 | **Update deploy jobs** to reference per-environment tags | `alpha-dev.yaml` uses `${CI_COMMIT_SHA}-dev`, `alpha-ptf-sit.yaml` uses `${CI_COMMIT_SHA}-sit`, `alpha-test.yaml` uses `${CI_COMMIT_SHA}-test`. |
-| 9 | **Update Dockerfile** to POM-first layer caching with `BUILD_*` args | The old pattern copies everything upfront (no cache benefit). The canonical Dockerfile copies POM first, runs `dependency:go-offline`, then copies src. |
+| 9 | **Update Dockerfile** to POM-first layer caching with `BUILD_*` args | The old pattern copies everything upfront (no cache benefit). The canonical Dockerfile copies POM first, runs `dependency:resolve-plugins quarkus:go-offline`, then copies src. |
 | 10 | **Update Helm values** to include health probes, pull secrets, and registry secrets | Dev Helm values should have ingress, health probes, and pull secrets. SIT should have no ingress. Test should match dev shape with test endpoints. |
 | 11 | **Add `MAVEN_SONAR_EXTRA_ARGS`** if Sonar needs extra Maven properties | Instead of adding `-DAUDIT_LOG_BACKEND` inline to a custom sonarqube job, set `MAVEN_SONAR_EXTRA_ARGS: "-DAUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}"` and let the template handle it. |
 | 12 | **Add `MAVEN_TEST_EXTRA_ARGS`** if tests need extra Maven properties | Same pattern: set the variable, let the template inject it. |
