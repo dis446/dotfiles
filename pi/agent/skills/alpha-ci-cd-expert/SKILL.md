@@ -89,8 +89,19 @@ NestJS projects still need both includes explicitly.
 | `code-style` | test | MR only | Runs `mvnw spotless:check` |
 | `sonarqube-check` | test | MR only | Runs SonarQube scan with quality gate |
 | SAST / SAST-IaC | test | MR only | From GitLab templates, constrained to MRs |
+| `secret-scan` | test | MR only | Runs gitleaks scoped to the MR diff range; auto-detects `gitleaks.toml` |
 | `extract-openapi` | deploy | branch pushes | Pulls OpenAPI spec from built image for APISIX route generation |
 | `.dev_deploy` / `.sit_deploy` / `.test_deploy` / `.prod_deploy` | deploy | branch pushes | ArgoCD Helm deploy stages |
+
+### Secret scanning
+
+The `argocd-auto-devops-release.gitlab-ci.yaml` template provides a `secret-scan` job that runs
+`gitleaks detect` on every MR, scoped to the diff range (fast). It auto-detects `gitleaks.toml`:
+if the file exists at the repo root, `-c gitleaks.toml` is passed; otherwise gitleaks uses its
+built-in rules. **Do not define your own gitleaks job** — the template already covers it.
+
+A `gitleaks.toml` file is only needed if you have custom patterns to detect or false positives
+to suppress.
 
 ### Deploy stages from `argocd-auto-devops-release.gitlab-ci.yaml`
 
@@ -133,6 +144,41 @@ These are passed as Docker `--build-arg` entries by the template's `AUTO_DEVOPS_
 | `BUILD_OTEL_ENABLED` | `"true"` / `"false"` | Enable OpenTelemetry during Maven compile |
 | `BUILD_OTEL_TRACES_ENABLED` | `"true"` / `"false"` | Quarkus OTEL traces |
 | `BUILD_OTEL_METRICS_ENABLED` | `"true"` / `"false"` | Quarkus OTEL metrics |
+| `BUILD_OTEL_METRICS_EXPORTER` | `"cdi"` | OTEL metrics exporter type (passed to Quarkus build) |
+| `BUILD_OTEL_TRACES_EXPORTER` | `"cdi"` | OTEL traces exporter type (passed to Quarkus build) |
+| `BUILD_DB_PROFILE` | `"mysql"` / `"mariadb"` | Maven profile selecting the JDBC driver (MySQL vs MariaDB). Used by services that target both DB engines in different environments. |
+
+### When to override `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`
+
+By default, the template maps `BUILD_OTEL_*` and `BUILD_AUDIT_LOG_BACKEND` to Docker `--build-arg` flags.
+If your service needs **additional build args** not covered by the template (e.g., `BUILD_DB_PROFILE`), you
+must override `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS` in each per-environment build job to include the full set
+of args — both the template's defaults and your extras:
+
+```yaml
+build-dev:
+  extends: build
+  variables:
+    CI_APPLICATION_TAG: "${CI_COMMIT_SHA}-dev"
+    BUILD_DB_PROFILE: "mysql"
+    BUILD_OTEL_ENABLED: "true"
+    BUILD_OTEL_TRACES_ENABLED: "true"
+    BUILD_OTEL_METRICS_ENABLED: "true"
+    BUILD_AUDIT_LOG_BACKEND: "amqp"
+    AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS: >-
+      --build-arg BUILD_OTEL_ENABLED=${BUILD_OTEL_ENABLED}
+      --build-arg BUILD_OTEL_TRACES_ENABLED=${BUILD_OTEL_TRACES_ENABLED}
+      --build-arg BUILD_OTEL_METRICS_ENABLED=${BUILD_OTEL_METRICS_ENABLED}
+      --build-arg BUILD_OTEL_METRICS_EXPORTER=${BUILD_OTEL_METRICS_EXPORTER}
+      --build-arg BUILD_OTEL_TRACES_EXPORTER=${BUILD_OTEL_TRACES_EXPORTER}
+      --build-arg BUILD_AUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}
+      --build-arg BUILD_DB_PROFILE=${BUILD_DB_PROFILE}
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+```
+
+**Each build job must list the full set of args** — the template's global variable is overridden,
+not merged. Omitting a template-managed arg (like `BUILD_OTEL_ENABLED`) will silently drop it.
 
 ### Project variables (set in `.gitlab-ci.yml`)
 
@@ -267,15 +313,6 @@ build-test:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
-# --- Static checks ---
-gitleaks-secret-check:
-  stage: test
-  image:
-    name: ghcr.io/gitleaks/gitleaks:v8.27.2
-    entrypoint: [""]
-  script:
-    - gitleaks detect -c gitleaks.toml --source . --no-git --verbose --redact=0 --exit-code=0
-
 # --- Deploy jobs ---
 alpha-dev:
   extends: ".dev_deploy"
@@ -324,8 +361,8 @@ Key details about this pattern:
 
 - **`build` is disabled** — the template's `build` job would trigger on any branch push. We disable it and define per-environment builds with explicit tags and `BUILD_*` overrides.
 - **Each build gets a distinct tag** — `-dev`, `-sit`, `-test` suffixes so deploy jobs pull the correct image.
-- **No `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`** in the project — the template handles the Docker build arg mapping. Projects only set `BUILD_*` variables.
-- **MR jobs** (`prepare-maven-deps`, `unit-test`, `code-style`, `sonarqube-check`) come from the template automatically — no need to redefine them.
+- **`AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS` is handled by template by default** — the template maps `BUILD_OTEL_*` and `BUILD_AUDIT_LOG_BACKEND` to Docker `--build-arg` flags. Projects only set `BUILD_*` variables unless they need extra build args not covered by the template (see "When to override AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS" below).
+- **MR jobs** (`prepare-maven-deps`, `unit-test`, `code-style`, `sonarqube-check`, `secret-scan`) come from the template automatically — no need to redefine them.
 - **`COVERAGE_AWK_PATTERN`** scopes JaCoCo coverage regex to your service's packages.
 
 ### Quarkus Dockerfile pattern (canonical — `Dockerfile` in repo root)
@@ -560,9 +597,9 @@ application:
       value: "10.5.110.11"
     - name: DB_PORT
       value: "5432"
-    # Audit log uses log backend (no Azure Service Bus needed)
+    # Audit log uses AMQP with internal RabbitMQ
     - name: AUDIT_LOG_BACKEND
-      value: "log"
+      value: "amqp"
     - name: AUDIT_LOG_AMQP_HOST
       value: "rabbitmq.rabbitmq.svc.cluster.local"
     - name: AUDIT_LOG_AMQP_PORT
@@ -627,14 +664,6 @@ alpha-test:
     - if: '$CI_COMMIT_BRANCH == "main"'
   environment:
     name: alpha-test
-
-gitleaks-secret-check:
-  stage: test
-  image:
-    name: ghcr.io/gitleaks/gitleaks:v8.27.2
-    entrypoint: [""]
-  script:
-    - gitleaks detect -c gitleaks.toml --source . --no-git --verbose --redact=0 --exit-code=0
 
 production:
   script:
@@ -838,25 +867,22 @@ The `AuditConfigService` maps `mn.and.audit.*` config keys to `AUDIT_LOG_*` env 
    - `BUILD_AUDIT_LOG_BACKEND` — the default audit backend for your service
    - Per-environment build jobs (`build-dev`, `build-sit`, `build-test`) — set environment-specific `BUILD_*` variables
    - Deploy jobs (`alpha-dev`, `alpha-sit`, `alpha-test`) — set correct branch rules
-   - Add `gitleaks-secret-check` job
    - Add `production` dummy job that `when: never`
 
 3. **Create `.gitlab/alpha-dev.yaml`**, `.gitlab/alpha-ptf-sit.yaml`, `.gitlab/alpha-test.yaml`:
    - Set correct DB credentials, image tag, ports
    - `alpha-dev.yaml`: tag `${CI_COMMIT_SHA}-dev`, `AUDIT_LOG_BACKEND: "amqp"` (or `"azure"`), with OTEL endpoints, ingress, health probes, pull secrets
-   - `alpha-ptf-sit.yaml`: tag `${CI_COMMIT_SHA}-sit`, `AUDIT_LOG_BACKEND: "log"`, no ingress, internal DB
+   - `alpha-ptf-sit.yaml`: tag `${CI_COMMIT_SHA}-sit`, `AUDIT_LOG_BACKEND: "amqp"`, no ingress, internal DB
    - `alpha-test.yaml`: tag `${CI_COMMIT_SHA}-test`, same shape as dev with test endpoints
 
-4. **Create `gitleaks.toml`** (copy from an existing service).
+4. **Create `Dockerfile`** with POM-first layer caching and `BUILD_*` args.
 
-5. **Create `Dockerfile`** with POM-first layer caching and `BUILD_*` args.
-
-6. **Ensure the `image.repository` path matches** the GitLab project path:
+5. **Ensure the `image.repository` path matches** the GitLab project path:
    ```
    reg.git.and.global:443/alpha/back-end/<service-name>/dev
    ```
 
-7. **Push to `dev` branch** and verify pipeline runs:
+6. **Push to `dev` branch** and verify pipeline runs:
    - `prepare-maven-deps` succeeds (pulls Maven dependencies into cache)
    - `build-dev` job succeeds (image tagged `${CI_COMMIT_SHA}-dev`)
    - `build-sit` job succeeds (image tagged `${CI_COMMIT_SHA}-sit`)
@@ -864,7 +890,7 @@ The `AuditConfigService` maps `mn.and.audit.*` config keys to `AUDIT_LOG_*` env 
    - `alpha-sit` deploy job succeeds
    - `extract-openapi` succeeds (extracts OpenAPI spec from Docker image)
 
-8. **Push to `main`** and verify:
+7. **Push to `main`** and verify:
    - `build-test` job succeeds (image tagged `${CI_COMMIT_SHA}-test`)
    - `alpha-test` deploy job succeeds
 
@@ -895,7 +921,7 @@ Apply these changes in order when bringing a Quarkus `.gitlab-ci.yml` into the c
 | 1 | **Replace includes** with single `file: "quarkus-maven-auto-devops.gitlab-ci.yml"` | The quarkus template transitively includes argocd, auto-devops, and SAST. It also provides MR test jobs so you don't need inline ones. |
 | 2 | **Remove inline MR test jobs** (`unit-test`, `code-style`, `sonarqube-check`) | These are now provided by the template with proper caching, Docker-in-Docker support, and feature flags. |
 | 3 | **Add `COVERAGE_AWK_PATTERN`** to scope coverage regex to your package | The template's `unit-test` job parses JaCoCo CSV and applies the regex. Without it, coverage counts every dependency class. |
-| 4 | **Remove `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`** from project variables | The template defines it globally with `BUILD_*` variable references. If you redefine it, you override the template's mapping and break per-environment builds. |
+| 4 | **Remove `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`** from project variables (unless you have extra args) | The template defines it globally with `BUILD_*` variable references. Unless you have additional build args not covered by the template (e.g., `BUILD_DB_PROFILE`), remove it so the template handles the mapping. If you do need extra args, see "When to override AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS". |
 | 5 | **Rename all build variables** to `BUILD_*` prefix | `AUDIT_LOG_BACKEND` → `BUILD_AUDIT_LOG_BACKEND`, `OTEL_ENABLED` → `BUILD_OTEL_ENABLED`, etc. The Dockerfile `ARG` names must match. |
 | 6 | **Disable base `build` job** with `when: never` | The template's `build` job runs on any branch push. In the canonical pattern, only per-environment builds run. |
 | 7 | **Replace `build-sit`** with per-environment builds (`build-dev`, `build-sit`, `build-test`) | Each gets its own tag suffix and `BUILD_*` overrides. `build-dev` and `build-sit` both trigger on `dev`; `build-test` triggers on `main`. |
@@ -914,7 +940,7 @@ After refactoring `.gitlab-ci.yml`, verify `.gitlab/alpha-ptf-sit.yaml`:
 
 ```yaml
     - name: AUDIT_LOG_BACKEND
-      value: "log"                         # SIT uses log backend at runtime
+      value: "amqp"                         # SIT uses RabbitMQ as AMQP broker
 image:
   tag: \${CI_COMMIT_SHA}-sit                # Must match build-sit's CI_APPLICATION_TAG
 ingress:
@@ -945,7 +971,7 @@ When bringing a NestJS service into the canonical pattern, apply these checks in
 | `.gitlab/alpha-test.yaml` | ✅ | ✅ |
 | `Dockerfile` (repo root for Quarkus) | ✅ | ❌ |
 | `docker/Dockerfile` | optional | ✅ |
-| `gitleaks.toml` | ✅ | ✅ |
+| `gitleaks.toml` | optional | optional | Only needed for custom patterns or false-positive suppression. Template auto-detects it. |
 | `mvnw` | ✅ | ❌ |
 | `.mvn/` directory | ✅ | ❌ |
 | `.m2/settings.xml` | ✅ | ❌ |
@@ -967,13 +993,13 @@ When bringing a NestJS service into the canonical pattern, apply these checks in
 
 3. **Quarkus services include only one template.** `quarkus-maven-auto-devops.gitlab-ci.yml` transitively includes `argocd-auto-devops-release.gitlab-ci.yaml` and `Auto-DevOps.gitlab-ci.yml`. Do not include them separately.
 
-4. **Projects do NOT set `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`.** The template handles the mapping from `BUILD_*` variables to Docker `--build-arg` flags. Overriding it breaks per-environment builds.
+4. **Projects do NOT set `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS` unless they have extra build args.** The template handles the mapping from `BUILD_*` variables to Docker `--build-arg` flags for the standard set (`BUILD_OTEL_*`, `BUILD_AUDIT_LOG_BACKEND`). If your service needs additional arguments (e.g., `BUILD_DB_PROFILE`), override `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS` per build job with the complete set of args — the template's defaults plus your extras.
 
 5. **`BUILD_*` variable names must match Dockerfile `ARG` names exactly.** The template passes `--build-arg BUILD_AUDIT_LOG_BACKEND=${BUILD_AUDIT_LOG_BACKEND}` and the Dockerfile declares `ARG BUILD_AUDIT_LOG_BACKEND=...`. No mapping layer.
 
 6. **The `extract-openapi` job** pulls the image tag from the dotenv of the last `build` variant that ran. All builds produce the same OpenAPI spec, so this is safe.
 
-7. **`gitleaks.toml` must be in repo root.** CI runs it with `--no-git` flag so the file must be present at the root.
+7. **Secret scanning is provided by the template.** The `argocd-auto-devops-release.gitlab-ci.yaml` template includes a `secret-scan` job that runs `gitleaks detect` scoped to the MR diff range. A `gitleaks.toml` file is only needed for custom patterns or false-positive suppression. Do not define your own gitleaks job.
 
 8. **NestJS services** typically don't need per-environment builds since NestJS doesn't have Maven profiles. The same Docker image works for all environments; only runtime env vars differ.
 
