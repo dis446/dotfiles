@@ -33,7 +33,7 @@ Do **not** publish noisy low-value events like:
 
 ## Platform Standard
 
-`@and/nest-common` library version must be **at least 1.2.5**.
+`@and/nest-common` library version must be **at least 1.3.4**.
 
 Target platform pattern for NestJS microservices:
 
@@ -65,6 +65,35 @@ For SRE parity with Quarkus services, Nest audit config should support the same 
 - direct `MN_AND_AUDIT_*` env names when service already uses them
 
 Do **not** add repo-specific Azure fallback env names unless the shared config layer explicitly requires them.
+
+### Helm values validation
+
+Every NestJS service that publishes audit logs must have correct `AUDIT_LOG_*` env variables in its helm values files. The canonical config location is:
+
+```
+.gitlab/**/*values*.yaml
+.gitlab/**/*values*.yml
+```
+
+Minimum required env vars across all environments:
+
+```yaml
+env:
+  AUDIT_LOG_BACKEND: "azure"          # or "log" for local/dev
+  AUDIT_LOG_SOURCE: "service-name"    # stable logical source name
+  AUDIT_LOG_AZURE_CONNECTION_STRING:  # connection string (secret ref in non-dev)
+```
+
+Validation checks to perform when reviewing a NestJS audit PR:
+
+1. Find all `values*.yaml` / `values*.yml` files under `.gitlab/`.
+2. For each file, verify `AUDIT_LOG_BACKEND` and `AUDIT_LOG_SOURCE` are present under `env:`.
+3. Confirm `AUDIT_LOG_SOURCE` value is a stable, human-readable name (e.g. `"rule-engine"`, `"contract-service"`), not a technical queue/topic name.
+4. Confirm `AUDIT_LOG_AZURE_CONNECTION_STRING` is present for non-local environments (staging, prod, etc.) -- usually as a `${{ secrets.AZURE_SOMETHING }}` reference, not a raw string.
+5. Flag any repo-specific `AUDIT_LOG_*` env names that should be standardized (e.g. `RULE_ENGINE_AUDIT_LOG_*` or `MN_AND_AUDIT_SB_CONNECTION_STRING` should be replaced with standard `AUDIT_LOG_*` equivalents).
+6. Ensure the values are wired through to the NestJS `ConfigModule` / `@nestjs/config` so the `@and/nest-common` audit logger picks them up at runtime.
+
+Do **not** approve PRs that add raw connection strings directly in values files -- always use secret references.
 
 Backend selection should stay framework-neutral:
 
