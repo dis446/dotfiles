@@ -46,6 +46,8 @@ sudo dnf install cargo
 cargo install cargo-binstall
 cargo binstall -y zellij
 
+flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
+
 source "$HOME/.bashrc"
 
 git config --global user.email "dis446@yahoo.com"
