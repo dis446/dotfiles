@@ -6,6 +6,8 @@ done
 
 PS1='\u@\h \W\$ '
 eval "$(mise activate bash)"
+
+# Cargo binaries
 export PATH="$HOME/.cargo/bin:$PATH"
 
 # Pi
