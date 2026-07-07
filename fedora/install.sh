@@ -17,6 +17,7 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config" "$HOME/.config/ghostty/config"
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
+link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"
 link_target "$HOME/dotfiles/.ai" "$HOME/.ai"
@@ -45,6 +46,8 @@ sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 sudo dnf install cargo
 cargo install cargo-binstall
 cargo binstall -y zellij
+
+curl -f https://zed.dev/install.sh | sh
 
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
 
