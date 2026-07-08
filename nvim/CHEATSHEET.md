@@ -100,6 +100,19 @@
 - `<leader>xl` — location list
 - `<leader>xt` — TODO list
 
+## Debug
+- `<leader>rd` — start / continue debug
+- `<F5>` — continue
+- `<F10>` — step over
+- `<F11>` — step into
+- `<S-F11>` — step out
+- `<leader>dt` — toggle breakpoint
+- `<leader>du` — toggle DAP UI panels
+- `<leader>de` — evaluate expression
+- `<leader>dr` — run to cursor
+- `<leader>dR` — restart debug session
+- `<leader>dq` — terminate debug session
+
 ## Completion
 - `<C-Space>` — trigger completion
 - `<CR>` — confirm completion
