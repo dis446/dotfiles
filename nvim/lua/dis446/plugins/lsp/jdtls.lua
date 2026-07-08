@@ -88,7 +88,11 @@ return {
 					cmd = cmd,
 					root_dir = root_dir,
 					init_options = {
-						bundles = {},
+						bundles = vim.fn.glob(
+							vim.fn.stdpath("data")
+								.. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar",
+							true
+						),
 						extendedClientCapabilities = jdtls.extendedClientCapabilities,
 					},
 					settings = {
@@ -136,6 +140,28 @@ return {
 						},
 					},
 				})
+
+				-- Set up Java DAP (requires java-debug-adapter + java-test from Mason)
+				pcall(function()
+					jdtls.setup_dap({ hotcodereplace = "auto" })
+
+					-- Remove the dynamic provider so nvim-dap falls back to
+					-- dap.configurations.java (static configs from dap.lua).
+					-- The provider requires jdtls to already be connected and
+					-- only finds apps with real main classes — it breaks the
+					-- Quarkus attach workflow (no static main class).
+					local dap = require("dap")
+					if dap.providers and dap.providers.configs then
+						dap.providers.configs["jdtls"] = nil
+					end
+
+					-- Schedule fetching real Launch configs once jdtls is ready
+					vim.defer_fn(function()
+						pcall(function()
+							jdtls.setup_dap_main_class_configs({ verbose = false })
+						end)
+					end, 3000)
+				end)
 
 				-- Organize imports on save
 				vim.api.nvim_create_autocmd("BufWritePre", {

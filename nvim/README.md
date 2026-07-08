@@ -209,6 +209,48 @@ Shows available key combinations as you type them.
 
 ---
 
+## Debug (DAP)
+
+### `nvim-dap`
+The Debug Adapter Protocol integration for Neovim. Provides breakpoints, stepping,
+variable inspection, and evaluation.
+
+Dependencies:
+- `rcarriga/nvim-dap-ui` — UI panels (scopes, stacks, breakpoints, watches, REPL)
+- `theHamsta/nvim-dap-virtual-text` — inline variable values at cursor
+- `jay-babu/mason-nvim-dap.nvim` — install DAP adapters via Mason
+
+Adapters installed via Mason:
+- `python` — debugpy
+- `js-debug-adapter` — vscode-js-debug (JS/TS)
+- `java-debug-adapter` + `java-test` — loaded as jdtls bundles
+
+Adapter configurations:
+- **Python:** debugpy via Mason's bundled venv
+- **JS/TS:** pwa-node protocol via `dapDebugServer.js`, supports `node` and `tsx`
+- **Go:** Delve (`dlv dap`)
+- **Java:** via `nvim-jdtls` (`jdtls.setup_dap()`) in `lsp/jdtls.lua`
+
+DAP UI auto-opens on debug start, auto-closes on terminate/exit.
+
+### Keymaps
+- `<leader>rd` — start / continue debug
+- `<F5>` — continue
+- `<F10>` — step over
+- `<F11>` — step into
+- `<S-F11>` — step out
+- `<leader>dt` — toggle breakpoint
+- `<leader>du` — toggle DAP UI panels
+- `<leader>de` — evaluate expression
+- `<leader>dr` — run to cursor
+- `<leader>dR` — restart debug session
+- `<leader>dq` — terminate debug session
+
+**F-key note:** F5/F10/F11 work outside zellij, or when zellij passes F-keys
+through. Inside zellij, use the `<leader>d*` alternatives.
+
+---
+
 ## LSP, completion, formatting, and linting
 
 ### `mason.nvim`
@@ -304,6 +346,61 @@ Linters:
 
 Keymap:
 - `<leader>l` — lint current file
+
+---
+
+## Debug (DAP)
+
+### `nvim-dap`
+The Debug Adapter Protocol integration for Neovim. Provides breakpoints, stepping,
+variable inspection, and evaluation.
+
+**Adapter configurations:**
+- **Python** — `debugpy` via Mason (minimal config, `justMyCode` toggle)
+- **JS/TS** — `pwa-node` via `js-debug-adapter` (Mason), supports `node` and `tsx`
+- **Go** — `delve` (`dlv dap`)
+- **Java** — via `nvim-jdtls` bundle loading (`java-debug-adapter` + `java-test`)
+
+#### Keymaps
+- `<leader>rd` — start / continue debug
+- `<F5>` — continue
+- `<F10>` — step over
+- `<F11>` — step into
+- `<S-F11>` — step out
+- `<leader>dt` — toggle breakpoint
+- `<leader>du` — toggle DAP UI panels
+- `<leader>de` — evaluate expression
+- `<leader>dr` — run to cursor
+- `<leader>dR` — restart debug session
+- `<leader>dq` — terminate debug session
+
+**F-key note:** F5/F10/F11 work outside zellij, or when zellij passes F-keys
+through. Inside zellij, use the `<leader>d*` alternatives.
+
+### `nvim-dap-ui`
+UI widgets for DAP: scopes, stacks, breakpoints, watches, and REPL.
+- Layout: scopes/stacks/breakpoints (right panel, 50 cols) + watches/REPL (bottom, 12 rows)
+- Auto-opens when a debug session starts, auto-closes on terminate/exit
+
+#### Debugging Quarkus apps (remote attach workflow)
+Quarkus has no static main class — the Maven plugin generates the entry point at
+build time. Debug via remote attach:
+
+1. **Terminal (zellij pane):**
+   ```bash
+   cd /path/to/quarkus-project
+   set -a; source .env.local; set +a
+   ./mvnw quarkus:dev -DskipTests
+   ```
+   Quarkus dev mode starts a JVM debugger on port **5005** by default.
+
+2. **Neovim:** open any Java file in the project, then press `<leader>rd`.
+   Pick **"Attach (port 5005)"** from the configuration list.
+
+3. Set breakpoints with `<leader>dt` and exercise your endpoint.
+
+### `nvim-dap-virtual-text`
+Shows variable values inline at end-of-line while debugging.
 
 ---
 

@@ -66,7 +66,28 @@ standalone (outside zellij).
 | Key | Action | IntelliJ backend | Neovim backend |
 |---|---|---|---|
 | `Space+rb` | Run | `Run` | — (use zellij bash pane) |
-| `Space+rd` | Debug | `Debug` | — (IntelliJ-only) |
+| `Space+rd` | Debug / Continue | `Debug` | `dap.continue()` |
+
+## Debug (DAP)
+
+| Key | Action | IntelliJ backend | Neovim backend |
+|---|---|---|---|
+| `Space+rd` | Start / continue debug | `Debug` | `dap.continue()` |
+| `F5` | Continue | `ResumeProgram` | `dap.continue()` |
+| `F10` | Step over | `StepOver` | `dap.step_over()` |
+| `F11` | Step into | `StepInto` | `dap.step_into()` |
+| `<S-F11>` | Step out | `StepOut` | `dap.step_out()` |
+| `Space+dt` | Toggle breakpoint | `ToggleLineBreakpoint` | `dap.toggle_breakpoint()` |
+| `Space+du` | Toggle DAP UI panels | — | `dapui.toggle()` |
+| `Space+de` | Evaluate expression | `EvaluateExpression` | `dapui.eval()` |
+| `Space+dr` | Run to cursor | `RunToCursor` | `dap.run_to_cursor()` |
+| `Space+dR` | Restart session | `Rerun` | `dap.restart()` |
+| `Space+dq` | Terminate session | `Stop` | `dap.terminate()` |
+
+**Note:** F-keys (F5, F10, F11) work when Neovim runs outside zellij, or when
+zellij is configured to pass F-keys through (`pane.focus` unbound from those keys,
+or using `F5` passthrough in the layout). Within zellij, use the `Space+d*`
+alternatives.
 
 ## Tools
 
@@ -159,7 +180,7 @@ Neovim config should reference this file as the source of truth.
 | `r` | Run / rename | Used (`rb`, `rd`, `rn`) |
 | `x` | Diagnostics | Used (`xx`, `xd`) |
 | `o` | Open / toggle | Used (`ot`, `oT`) |
-| `d` | Database / diagnostics | Used (`db`) |
+| `d` | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`) |
 | `m` | Maven / build | Used (`mv`) |
 | `p` | Pi / AI | Used (`pi`) |
 | `s` | — | Free (was splits) |
