@@ -88,11 +88,20 @@ return {
 					cmd = cmd,
 					root_dir = root_dir,
 					init_options = {
-						bundles = vim.fn.glob(
+						bundles = vim.list_extend(
+						vim.fn.glob(
 							vim.fn.stdpath("data")
-								.. "/mason/packages/java-debug-adapter/extension/server/com.microsoft.java.debug.plugin-*.jar",
+								.. "/mason/packages/java-debug-adapter/extension/server/*.jar",
+							false,
 							true
 						),
+						vim.fn.glob(
+							vim.fn.stdpath("data")
+								.. "/mason/packages/java-test/extension/server/*.jar",
+							false,
+							true
+						)
+					),
 						extendedClientCapabilities = jdtls.extendedClientCapabilities,
 					},
 					settings = {
