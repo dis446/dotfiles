@@ -3,7 +3,12 @@ return {
 		"mfussenegger/nvim-dap",
 		dependencies = {
 			-- UI widgets: breakpoints, stack frames, watches, REPL
-			"rcarriga/nvim-dap-ui",
+			{
+				"rcarriga/nvim-dap-ui",
+				dependencies = {
+					"nvim-neotest/nvim-nio",
+				},
+			},
 			-- Inline variable values at cursor
 			"theHamsta/nvim-dap-virtual-text",
 			-- Install DAP adapters via Mason
@@ -18,7 +23,7 @@ return {
 						"java-debug-adapter", -- Java (loaded as jdtls bundle)
 						"java-test", -- Java test runner (jdtls bundle)
 					},
-					handlers = {},
+					handlers = { function() end },
 				},
 			},
 		},
