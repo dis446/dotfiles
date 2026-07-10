@@ -1,4 +1,11 @@
 {
+  "edit_predictions": {
+    "provider": "open_ai_compatible_api",
+    "open_ai_compatible_api": {
+      "model": "deepseek-v4-flash",
+      "api_url": "https://api.deepseek.com"
+    }
+  },
   "project_panel": {
     "dock": "left"
   },
@@ -9,6 +16,20 @@
     "dock": "left"
   },
   "agent": {
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "default": "allow"
+        }
+      }
+    },
+    "default_profile": "write",
+    "default_model": {
+      "provider": "deepseek",
+      "model": "deepseek-v4-flash",
+      "enable_thinking": true,
+      "effort": "high"
+    },
     "dock": "right",
     "favorite_models": [],
     "model_parameters": []
