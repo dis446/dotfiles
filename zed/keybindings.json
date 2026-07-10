@@ -1,0 +1,8 @@
+[
+  {
+    "context": "Workspace",
+    "bindings": {
+      "space f r": "file_finder::Toggle"
+    }
+  }
+]
