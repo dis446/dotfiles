@@ -28,7 +28,7 @@
         }
       }
     },
-    "default_profile": "ask",
+    "default_profile": "write",
     "default_model": {
       "provider": "deepseek",
       "model": "deepseek-v4-flash",
