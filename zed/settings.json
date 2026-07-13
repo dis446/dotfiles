@@ -21,6 +21,11 @@
     "dock": "left"
   },
   "agent": {
+    "sandbox_permissions": {
+      "network_hosts": [
+        "zed.dev"
+      ]
+    },
     "tool_permissions": {
       "tools": {
         "terminal": {
