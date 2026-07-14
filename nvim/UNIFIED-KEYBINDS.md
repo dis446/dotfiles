@@ -1,8 +1,6 @@
 # Unified Keybindings
 
-> **One keybinding set, two environments.** On the Ryzen 5800X3D machine, these
-> run inside IntelliJ via IdeaVim. On the Optiplex 3050, they run inside Neovim
-> via zellij. The muscle memory is identical; only the backend differs.
+> **One keybinding set, two environments.**
 
 ---
 
