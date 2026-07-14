@@ -12,6 +12,7 @@
 ## Buffer tabs (bufferline.nvim)
 - `<leader>tt` — new empty buffer
 - `<leader>tw` — close current buffer
+- `<leader>to` — close all other buffers
 - `<M-l>` — next buffer
 - `<M-h>` — previous buffer
 - `<leader>tl` — move buffer right

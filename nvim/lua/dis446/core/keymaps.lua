@@ -144,6 +144,14 @@ keymap.set("n", "<leader>-", "<C-x>", { desc = "Decrement number" })
 -- ── Buffer tabs (akinsho/bufferline.nvim) ───────────
 keymap.set("n", "<leader>tt", "<cmd>enew<CR>", { desc = "New empty buffer" })
 keymap.set("n", "<leader>tw", "<cmd>bdelete!<CR>", { desc = "Close current buffer" })
+keymap.set("n", "<leader>to", function()
+  local curbuf = vim.api.nvim_get_current_buf()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if buf ~= curbuf and vim.bo[buf].buflisted then
+      pcall(vim.api.nvim_buf_delete, buf, { force = true })
+    end
+  end
+end, { desc = "Close other buffers" })
 keymap.set("n", "<M-l>", "<cmd>BufferLineCycleNext<CR>", { desc = "Next buffer" })
 keymap.set("n", "<M-h>", "<cmd>BufferLineCyclePrev<CR>", { desc = "Previous buffer" })
 keymap.set("n", "<leader>tl", "<cmd>BufferLineMoveNext<CR>", { desc = "Move buffer right" })

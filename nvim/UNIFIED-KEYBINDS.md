@@ -51,6 +51,7 @@ the same experience.
 | `Space+t1`-`9` | Go to tab 1-9  | —                   | `BufferLineGoToBuffer 1-9`             |
 | `Space+tp` | Previous tab page   | —                   | `BufferLineCyclePrev`                  |
 | `Space+tn` | Next tab page       | —                   | `BufferLineCycleNext`                  |
+| `Space+to` | Close other tabs    | `CloseAllEditorsButActive` | Close all buffers except current |
 
 **Note:** `Ctrl+W` is reserved in Neovim for window management and is not
 remapped. Use `Space+tw` to close buffers.
@@ -261,7 +262,7 @@ Neovim config should reference this file as the source of truth.
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
 | `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
 | `p`    | Pi / AI          | Used (`pi`, `ai`)                                         |
-| `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `t1`-`9`)                  |
+| `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `to`, `tp`, `tn`, `t1`-`9`) |
 | `s`    | Splits / zoom    | Used (`sv`, `sh`, `se`, `sx`, `sm`)                       |
 | `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |
 | `w`    | Workspace        | Used (`wr`, `ws`)                                         |
