@@ -198,7 +198,7 @@ These differences are environment-specific and don't affect muscle memory:
 | Area                  | IntelliJ                                  | Neovim                                |
 | --------------------- | ----------------------------------------- | ------------------------------------- |
 | **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | Zellij `Alt+←`/`Alt+→` (tabs)         |
-| **Window management** | IDE tool windows (right side)             | Zellij panes (top/middle/bottom)      |
+| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Alt+,`/`Alt+.` or `Alt+←`/`Alt+→` to focus; `Ctrl+t` then `h`/`l` for tabs |
 | **Session mode**      | — (no session manager)                     | `Ctrl+\` to enter, `Ctrl+\` to exit  |
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
 | **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
