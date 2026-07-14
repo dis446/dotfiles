@@ -4,8 +4,8 @@
     local auto_session = require("auto-session")
 
     auto_session.setup({
-      auto_restore_enabled = true, -- restore session on `nvim .`
-      auto_save_enabled = true, -- save session on exit
+      auto_restore_enabled = false, -- restore session on `nvim .`
+      auto_save_enabled = false, -- save session on exit
       auto_session_suppress_dirs = { "~/", "~/Dev/", "~/Downloads", "~/Documents", "~/Desktop/" },
       post_restore = {
         function()
