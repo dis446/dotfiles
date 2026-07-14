@@ -9,17 +9,43 @@
 In IntelliJ, set `let mapleader = " "` in `.ideavimrc`.
 In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 
+## General
+
+| Key        | Action              | IntelliJ backend            | Neovim backend                        |
+| ---------- | ------------------- | --------------------------- | ------------------------------------- |
+| `Space+si` | Reload `.ideavimrc` | `:source ~/.ideavimrc`      | — (IntelliJ-only convenience)         |
+| `Space+nh` | Clear search hilite | `:noh`                      | `:nohl`                               |
+| `Space+ai` | AI Assistant        | `ActivateAIAssistantToolWindow` | — (alias for `Space+pi`, IntelliJ) |
+
 ## File & project navigation
 
-| Key        | Action                              | IntelliJ backend            | Neovim backend                  |
-| ---------- | ----------------------------------- | --------------------------- | ------------------------------- |
-| `Space+ee` | Toggle file explorer / project tree | `ActivateProjectToolWindow` | `Snacks.explorer()`             |
-| `Space+ef` | Reveal current file in tree         | `SelectInProjectView`       | `Snacks.explorer.reveal()`      |
-| `Space+ff` | Find file by name                   | `GotoFile`                  | `Snacks.picker.files()`         |
-| `Space+fr` | Recent files                        | `RecentFiles`               | `Snacks.picker.recent()`        |
-| `Space+fs` | Search text in project (grep)       | `FindInPath`                | `Snacks.picker.grep()`          |
-| `Space+fc` | Search word under cursor            | `FindInPath` (pre-filled)   | `Snacks.picker.grep_word()`     |
-| `Space+ft` | Find TODOs                          | `ActivateTODOToolWindow`    | `Snacks.picker.todo_comments()` |
+| Key          | Action                              | IntelliJ backend            | Neovim backend                  |
+| ------------ | ----------------------------------- | --------------------------- | ------------------------------- |
+| `Space+ee`   | Toggle file explorer / project tree | `ActivateProjectToolWindow` | `Snacks.explorer()`             |
+| `Space+ef`   | Reveal current file in tree         | `SelectInProjectView`       | `Snacks.explorer.reveal()`      |
+| `Space+ff`   | Find file by name                   | `GotoFile`                  | `Snacks.picker.files()`         |
+| `Ctrl+N`     | Find file by name (alt)             | `GotoFile`                  | `Snacks.picker.files()`         |
+| `Space+fr`   | Recent files                        | `RecentFiles`               | `Snacks.picker.recent()`        |
+| `Ctrl+E`     | Recent files (alt)                  | `RecentFiles`               | `Snacks.picker.recent()`        |
+| `Space+fs`   | Search text in project (grep)       | `FindInPath`                | `Snacks.picker.grep()`          |
+| `Space+fc`   | Search word under cursor            | `FindInPath` (pre-filled)   | `Snacks.picker.grep_word()`     |
+| `Space+ft`   | Find TODOs                          | `ActivateTODOToolWindow`    | `Snacks.picker.todo_comments()` |
+
+**Note:** `Ctrl+N` and `Ctrl+E` are alternate bindings for `Space+ff` and `Space+fr`
+respectively. They work the same in both environments.
+
+## Tab management
+
+| Key        | Action           | IntelliJ backend    | Neovim backend                  |
+| ---------- | ---------------- | ------------------- | ------------------------------- |
+| `Space+tw` | Close current tab | `CloseContent`      | `:tabclose`                     |
+| `Ctrl+W`   | Close current tab | `CloseContent`      | — (reserved for window mgmt)    |
+| `Alt+L`    | Next tab         | `NextTab`           | `Ctrl+Tab` (`:tabn`)            |
+| `Alt+H`    | Previous tab     | `PreviousTab`       | `Ctrl+Shift+Tab` (`:tabp`)      |
+| `Space+tt` | New tab          | —                   | `:tabnew`                       |
+
+**Note:** Tab semantics differ between environments. In IntelliJ, tabs represent
+open editor files. In Neovim, tabs represent window layouts (like viewports).
 
 ## Git
 
@@ -36,7 +62,7 @@ Neovim, perform commit/push/pull inside lazygit.
 ## LSP / code intelligence
 
 | Key         | Action                     | Both environments                                      |
-| ----------- | -------------------------- | ------------------------------------------------------ | ----------------------------- |
+| ----------- | -------------------------- | ------------------------------------------------------ |
 | `gd`        | Go to definition           | Works in both                                          |
 | `gi`        | Go to implementation       | Works in both                                          |
 | `gt`        | Go to type definition      | Works in both                                          |
@@ -46,14 +72,14 @@ Neovim, perform commit/push/pull inside lazygit.
 | `Space+rn`  | Rename                     | `RenameElement` / `vim.lsp.buf.rename`                 |
 | `[d` / `]d` | Previous / next diagnostic | Works in both                                          |
 | `Space+xx`  | Toggle diagnostics list    | `ActivateProblemsViewToolWindow`                       | `Snacks.picker.diagnostics()` |
-| `Space+xd`  | Buffer diagnostics         | `GotoNextError` / `Snacks.picker.diagnostics_buffer()` |
+| `Space+xd`  | Go to next error           | `GotoNextError`                                        | `Snacks.picker.diagnostics_buffer()` |
 
 ## Terminal
 
 | Key        | Action                    | IntelliJ backend             | Neovim backend                 |
 | ---------- | ------------------------- | ---------------------------- | ------------------------------ |
 | `Space+ot` | Toggle terminal           | `ActivateTerminalToolWindow` | `Snacks.terminal()`            |
-| `Space+oT` | Floating / split terminal | `Terminal.SplitVertically`   | `Snacks.terminal()` (floating) |
+| `Space+oT` | Floating / split terminal | — (no mapping)               | `Snacks.terminal()` (floating) |
 
 **Note on Neovim + zellij:** When running Neovim inside a zellij session, you
 already have a bash pane below. `Space+ot` is still useful when running Neovim
@@ -61,10 +87,12 @@ standalone (outside zellij).
 
 ## Build & run
 
-| Key        | Action           | IntelliJ backend | Neovim backend           |
-| ---------- | ---------------- | ---------------- | ------------------------ |
-| `Space+mm` | Run              | `Run`            | — (use zellij bash pane) |
-| `Space+mn` | Debug / Continue | `Debug`          | `dap.continue()`         |
+| Key        | Action                    | IntelliJ backend                     | Neovim backend           |
+| ---------- | ------------------------- | ------------------------------------ | ------------------------ |
+| `Space+mm` | Run                       | `Run`                                | — (use zellij bash pane) |
+| `Space+mn` | Debug / Continue          | `Debug`                              | `dap.continue()`         |
+| `Space+mk` | Stop                      | `Stop`                               | — (IntelliJ-only)        |
+| `Space+m,` | Run config selector       | `RedesignedRunConfigurationSelector` | — (IntelliJ-only)        |
 
 ## Debug (DAP)
 
@@ -130,7 +158,15 @@ set clipboard+=unnamedplus
 set incsearch
 set hlsearch
 set ideajoin
-set ideaput
+set NERDTree
+let g:NERDTreeMapActivateNode = 'l'
+let g:NERDTreeMapJumpParent = 'h'
+let g:NERDTreeMapQuit = 'q'
+let g:NERDTreeMapRefreshRoot = 'r'
+let g:NERDTreeMapDeleteNode = 'd'
+let g:NERDTreeMapOpenExpl = 'o'
+let g:NERDTreeMapPreview = 'p'
+let g:NERDTreeQuitOnOpen = 1
 ```
 
 ### Neovim (`nvim/lua/dis446/core/options.lua`)
@@ -157,6 +193,7 @@ These differences are environment-specific and don't affect muscle memory:
 | **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | Zellij `Alt+←`/`Alt+→` (tabs)         |
 | **Window management** | IDE tool windows (right side)             | Zellij panes (top/middle/bottom)      |
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
+| **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
 | **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |
 | **Session restore**   | Automatic (IDE remembers state)           | `auto-session` (auto_restore_enabled) |
 
@@ -169,19 +206,19 @@ Neovim config should reference this file as the source of truth.
 
 ### Available leader-key prefixes
 
-| Prefix | Purpose          | Status                                          |
-| ------ | ---------------- | ----------------------------------------------- |
-| `e`    | Explorer         | Used (`ee`, `ef`)                               |
-| `f`    | Find             | Used (`ff`, `fr`, `fs`, `fc`, `ft`)             |
-| `l`    | Git / VCS        | Used (`lg`, `lc`, `lp`, `lu`)                   |
-| `c`    | Code             | Used (`ca`)                                     |
-| `r`    | Run / rename     | Used (`rb`, `rd`, `rn`)                         |
-| `x`    | Diagnostics      | Used (`xx`, `xd`)                               |
-| `o`    | Open / toggle    | Used (`ot`, `oT`)                               |
-| `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`) |
-| `m`    | Maven / build    | Used (`mv`)                                     |
-| `p`    | Pi / AI          | Used (`pi`)                                     |
-| `s`    | —                | Free (was splits)                               |
-| `t`    | —                | Free (was tabs)                                 |
-| `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)             |
-| `w`    | Workspace        | Free (was sessions)                             |
+| Prefix | Purpose          | Status                                                    |
+| ------ | ---------------- | --------------------------------------------------------- |
+| `e`    | Explorer         | Used (`ee`, `ef`)                                         |
+| `f`    | Find             | Used (`ff`, `fr`, `fs`, `fc`, `ft`)                       |
+| `l`    | Git / VCS        | Used (`lg`, `lc`, `lp`, `lu`)                             |
+| `c`    | Code             | Used (`ca`)                                               |
+| `r`    | Run / rename     | Used (`rb`, `rd`, `rn`)                                   |
+| `x`    | Diagnostics      | Used (`xx`, `xd`)                                         |
+| `o`    | Open / toggle    | Used (`ot`, `oT`)                                         |
+| `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
+| `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
+| `p`    | Pi / AI          | Used (`pi`) — also `ai` (unprefixed alias)                |
+| `t`    | Tabs             | Used (`tw`, `tt`)                                         |
+| `s`    | —                | Free (was splits)                                         |
+| `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |
+| `w`    | Workspace        | Free (was sessions)                                       |
