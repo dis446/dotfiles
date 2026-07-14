@@ -23,6 +23,7 @@ nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Tabs ────────────────────────────────────────────
 nnoremap <leader>tw :action CloseContent<CR>
+nnoremap <leader>to :action CloseAllEditorsButActive<CR>
 nnoremap <C-w> :action CloseContent<CR>
 nnoremap <M-l> :action NextTab<CR>
 nnoremap <M-h> :action PreviousTab<CR>
