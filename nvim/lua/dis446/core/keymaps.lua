@@ -67,6 +67,8 @@ keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code a
 keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename" })
 keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+keymap.set("n", "<F2>", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+keymap.set("n", "<S-F2>", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 keymap.set("n", "<leader>xx", function()
 	Snacks.picker.diagnostics()
 end, { desc = "Toggle diagnostics list" })

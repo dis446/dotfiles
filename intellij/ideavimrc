@@ -15,7 +15,9 @@ nnoremap <leader>ai :action ActivateAIAssistantToolWindow<CR>
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ef :action SelectInProjectView<CR>
 nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <C-n> :action GotoFile<CR>
 nnoremap <leader>fr :action RecentFiles<CR>
+nnoremap <C-e> :action RecentFiles<CR>
 nnoremap <leader>fs :action FindInPath<CR>
 nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
