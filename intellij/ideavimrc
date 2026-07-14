@@ -43,6 +43,8 @@ nnoremap gt :action GotoTypeDeclaration<CR>
 nnoremap gR :action FindUsages<CR>
 nnoremap <leader>ca :action ShowIntentionActions<CR>
 nnoremap <leader>rn :action RenameElement<CR>
+nnoremap <leader>mp :action ReformatCode<CR>
+
 
 " ── Terminal ────────────────────────────────────────
 nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
