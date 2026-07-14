@@ -85,11 +85,11 @@ Neovim, perform commit/push/pull inside lazygit.
 | Key        | Action                    | IntelliJ backend             | Neovim backend                 |
 | ---------- | ------------------------- | ---------------------------- | ------------------------------ |
 | `Space+ot` | Toggle terminal           | `ActivateTerminalToolWindow` | `Snacks.terminal()`            |
-| `Space+oT` | Floating / split terminal | — (no mapping)               | `Snacks.terminal()` (floating) |
+| `Space+oT` | Floating terminal         | — (no mapping)               | `Snacks.terminal()` (floating) |
 
-**Note on Neovim + zellij:** When running Neovim inside a zellij session, you
-already have a bash pane below. `Space+ot` is still useful when running Neovim
-standalone (outside zellij).
+**Note on Neovim + tmux:** When running Neovim inside a tmux session, you
+still have a bash shell available at `Ctrl+b [` for scrollback.
+`Space+ot` opens a floating terminal inside Neovim.
 
 ## Build & run
 
@@ -197,9 +197,9 @@ These differences are environment-specific and don't affect muscle memory:
 
 | Area                  | IntelliJ                                  | Neovim                                |
 | --------------------- | ----------------------------------------- | ------------------------------------- |
-| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | Zellij `Alt+←`/`Alt+→` (tabs)         |
-| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Alt+,`/`Alt+.` or `Alt+←`/`Alt+→` to focus; `Ctrl+t` then `h`/`l` for tabs |
-| **Session mode**      | — (no session manager)                     | `Ctrl+\` to enter, `Ctrl+\` to exit  |
+| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | `Ctrl+b s` — session picker (text-filterable) |
+| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Ctrl+b` prefix; one tmux window per project |
+| **Session mode**      | — (no session manager)                     | `Ctrl+b s` for session picker         |
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
 | **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
 | **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |

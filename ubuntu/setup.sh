@@ -10,6 +10,7 @@ link_target() {
 
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config" "$HOME/.config/ghostty/config"
+link_target "$HOME/dotfiles/tmux" "$HOME/.config/tmux"
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/ubuntu/bash_alias" "$HOME/.bash_aliases"
