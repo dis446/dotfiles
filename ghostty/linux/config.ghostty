@@ -2,7 +2,6 @@
 
 font-family = "Iosevka Term SS04"
 
-keybind = ctrl+shift+n=ignore
 font-size = 8
 
 background-opacity = 0.9
