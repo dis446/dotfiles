@@ -18,7 +18,7 @@ nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Tabs ────────────────────────────────────────────
-nnoremap <leader>wt :action CloseContent<CR>
+nnoremap <leader>tw :action CloseContent<CR>
 nnoremap <M-l> :action NextTab<CR>
 nnoremap <M-h> :action PreviousTab<CR>
 

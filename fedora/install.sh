@@ -15,7 +15,7 @@ sudo_link_target() {
 sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
 
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
-link_target "$HOME/dotfiles/ghostty/linux/config" "$HOME/.config/ghostty/config"
+link_target "$HOME/dotfiles/ghostty/linux/config.ghostty" "$HOME/.config/ghostty/config"
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
