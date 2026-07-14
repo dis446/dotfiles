@@ -13,6 +13,9 @@ nnoremap <leader>fs :action FindInPath<CR>
 nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
+" ── Tabs ────────────────────────────────────────────
+nnoremap <leader>wt :action CloseContent<CR>
+
 " ── Git ─────────────────────────────────────────────
 nnoremap <leader>lg :action Lazygit.Toggle<CR>
 nnoremap <leader>lc :action CheckinProject<CR>
@@ -31,8 +34,9 @@ nnoremap <leader>rn :action RenameElement<CR>
 nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
 
 " ── Build & run ─────────────────────────────────────
-nnoremap <leader>rb :action Run<CR>
-nnoremap <leader>rd :action Debug<CR>
+nnoremap <leader>rr :action Run<CR>
+nnoremap <leader>rt :action Debug<CR>
+nnoremap <leader>re :action RedesignedRunConfigurationSelector<CR>
 
 " ── Tools ───────────────────────────────────────────
 nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
