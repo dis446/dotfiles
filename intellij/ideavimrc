@@ -4,8 +4,11 @@
 " Leader ─────────────────────────────────────────────
 let mapleader = " "
 
+" ── General ─────────────────────────────────────────
 nnoremap <leader>si :source ~/.ideavimrc<CR>
+nnoremap <leader>nh :noh <CR>
 
+" ── Ai ──────────────────────────────────────────────
 nnoremap <leader>ai :action ActivateAIAssistantToolWindow<CR>
 
 " ── File & project navigation ───────────────────────
