@@ -34,18 +34,24 @@ In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 **Note:** `Ctrl+N` and `Ctrl+E` are alternate bindings for `Space+ff` and `Space+fr`
 respectively. They work the same in both environments.
 
-## Tab management
+## Buffer tabs
 
-| Key        | Action           | IntelliJ backend    | Neovim backend                  |
-| ---------- | ---------------- | ------------------- | ------------------------------- |
-| `Space+tw` | Close current tab | `CloseContent`      | `:tabclose`                     |
-| `Ctrl+W`   | Close current tab | `CloseContent`      | — (reserved for window mgmt)    |
-| `Alt+L`    | Next tab         | `NextTab`           | `Ctrl+Tab` (`:tabn`)            |
-| `Alt+H`    | Previous tab     | `PreviousTab`       | `Ctrl+Shift+Tab` (`:tabp`)      |
-| `Space+tt` | New tab          | —                   | `:tabnew`                       |
+Buffer tabs show open buffers as a tabline at the top of the editor. In IntelliJ
+tabs are built-in (open editor files). In Neovim, `akinsho/bufferline.nvim` adds
+the same experience.
 
-**Note:** Tab semantics differ between environments. In IntelliJ, tabs represent
-open editor files. In Neovim, tabs represent window layouts (like viewports).
+| Key        | Action              | IntelliJ backend    | Neovim backend                        |
+| ---------- | ------------------- | ------------------- | ------------------------------------- |
+| `Space+tw` | Close current tab   | `CloseContent`      | `:bdelete!`                           |
+| `Alt+L`    | Next tab            | `NextTab`           | `BufferLineCycleNext`                 |
+| `Alt+H`    | Previous tab        | `PreviousTab`       | `BufferLineCyclePrev`                 |
+| `Space+tt` | New empty buffer    | —                   | `:enew`                               |
+| `Space+tl` | Move tab right      | —                   | `BufferLineMoveNext`                  |
+| `Space+th` | Move tab left       | —                   | `BufferLineMovePrev`                  |
+| `Space+t1`-`9` | Go to tab 1-9  | —                   | `BufferLineGoToBuffer 1-9`            |
+
+**Note:** `Ctrl+W` is reserved in Neovim for window management and is not
+remapped. Use `Space+tw` to close buffers.
 
 ## Git
 
@@ -193,6 +199,7 @@ These differences are environment-specific and don't affect muscle memory:
 | --------------------- | ----------------------------------------- | ------------------------------------- |
 | **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | Zellij `Alt+←`/`Alt+→` (tabs)         |
 | **Window management** | IDE tool windows (right side)             | Zellij panes (top/middle/bottom)      |
+| **Session mode**      | — (no session manager)                     | `Ctrl+\` to enter, `Ctrl+\` to exit  |
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
 | **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
 | **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |
@@ -219,7 +226,7 @@ Neovim config should reference this file as the source of truth.
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
 | `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
 | `p`    | Pi / AI          | Used (`pi`, `ai`)                                         |
-| `t`    | Tabs             | Used (`tw`, `tt`)                                         |
+| `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `t1`-`9`)                  |
 | `s`    | —                | Free (was splits)                                         |
 | `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |
 | `w`    | Workspace        | Free (was sessions)                                       |

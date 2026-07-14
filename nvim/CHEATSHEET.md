@@ -9,11 +9,14 @@
 ## Markdown
 - `<leader>tm` — toggle rendered markdown view (`:RenderMarkdown toggle`)
 
-## Tabs
-- `<leader>tt` — new tab
-- `<leader>tw` — close tab
-- `<C-Tab>` — next tab
-- `<C-S-Tab>` — previous tab
+## Buffer tabs (bufferline.nvim)
+- `<leader>tt` — new empty buffer
+- `<leader>tw` — close current buffer
+- `<M-l>` — next buffer
+- `<M-h>` — previous buffer
+- `<leader>tl` — move buffer right
+- `<leader>th` — move buffer left
+- `<leader>t1`-`t9` — go to buffer 1-9
 
 ## Terminal
 - `<leader>ot` — toggle bottom terminal
