@@ -16,6 +16,7 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config.ghostty" "$HOME/.config/ghostty/config"
+link_target "$HOME/dotfiles/tmux" "$HOME/.config/tmux"
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
@@ -35,7 +36,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl -y --skip-unavailable
+sudo dnf install git vim neovim lazygit tmux podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
