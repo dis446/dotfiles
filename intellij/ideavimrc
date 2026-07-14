@@ -9,8 +9,8 @@ nnoremap <leader>si :source ~/.ideavimrc<CR>
 nnoremap <leader>nh :noh <CR>
 
 " ── File & project navigation ───────────────────────
-nnoremap <C-b> <Nop>                                                                                                                    
-nnoremap <C-b>s :action $LRU<CR>     
+nnoremap <C-b> <Nop>
+nnoremap <C-b>s :action $LRU<CR>
 
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
@@ -58,7 +58,6 @@ nnoremap <leader>m, :action RedesignedRunConfigurationSelector<CR>
 " ── Tools ───────────────────────────────────────────
 nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
 nnoremap <leader>mv :action ActivateMavenToolWindow<CR>
-nnoremap <leader>ai :action ActivateAIAssistantToolWindow<CR>
 
 " ── Diagnostics ────────────────────────────────────
 nnoremap <leader>xx :action ActivateProblemsViewToolWindow<CR>
