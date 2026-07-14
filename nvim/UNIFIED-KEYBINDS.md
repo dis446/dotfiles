@@ -45,10 +45,12 @@ the same experience.
 | `Space+tw` | Close current tab   | `CloseContent`      | `:bdelete!`                           |
 | `Alt+L`    | Next tab            | `NextTab`           | `BufferLineCycleNext`                 |
 | `Alt+H`    | Previous tab        | `PreviousTab`       | `BufferLineCyclePrev`                 |
-| `Space+tt` | New empty buffer    | —                   | `:enew`                               |
-| `Space+tl` | Move tab right      | —                   | `BufferLineMoveNext`                  |
-| `Space+th` | Move tab left       | —                   | `BufferLineMovePrev`                  |
-| `Space+t1`-`9` | Go to tab 1-9  | —                   | `BufferLineGoToBuffer 1-9`            |
+| `Space+tt` | New tab page         | —                   | `:tabnew`                              |
+| `Space+tl` | Move tab right      | —                   | `BufferLineMoveNext`                   |
+| `Space+th` | Move tab left       | —                   | `BufferLineMovePrev`                   |
+| `Space+t1`-`9` | Go to tab 1-9  | —                   | `BufferLineGoToBuffer 1-9`             |
+| `Space+tp` | Previous tab page   | —                   | `BufferLineCyclePrev`                  |
+| `Space+tn` | Next tab page       | —                   | `BufferLineCycleNext`                  |
 
 **Note:** `Ctrl+W` is reserved in Neovim for window management and is not
 remapped. Use `Space+tw` to close buffers.
@@ -65,20 +67,50 @@ remapped. Use `Space+tw` to close buffers.
 **Note:** `Space+lc`/`lp`/`lu` are **IntelliJ-only** convenience bindings. In
 Neovim, perform commit/push/pull inside lazygit.
 
+## Window management
+
+| Key        | Action                       | IntelliJ backend               | Neovim backend                |
+| ---------- | ---------------------------- | ------------------------------ | ----------------------------- |
+| `Space+sv` | Vertical split               | `SplitVertically`              | `<C-w>v`                      |
+| `Space+sh` | Horizontal split             | `SplitHorizontally`            | `<C-w>s`                      |
+| `Space+se` | Equalize split sizes         | —                              | `<C-w>=`                      |
+| `Space+sx` | Close current split          | `CloseContent`                 | `:close`                      |
+| `Space+sm` | Maximize / minimize split    | —                              | `Snacks.zen.zoom()`           |
+
+## Formatting & linting
+
+| Key        | Action              | IntelliJ backend     | Neovim backend                 |
+| ---------- | ------------------- | -------------------- | ------------------------------ |
+| `Space+mp` | Format code         | `ReformatCode`       | `conform.format()`             |
+| `Space+l`  | Lint current file   | `InspectCode`        | `lint.try_lint()`              |
+
+## Sessions
+
+| Key        | Action                                 | IntelliJ backend     | Neovim backend                 |
+| ---------- | -------------------------------------- | -------------------- | ------------------------------ |
+| `Space+wr` | Restore session for current directory  | — (automatic)        | `:SessionRestore`              |
+| `Space+ws` | Save session for current directory     | — (automatic)        | `:SessionSave`                 |
+
 ## LSP / code intelligence
 
 | Key         | Action                     | Both environments                                      |
 | ----------- | -------------------------- | ------------------------------------------------------ |
 | `gd`        | Go to definition           | Works in both                                          |
+| `gD`        | Go to declaration          | Works in both                                          |
 | `gi`        | Go to implementation       | Works in both                                          |
 | `gt`        | Go to type definition      | Works in both                                          |
 | `gR`        | Find references            | Works in both                                          |
 | `K`         | Hover / documentation      | Works in both                                          |
+| `Space+th`  | Toggle inlay hints         | Works in both                                          |
 | `Space+ca`  | Code actions / intentions  | `ShowIntentionActions` / `vim.lsp.buf.code_action`     |
 | `Space+rn`  | Rename                     | `RenameElement` / `vim.lsp.buf.rename`                 |
 | `[d` / `]d` | Previous / next diagnostic | Works in both                                          |
 | `Space+xx`  | Toggle diagnostics list    | `ActivateProblemsViewToolWindow`                       | `Snacks.picker.diagnostics()` |
-| `Space+xd`  | Go to next error           | `GotoNextError`                                        | `Snacks.picker.diagnostics_buffer()` |
+| `Space+xw`  | Workspace diagnostics      | —                                                      | `Snacks.picker.diagnostics()` |
+| `Space+xl`  | Location list              | —                                                      | `Snacks.picker.loclist()` |
+| `Space+xq`  | Quickfix list              | —                                                      | `Snacks.picker.qflist()` |
+| `Space+xt`  | TODO list                  | `ActivateTODOToolWindow`                               | `Snacks.picker.todo_comments()` |
+| `Space+xd`  | Document diagnostics       | `GotoNextError`                                        | `Snacks.picker.diagnostics_buffer()` |
 
 ## Terminal
 
@@ -89,7 +121,11 @@ Neovim, perform commit/push/pull inside lazygit.
 
 **Note on Neovim + tmux:** When running Neovim inside a tmux session, you
 still have a bash shell available at `Ctrl+b [` for scrollback.
-`Space+ot` opens a floating terminal inside Neovim.
+`Space+ot` opens a bottom-split terminal inside Neovim.
+
+**User commands:**
+- `:SnacksTerminal` — toggle terminal
+- `:SnacksTerminalFloat` — open floating terminal
 
 ## Build & run
 
@@ -128,7 +164,6 @@ alternatives.
 | `Space+db` | Toggle database     | `ActivateDatabaseToolWindow`    | — (use DataGrip)               |
 | `Space+mv` | Toggle maven        | `ActivateMavenToolWindow`       | — (use zellij bash pane)       |
 | `Space+pi` | Toggle AI Assistant | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
-| `Space+ai` | AI Assistant (alt)  | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
 
 ## Vim editing
 
@@ -227,6 +262,6 @@ Neovim config should reference this file as the source of truth.
 | `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
 | `p`    | Pi / AI          | Used (`pi`, `ai`)                                         |
 | `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `t1`-`9`)                  |
-| `s`    | —                | Free (was splits)                                         |
+| `s`    | Splits / zoom    | Used (`sv`, `sh`, `se`, `sx`, `sm`)                       |
 | `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |
-| `w`    | Workspace        | Free (was sessions)                                       |
+| `w`    | Workspace        | Used (`wr`, `ws`)                                         |
