@@ -81,14 +81,10 @@
 - `<leader>lg` — open LazyGit
 - `:SnacksLazyGit` — open LazyGit
 
-## Pi AI
-- `<leader>ai` — open/focus Pi in a right-side pane; if already focused, close it
-- `<leader>pi` — open/focus Pi in a right-side pane; if already focused, close it
-- `<leader>pI` — start a new Pi session in the right-side pane for the current repo
-- `:Pi` — open/focus Pi pane
-- `:PiToggle` — open/focus Pi pane; if already focused, close it
-- `:PiNew` — start a new Pi session in the Pi pane
-- in the Pi pane, `<C-x>` — close the pane
+## Pi AI (Snacks)
+- `<leader>ai` — toggle Pi in a floating window
+- `<M-k>` — same as `<leader>ai`
+- `<leader>pI` — open a fresh Pi session
 
 ## Editing
 - `s` — substitute with motion

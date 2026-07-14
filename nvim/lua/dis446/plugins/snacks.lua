@@ -156,6 +156,9 @@ return {
 	config = function(_, opts)
 		require("snacks").setup(opts)
 
+		-- Pi coding agent integration
+		require("dis446.pi").setup()
+
 		vim.api.nvim_create_user_command("SnacksExplorer", function()
 			Snacks.explorer()
 		end, { desc = "Toggle Snacks explorer" })
