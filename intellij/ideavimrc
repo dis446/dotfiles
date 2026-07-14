@@ -24,6 +24,7 @@ nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Tabs ────────────────────────────────────────────
 nnoremap <leader>tw :action CloseContent<CR>
+nnoremap <C-w> :action CloseContent<CR>
 nnoremap <M-l> :action NextTab<CR>
 nnoremap <M-h> :action PreviousTab<CR>
 
@@ -46,6 +47,7 @@ nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
 
 " ── Build & run ─────────────────────────────────────
 nnoremap <leader>mm :action Run<CR>
+nnoremap <leader>mk :action Stop<CR>
 nnoremap <leader>mn :action Debug<CR>
 nnoremap <leader>m, :action RedesignedRunConfigurationSelector<CR>
 
