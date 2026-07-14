@@ -4,6 +4,10 @@
 " Leader ─────────────────────────────────────────────
 let mapleader = " "
 
+nnoremap <leader>si :source ~/.ideavimrc<CR>
+
+nnoremap <leader>ai :action ActivateAIAssistantToolWindow<CR>
+
 " ── File & project navigation ───────────────────────
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ef :action SelectInProjectView<CR>
@@ -15,6 +19,8 @@ nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Tabs ────────────────────────────────────────────
 nnoremap <leader>wt :action CloseContent<CR>
+nnoremap <M-l> :action NextTab<CR>
+nnoremap <M-h> :action PreviousTab<CR>
 
 " ── Git ─────────────────────────────────────────────
 nnoremap <leader>lg :action Lazygit.Toggle<CR>
@@ -34,9 +40,9 @@ nnoremap <leader>rn :action RenameElement<CR>
 nnoremap <leader>ot :action ActivateTerminalToolWindow<CR>
 
 " ── Build & run ─────────────────────────────────────
-nnoremap <leader>rr :action Run<CR>
-nnoremap <leader>rt :action Debug<CR>
-nnoremap <leader>re :action RedesignedRunConfigurationSelector<CR>
+nnoremap <leader>mm :action Run<CR>
+nnoremap <leader>mn :action Debug<CR>
+nnoremap <leader>m, :action RedesignedRunConfigurationSelector<CR>
 
 " ── Tools ───────────────────────────────────────────
 nnoremap <leader>db :action ActivateDatabaseToolWindow<CR>
@@ -55,7 +61,6 @@ set clipboard+=unnamedplus
 set incsearch
 set hlsearch
 set ideajoin
-set ideaput
 
 " ── NERDTree (Simulates Snacks Explorer behavior) ──
 set NERDTree
