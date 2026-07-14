@@ -9,7 +9,9 @@ nnoremap <leader>si :source ~/.ideavimrc<CR>
 nnoremap <leader>nh :noh <CR>
 
 " ── File & project navigation ───────────────────────
-" $LRU
+nnoremap <C-b> <Nop>                                                                                                                    
+nnoremap <C-b>s :action $LRU<CR>     
+
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ee :action ActivateProjectToolWindow<CR>
 nnoremap <leader>ef :action SelectInProjectView<CR>
