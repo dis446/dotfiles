@@ -127,9 +127,7 @@ keymap.set("n", "<leader>dq", function()
 end, { desc = "Terminate debug session" })
 
 -- ── Tools ───────────────────────────────────────────
-keymap.set("n", "<leader>pi", function()
-	print("Use Pi in separate zellij pane")
-end, { desc = "AI Assistant (Zellij)" })
+keymap.set("n", "<leader>ai", "<cmd>PiToggle<CR>", { desc = "Pi AI Assistant" })
 keymap.set("n", "<leader>db", function()
 	print("Use DataGrip for database")
 end, { desc = "Database (DataGrip)" })
@@ -139,6 +137,7 @@ end, { desc = "Maven (Zellij)" })
 
 -- ── General editing ─────────────────────────────────
 keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
+keymap.set("n", "<leader>si", "<cmd>source $MYVIMRC<CR>", { desc = "Reload Neovim config" })
 keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" })
 keymap.set("n", "<leader>-", "<C-x>", { desc = "Decrement number" })
 

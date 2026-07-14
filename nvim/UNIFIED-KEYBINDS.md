@@ -13,9 +13,9 @@ In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 
 | Key        | Action              | IntelliJ backend            | Neovim backend                        |
 | ---------- | ------------------- | --------------------------- | ------------------------------------- |
-| `Space+si` | Reload `.ideavimrc` | `:source ~/.ideavimrc`      | — (IntelliJ-only convenience)         |
+| `Space+si` | Reload config        | `:source ~/.ideavimrc`      | `:source $MYVIMRC`                    |
 | `Space+nh` | Clear search hilite | `:noh`                      | `:nohl`                               |
-| `Space+ai` | AI Assistant        | `ActivateAIAssistantToolWindow` | — (alias for `Space+pi`, IntelliJ) |
+| `Space+ai` | AI Assistant        | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
 
 ## File & project navigation
 
@@ -121,7 +121,8 @@ alternatives.
 | ---------- | ------------------- | ------------------------------- | ------------------------------ |
 | `Space+db` | Toggle database     | `ActivateDatabaseToolWindow`    | — (use DataGrip)               |
 | `Space+mv` | Toggle maven        | `ActivateMavenToolWindow`       | — (use zellij bash pane)       |
-| `Space+pi` | Toggle AI Assistant | `ActivateAIAssistantToolWindow` | — (Pi in separate zellij pane) |
+| `Space+pi` | Toggle AI Assistant | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
+| `Space+ai` | AI Assistant (alt)  | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
 
 ## Vim editing
 
@@ -217,7 +218,7 @@ Neovim config should reference this file as the source of truth.
 | `o`    | Open / toggle    | Used (`ot`, `oT`)                                         |
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
 | `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
-| `p`    | Pi / AI          | Used (`pi`) — also `ai` (unprefixed alias)                |
+| `p`    | Pi / AI          | Used (`pi`, `ai`)                                         |
 | `t`    | Tabs             | Used (`tw`, `tt`)                                         |
 | `s`    | —                | Free (was splits)                                         |
 | `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |

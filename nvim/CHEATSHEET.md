@@ -78,6 +78,7 @@
 - `:SnacksLazyGit` — open LazyGit
 
 ## Pi AI
+- `<leader>ai` — open/focus Pi in a right-side pane; if already focused, close it
 - `<leader>pi` — open/focus Pi in a right-side pane; if already focused, close it
 - `<leader>pI` — start a new Pi session in the right-side pane for the current repo
 - `:Pi` — open/focus Pi pane
