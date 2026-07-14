@@ -15,7 +15,6 @@ In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 | ---------- | ------------------- | --------------------------- | ------------------------------------- |
 | `Space+si` | Reload config        | `:source ~/.ideavimrc`      | `:source $MYVIMRC`                    |
 | `Space+nh` | Clear search hilite | `:noh`                      | `:nohl`                               |
-| `Space+ai` | AI Assistant        | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
 
 ## File & project navigation
 
@@ -158,13 +157,24 @@ zellij is configured to pass F-keys through (`pane.focus` unbound from those key
 or using `F5` passthrough in the layout). Within zellij, use the `Space+d*`
 alternatives.
 
+## Pi AI (tmux)
+
+Pi runs in a `Snacks.terminal()` floating window — same pattern as
+LazyGit.  Toggle hides/shows; Alt+K works from normal or terminal mode.
+New session opens a fresh terminal alongside existing ones.
+
+| Key          | Action                   | IntelliJ backend                | Neovim backend              |
+| ------------ | ------------------------ | ------------------------------- | --------------------------- |
+| `Space+ai`   | Toggle Pi                | `ActivateAIAssistantToolWindow` | `Snacks.terminal()` pi float  |
+| `Alt+K`      | Toggle Pi (alt)          | —                               | `Snacks.terminal()` pi float  |
+| `Space+pI`   | New Pi session           | —                               | `Snacks.terminal.open()` pi   |
+
 ## Tools
 
 | Key        | Action              | IntelliJ backend                | Neovim backend                 |
 | ---------- | ------------------- | ------------------------------- | ------------------------------ |
 | `Space+db` | Toggle database     | `ActivateDatabaseToolWindow`    | — (use DataGrip)               |
 | `Space+mv` | Toggle maven        | `ActivateMavenToolWindow`       | — (use zellij bash pane)       |
-| `Space+pi` | Toggle AI Assistant | `ActivateAIAssistantToolWindow` | `:PiToggle`                        |
 
 ## Vim editing
 
@@ -261,7 +271,7 @@ Neovim config should reference this file as the source of truth.
 | `o`    | Open / toggle    | Used (`ot`, `oT`)                                         |
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
 | `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
-| `p`    | Pi / AI          | Used (`pi`, `ai`)                                         |
+| `p`    | Pi / AI          | Used (`pI`)                                               |
 | `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `to`, `tp`, `tn`, `t1`-`9`) |
 | `s`    | Splits / zoom    | Used (`sv`, `sh`, `se`, `sx`, `sm`)                       |
 | `h`    | Hunks (git)      | Used (`hs`, `hr`, `hp`, `hb`, etc.)                       |

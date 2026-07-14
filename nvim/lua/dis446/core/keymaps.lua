@@ -127,7 +127,6 @@ keymap.set("n", "<leader>dq", function()
 end, { desc = "Terminate debug session" })
 
 -- ── Tools ───────────────────────────────────────────
-keymap.set("n", "<leader>ai", "<cmd>PiToggle<CR>", { desc = "Pi AI Assistant" })
 keymap.set("n", "<leader>db", function()
 	print("Use DataGrip for database")
 end, { desc = "Database (DataGrip)" })
