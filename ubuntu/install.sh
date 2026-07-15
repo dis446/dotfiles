@@ -21,3 +21,10 @@ link_target "$HOME/dotfiles/claude" "$HOME/.claude"
 link_target "$HOME/dotfiles/.editorconfig" "$HOME/.editorconfig"
 mkdir -p "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+
+
+# Install tmux plugins
+git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-resurrect "$HOME/.config/tmux/plugins/tmux-resurrect" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-continuum "$HOME/.config/tmux/plugins/tmux-continuum" 2>/dev/null || true
+
