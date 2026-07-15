@@ -48,26 +48,50 @@
 | `Space`     | Start selection (in copy mode) |
 | `Enter`     | Copy selection to clipboard |
 
+## Persistence (survives reboot)
+
+Sessions are **automatically saved** every 15 minutes and **restored on tmux
+start** via `tmux-resurrect` + `tmux-continuum`. After a reboot:
+
+1. Open a terminal
+2. Run `t <project_name>` (or `.` for current dir)
+3. All your previous sessions are restored automatically
+4. Switch between them with `Ctrl+b s`
+
+| Key | Action |
+|---|---|
+| `Ctrl+b Ctrl+s` | Save sessions manually right now |
+| `Ctrl+b Ctrl+r` | Restore sessions from last save manually |
+
 ## Config
 
 | Key | Action |
 |---|---|
 | `Ctrl+b r`  | Reload `tmux.conf` |
 
+## Shell aliases
+
+```
+t session_name   # Create or attach to a named session (alias)
+tl               # List all sessions
+ta session_name  # Attach to a running session
+ts session_name  # Create a new session (force new)
+tk session_name  # Kill a session
+```
+
 ## Typical workflow
 
 ```
-# Start a new session for a project
-tmux new -s dotfiles
-tmux new -s alpha-backend
-tmux new -s api-gateway
+# Start a new session for a project (auto-restores after reboot)
+t dotfiles
+t alpha-backend
+t api-gateway
 
 # Switch between projects
 Ctrl+b s  →  type project name  →  Enter
 
-# Attach to an existing session from shell
-tmux attach -t dotfiles
-tmux ls   # list all sessions
+# List all sessions
+tl
 ```
 
 **One session = one project = one Neovim.** Each session gets its own Neovim

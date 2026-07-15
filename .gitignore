@@ -41,3 +41,6 @@ intellij/*
 !intellij/keymaps/
 !intellij/MIGRATION-ADVISORY.md
 /pi/pi-acp/session-map.json
+
+# Tmux plugins — installed at setup from git, not tracked in repo
+tmux/plugins/
