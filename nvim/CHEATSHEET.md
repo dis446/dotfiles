@@ -105,9 +105,68 @@
 - `<leader>mm` — run task
 - `<leader>mr` — rerun last task
 - `<leader>mk` — task actions (stop/restart)
-- `<leader>m,` — toggle task list sidebar
+- `<leader>m,` — toggle task list panel
 - `<leader>mb` — build task
 - `<leader>mc` — cancel running task
+
+### Panel layout
+
+When a task runs, the bottom splits into two panes:
+
+```
+┌──────────────────────┬───────────────────────┐
+│   Task list          │   Task output pane    │
+│   (OverseerList)     │   (live terminal)     │
+│                      │                       │
+│  ● npm: stack:prod   │   > nx run-many -t    │
+│  ○ npm: build        │   serve -c prod       │
+│  ○ npm: test         │   — parallel=4        │
+└──────────────────────┴───────────────────────┘
+```
+
+### Task list controls (when focused)
+
+| Keys         | Action                           |
+| ------------ | -------------------------------- |
+| `j` / `k`    | Navigate tasks                   |
+| `<CR>`       | Action menu (stop/restart/etc.)  |
+| `o`          | Open task output                 |
+| `dd`         | Dispose (remove) task            |
+| `q`          | Close task list panel            |
+| `p`          | Toggle preview                   |
+| `{` / `}`    | Previous / next task             |
+| `<C-e>`      | Edit task                        |
+| `<C-v>`      | Open output in vsplit            |
+| `<C-s>`      | Open output in split             |
+| `<C-t>`      | Open output in tab               |
+| `<C-f>`      | Open output in float             |
+
+### Pro tip
+
+- From your code, `<C-w>j` moves down to the task list, `<C-w>l` to output, `<C-w>k` back up.
+- `<leader>m,` toggles the whole panel on/off.
+- Resize by default: task list grows up to 15 rows, then scrolls.
+
+## Window Management
+
+| Keys         | Action                           |
+| ------------ | -------------------------------- |
+| `<C-w>s`     | Split horizontally               |
+| `<C-w>v`     | Split vertically                 |
+| `<C-w>c`     | Close current pane               |
+| `<C-w>o`     | Close all other panes            |
+| `<C-w>h`     | Move left one pane               |
+| `<C-w>l`     | Move right one pane              |
+| `<C-w>j`     | Move down one pane               |
+| `<C-w>k`     | Move up one pane                 |
+| `<C-w>w`     | Cycle to next pane               |
+| `<C-w>-`     | Decrease pane height             |
+| `<C-w>+`     | Increase pane height             |
+| `<C-w><`     | Decrease pane width              |
+| `<C-w>>`     | Increase pane width              |
+| `<C-w>=`     | Equalise all pane sizes          |
+| `<C-w>_`     | Maximise current pane height     |
+| `<C-w>|`     | Maximise current pane width      |
 
 ## Debug
 - `<leader>rd` — start / continue debug
