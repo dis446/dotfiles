@@ -22,8 +22,14 @@ return {
 			},
 		})
 
-		vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
-		vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border })
+		vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
+			config = vim.tbl_deep_extend("force", { border = border }, config or {})
+			return vim.lsp.handlers.hover(_, result, ctx, config)
+		end
+		vim.lsp.handlers["textDocument/signatureHelp"] = function(_, result, ctx, config)
+			config = vim.tbl_deep_extend("force", { border = border }, config or {})
+			return vim.lsp.handlers.signature_help(_, result, ctx, config)
+		end
 
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("UserLspConfig", {}),
