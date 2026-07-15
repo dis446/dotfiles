@@ -249,7 +249,7 @@ These differences are environment-specific and don't affect muscle memory:
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
 | **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
 | **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |
-| **Session restore**   | Automatic (IDE remembers state)           | `auto-session` (auto_restore_enabled) |
+| **Session restore**   | Automatic (IDE remembers state)           | `auto-session` + `tmux-resurrect`/`continuum` auto-save and restore across reboots |
 
 ---
 

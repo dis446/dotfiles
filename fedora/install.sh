@@ -17,6 +17,10 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config.ghostty" "$HOME/.config/ghostty/config"
 link_target "$HOME/dotfiles/tmux" "$HOME/.config/tmux"
+# Install tmux plugin manager and dependencies
+git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-resurrect "$HOME/.config/tmux/plugins/tmux-resurrect" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-continuum "$HOME/.config/tmux/plugins/tmux-continuum" 2>/dev/null || true
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
