@@ -86,25 +86,11 @@ keymap.set("n", "<leader>oT", function()
   })
 end, { desc = "Floating terminal" })
 
--- ── Build & run ─────────────────────────────────────
-keymap.set("n", "<leader>mm", function()
-  Snacks.run.run()
-end, { desc = "Run" })
-keymap.set("n", "<leader>mr", function()
-  Snacks.run.run({ rerun = true })
-end, { desc = "Rerun last" })
-keymap.set("n", "<leader>mk", function()
-  Snacks.run.kill()
-end, { desc = "Stop run" })
-keymap.set("n", "<leader>m,", function()
-  Snacks.run.select()
-end, { desc = "Select run config" })
-keymap.set("n", "<leader>mn", function()
+-- ── Build & run (overseer.nvim handles <leader>m*) ──
+-- <leader>rd alias for debug continue
+keymap.set("n", "<leader>rd", function()
   require("dap").continue()
 end, { desc = "Start / continue debug" })
-keymap.set("n", "<leader>mt", function()
-  Snacks.run.toggle()
-end, { desc = "Toggle output window" })
 
 -- ── Debug (DAP) ─────────────────────────────────────
 keymap.set("n", "<F5>", function()
