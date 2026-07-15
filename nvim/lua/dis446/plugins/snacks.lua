@@ -152,13 +152,6 @@ return {
 			timeout = 3000,
 		},
 		quickfile = { enabled = true },
-		run = {
-			enabled = true,
-			win = {
-				position = "bottom",
-				height = 0.3,
-			},
-		},
 	},
 	config = function(_, opts)
 		require("snacks").setup(opts)

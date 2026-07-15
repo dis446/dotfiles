@@ -101,6 +101,14 @@
 - `<leader>xl` — location list
 - `<leader>xt` — TODO list
 
+## Build & Run (overseer.nvim)
+- `<leader>mm` — run task
+- `<leader>mr` — rerun last task
+- `<leader>mk` — task actions (stop/restart)
+- `<leader>m,` — toggle task list sidebar
+- `<leader>mb` — build task
+- `<leader>mc` — cancel running task
+
 ## Debug
 - `<leader>rd` — start / continue debug
 - `<F5>` — continue

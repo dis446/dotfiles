@@ -131,10 +131,13 @@ still have a bash shell available at `Ctrl+b [` for scrollback.
 
 | Key        | Action                    | IntelliJ backend                     | Neovim backend           |
 | ---------- | ------------------------- | ------------------------------------ | ------------------------ |
-| `Space+mm` | Run                       | `Run`                                | — (use zellij bash pane) |
-| `Space+mn` | Debug / Continue          | `Debug`                              | `dap.continue()`         |
-| `Space+mk` | Stop                      | `Stop`                               | — (IntelliJ-only)        |
-| `Space+m,` | Run config selector       | `RedesignedRunConfigurationSelector` | — (IntelliJ-only)        |
+| `Space+mm` | Run                       | `Run`                                | `:OverseerRun`                |
+| `Space+mr` | Re-run last               | —                                    | `:OverseerQuickAction`        |
+| `Space+mk` | Stop / task actions       | `Stop`                               | `:OverseerTaskAction`         |
+| `Space+mb` | Build                     | —                                    | `:OverseerBuild`              |
+| `Space+mc` | Cancel task               | —                                    | `:OverseerQuickAction run.cancel` |
+| `Space+m,` | Toggle task list sidebar  | `RedesignedRunConfigurationSelector` | `:OverseerToggle`             |
+| `Space+mn` | Debug / Continue          | `Debug`                              | `dap.continue()`              |
 
 ## Debug (DAP)
 
@@ -174,7 +177,7 @@ New session opens a fresh terminal alongside existing ones.
 | Key        | Action              | IntelliJ backend                | Neovim backend                 |
 | ---------- | ------------------- | ------------------------------- | ------------------------------ |
 | `Space+db` | Toggle database     | `ActivateDatabaseToolWindow`    | — (use DataGrip)               |
-| `Space+mv` | Toggle maven        | `ActivateMavenToolWindow`       | — (use zellij bash pane)       |
+| `Space+mv` | Maven projects      | `ActivateMavenToolWindow`    | `:Maven`                       |
 
 ## Vim editing
 
@@ -266,11 +269,11 @@ Neovim config should reference this file as the source of truth.
 | `f`    | Find             | Used (`ff`, `fr`, `fs`, `fc`, `ft`)                       |
 | `l`    | Git / VCS        | Used (`lg`, `lc`, `lp`, `lu`)                             |
 | `c`    | Code             | Used (`ca`)                                               |
-| `r`    | Run / rename     | Used (`rb`, `rd`, `rn`)                                   |
+| `r`    | Run / rename     | Used (`rd`, `rn`)                                         |
 | `x`    | Diagnostics      | Used (`xx`, `xd`)                                         |
 | `o`    | Open / toggle    | Used (`ot`, `oT`)                                         |
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
-| `m`    | Maven / build    | Used (`mm`, `mn`, `mk`, `m,`, `mv`)                       |
+| `m`    | Build / run      | Used (`mm`, `mr`, `mk`, `mb`, `mc`, `m,`, `mn`, `mv`)    |
 | `p`    | Pi / AI          | Used (`pI`)                                               |
 | `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `to`, `tp`, `tn`, `t1`-`9`) |
 | `s`    | Splits / zoom    | Used (`sv`, `sh`, `se`, `sx`, `sm`)                       |
