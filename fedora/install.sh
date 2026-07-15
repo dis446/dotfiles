@@ -17,10 +17,6 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config.ghostty" "$HOME/.config/ghostty/config"
 link_target "$HOME/dotfiles/tmux" "$HOME/.config/tmux"
-# Install tmux plugin manager and dependencies
-git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm" 2>/dev/null || true
-git clone https://github.com/tmux-plugins/tmux-resurrect "$HOME/.config/tmux/plugins/tmux-resurrect" 2>/dev/null || true
-git clone https://github.com/tmux-plugins/tmux-continuum "$HOME/.config/tmux/plugins/tmux-continuum" 2>/dev/null || true
 link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
@@ -35,7 +31,12 @@ ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
 link_target "$HOME/dotfiles/fedora/bashrc" "$HOME/.bashrc"
 source "$HOME/.bashrc"
 
-sudo dnf copr enable dejan/lazygit -y 
+# Install tmux plugins
+git clone https://github.com/tmux-plugins/tpm "$HOME/.config/tmux/plugins/tpm" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-resurrect "$HOME/.config/tmux/plugins/tmux-resurrect" 2>/dev/null || true
+git clone https://github.com/tmux-plugins/tmux-continuum "$HOME/.config/tmux/plugins/tmux-continuum" 2>/dev/null || true
+
+sudo dnf copr enable dejan/lazygit -y
 sudo dnf copr enable jdxcode/mise -y
 sudo dnf copr enable scottames/ghostty -y
 
@@ -49,8 +50,8 @@ mise use -g java@temurin-21
 
 sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
-sudo dnf install cargo
-cargo install cargo-binstall
+sudo dnf install cargo -y
+cargo install cargo-binstall -y
 cargo binstall -y zellij
 
 curl -f https://zed.dev/install.sh | sh
