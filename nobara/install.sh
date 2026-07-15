@@ -41,7 +41,7 @@ sudo dnf copr enable dejan/lazygit -y
 sudo dnf copr enable jdxcode/mise -y
 sudo dnf copr enable scottames/ghostty -y
 
-sudo dnf update -y
+nobara-sync cli && yes | flatpak update
 
 sudo dnf install git vim neovim lazygit tmux podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl -y --skip-unavailable
 sudo pip install pydf
