@@ -24,6 +24,7 @@ nnoremap <leader>fc :action FindInPath<CR>
 nnoremap <leader>ft :action ActivateTODOToolWindow<CR>
 
 " ── Tabs ────────────────────────────────────────────
+nnoremap <leader>tt :action NewScratchBuffer<CR>
 nnoremap <leader>tw :action CloseContent<CR>
 nnoremap <leader>to :action CloseAllEditorsButActive<CR>
 nnoremap <C-w> :action CloseContent<CR>
