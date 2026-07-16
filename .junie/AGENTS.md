@@ -53,8 +53,8 @@ fi
 ### Shell Alias Architecture
 Aliases are modularized and shared across platforms:
 1. **Shared Aliases**: Located in `bash/` (e.g., `git_aliases`, `docker_aliases`).
-2. **Auto-loading**: The `bashrc` or OS-specific `bash_alias` loops over `~/dotfiles/bash/*` and sources every file.
-3. **OS-Specific**: `<os>/bash_alias` can override shared aliases.
+2. **Auto-loading**: The `bashrc` or OS-specific `bash_aliases` loops over `~/dotfiles/bash/*` and sources every file.
+3. **OS-Specific**: `<os>/bash_aliases` can override shared aliases.
 
 ### Neovim Configuration
 - **Structure**: Lua-based, using `lazy.nvim`.

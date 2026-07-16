@@ -2,7 +2,7 @@ for alias_file in "$HOME/dotfiles/bash/"*; do
   [[ -f "$alias_file" ]] && source "$alias_file"
 done
 
-[[ -f "$HOME/dotfiles/macos/bash_alias" ]] && source "$HOME/dotfiles/macos/bash_alias"
+[[ -f "$HOME/dotfiles/macos/bash_aliases" ]] && source "$HOME/dotfiles/macos/bash_aliases"
 
 alias crc="cat ~/.zshrc"
 alias erc="nvim ~/.zshrc"

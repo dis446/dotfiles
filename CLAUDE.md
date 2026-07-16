@@ -11,7 +11,7 @@ A personal dotfiles repo. There is no build, test, or lint step — changes are 
 Each OS/distro has its own idempotent install script that symlinks config into `$HOME` and `$HOME/.config`. They share a `link_target()` helper that does `rm -rf "$dest"` before `ln -s` — so it replaces existing files/dirs, not merges:
 
 - `fedora/install.sh` — fullest script: enables COPR repos, installs packages via `dnf`, links `fedora/bashrc` → `~/.bashrc`, sets up `mise` (node, java), and configures git.
-- `nobara/setup`, `macos/setup`, `ubuntu/setup.sh` — link-only variants (no package install). macOS links `macos/zshrc` → `~/.zshrc`; Ubuntu links `ubuntu/bash_alias` → `~/.bash_aliases`.
+- `nobara/setup`, `macos/setup`, `ubuntu/setup.sh` — link-only variants (no package install). macOS links `macos/zshrc` → `~/.zshrc`; Ubuntu links `ubuntu/bash_aliases` → `~/.bash_aliases`.
 - `macos/Brewfile` — Homebrew bundle for macOS.
 
 To pick up alias changes after editing, re-source the shell (`src` alias = `source ~/.bashrc`).
@@ -26,10 +26,10 @@ Symlinks created by all setup scripts: `nvim`→`~/.config/nvim`, `tmux`→`~/.c
 
 ## Shell alias architecture
 
-The per-OS `bashrc`/`bash_alias` files all do the same thing: loop over `~/dotfiles/bash/*` and source every file, then source the OS-specific alias file. So:
+The per-OS `bashrc`/`bash_aliases` files all do the same thing: loop over `~/dotfiles/bash/*` and source every file, then source the OS-specific alias file. So:
 
 - **Cross-platform aliases** live in `bash/` split by topic (`git_aliases`, `docker_aliases`, `podman_aliases`, `general_aliases`, `systemd_aliases`, `work_aliases`, etc.). Add a new topic file here and it is auto-sourced everywhere.
-- **OS-specific aliases** live in `<os>/bash_alias` (or `<os>/bash_aliases`) and are sourced after the shared set, so they can override.
+- **OS-specific aliases** live in `<os>/bash_aliases` and are sourced after the shared set, so they can override.
 - `WindowsPowerShell/*.ps1` mirror the same idea for PowerShell.
 
 `bash/secret_aliases` holds machine-local credentials and is gitignored via the `**/secret**` pattern in `.gitignore` — never commit it or move its contents into a tracked file.
