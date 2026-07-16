@@ -28,14 +28,8 @@ end
 local function pi_terminal()
   local root = detect_root()
   local session_dir = pi_session_dir(root)
-  local has_sessions = #vim.fn.globpath(session_dir, "**/*.jsonl", false, true) > 0
 
-  local cmd = { "pi", "--session-dir", session_dir }
-  if has_sessions then
-    table.insert(cmd, 2, "-c")
-  end
-
-  Snacks.terminal.focus(cmd, {
+  Snacks.terminal.focus({ "pi", "-c", "--session-dir", session_dir }, {
     cwd = root,
     win = {
       position = "float",
