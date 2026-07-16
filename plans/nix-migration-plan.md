@@ -536,7 +536,7 @@ Keep in install script:
 
 Keep:
 - `macos/Brewfile` — reduced to GUI apps and things not in nixpkgs
-- `macos/zshrc` / `bash_alias` — keep sourcing Nix
+- `macos/zshrc` / `bash_aliases` — keep sourcing Nix
 
 ### 7.3 Ubuntu (`ubuntu/`)
 

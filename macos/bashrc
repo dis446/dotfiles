@@ -2,6 +2,6 @@ for alias_file in "$HOME/dotfiles/bash/"*; do
   [ -f "$alias_file" ] && . "$alias_file"
 done
 
-[ -f "$HOME/dotfiles/macos/bash_alias" ] && . "$HOME/dotfiles/macos/bash_alias"
+[ -f "$HOME/dotfiles/macos/bash_aliases" ] && . "$HOME/dotfiles/macos/bash_aliases"
 
 PS1='\u@\h \W\$ '
