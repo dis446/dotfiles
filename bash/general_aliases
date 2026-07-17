@@ -36,7 +36,7 @@ alias ff="fastfetch"
 alias wtr="curl wttr.in"
 alias st="speedtest-cli"
 alias ppi="ping 192.168.1.233"
-alias spi="ssh servy@192.168.1.233"
+alias spi="ssh -t servy@192.168.1.233 \"tmux attach -t servy || tmux new -s servy\""
 alias myip="curl http://ipecho.net/plain; echo"
 alias sysbios="sudo systemctl reboot --firmware-setup"
 
