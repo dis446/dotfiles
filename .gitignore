@@ -44,3 +44,4 @@ intellij/*
 # Tmux plugins — installed at setup from git, not tracked in repo
 tmux/plugins/
 /pi/agent/settings.json
+/pi/agent/models-store.json
