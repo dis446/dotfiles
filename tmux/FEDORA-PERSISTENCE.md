@@ -71,11 +71,19 @@ Write `~/.config/systemd/user/tmux.service.d/override.conf`:
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=
-ExecStart=/home/HOME/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh
+ExecStart=/bin/bash -c 'tmux start-server 2>/dev/null; exec env TMUX=/tmp/tmux-1000/default /home/HOME/.config/tmux/plugins/tmux-resurrect/scripts/restore.sh'
 ExecStop=
 ExecStop=/usr/bin/tmux kill-server
 KillMode=process
 ```
+
+**Why this works:** `restore.sh` calls `tmux_socket()` which reads `$TMUX | cut -d',' -f1`. When `$TMUX` is unset (as it is when run from systemd), `tmux_socket()` returns `""`. The script then passes `-S ""` to `tmux`, which uses an **abstract unix socket** (not the default filesystem socket `/tmp/tmux-1000/default`). All subsequent bare `tmux` commands fail with "no server running" because they look for the default filesystem socket.
+
+The wrapper:
+
+1. Starts the tmux server on the default socket via `tmux start-server`
+2. Sets `TMUX=/tmp/tmux-1000/default` so `tmux_socket()` returns the correct path
+3. Then runs `restore.sh`
 
 Then:
 
