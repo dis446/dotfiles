@@ -43,6 +43,15 @@
       "skillFolderHash": "290ab8ae85ba8695e9bceb674e74177e76f8633d",
       "installedAt": "2026-07-15T15:04:59.065Z",
       "updatedAt": "2026-07-15T15:04:59.065Z"
+    },
+    "cve-research": {
+      "source": "fusengine/agents",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/fusengine/agents.git",
+      "skillPath": "plugins/security-expert/skills/cve-research/SKILL.md",
+      "skillFolderHash": "485122a5eaa93278adeca0f556df060b15ba0afd",
+      "installedAt": "2026-07-19T12:09:20.021Z",
+      "updatedAt": "2026-07-19T12:09:20.021Z"
     }
   },
   "dismissed": {
