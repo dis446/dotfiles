@@ -104,7 +104,12 @@ return {
 			yamlls = {},
 			bashls = {},
 			dockerls = {},
-			sqls = {},
+			sqls = {
+			on_attach = function(client)
+				client.server_capabilities.documentFormattingProvider = false
+				client.server_capabilities.documentRangeFormattingProvider = false
+			end,
+		},
 			marksman = {},
 			lua_ls = {
 				settings = {
