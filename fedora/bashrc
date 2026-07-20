@@ -12,3 +12,6 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 # Pi
 export PATH="$HOME/.local/share/mise/installs/node/24.17.0/bin:$PATH"
+
+# Added by jcode installer
+export PATH="$HOME/.local/bin:$PATH"
