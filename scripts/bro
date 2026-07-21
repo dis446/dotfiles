@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Open a URL in the browser from within tmux (systemd-started context).
+# systemd-started tmux doesn't inherit the Wayland/X11 session env vars,
+# so we inject them via systemd-run into the user's desktop session.
+#
+# Usage: bro <url>
+#        Set BROWSER=bro so glab/git/etc. use this automatically.
+
+set -euo pipefail
+
+URL="${1:?Usage: bro <url>}"
+MY_UID="$(id -u)"
+
+# Find the Mutter Xwayland auth file (name changes each login)
+XAUTH_FILE="$(ls /run/user/"$MY_UID"/.mutter-Xwaylandauth.* 2>/dev/null | head -1)"
+
+env \
+    DISPLAY=:0 \
+    XAUTHORITY="$XAUTH_FILE" \
+    WAYLAND_DISPLAY=wayland-0 \
+    DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$MY_UID/bus" \
+    XDG_CURRENT_DESKTOP=GNOME \
+    systemd-run --user --scope --same-dir --quiet \
+        firefox "$URL"
