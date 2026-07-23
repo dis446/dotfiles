@@ -50,6 +50,8 @@ return {
 				"query",
 				"vimdoc",
 				"c",
+				"xml",
+				"dtd",
 			},
 			incremental_selection = {
 				enable = true,
