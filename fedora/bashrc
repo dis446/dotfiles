@@ -15,3 +15,4 @@ export PATH="$HOME/.local/share/mise/installs/node/24.17.0/bin:$PATH"
 
 # Added by jcode installer
 export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
