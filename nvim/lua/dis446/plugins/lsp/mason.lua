@@ -44,6 +44,8 @@ return {
 				"dockerls",
 				"sqls",
 				"marksman",
+				"gopls",
+				"templ",
 			},
 		})
 
@@ -55,6 +57,16 @@ return {
 				"black", -- python formatter
 				"pylint", -- python linter
 				"eslint_d", -- ecma linter
+				"gofumpt", -- go formatter
+				"goimports", -- go imports
+				"golangci-lint", -- go linter
+				"oxfmt", -- oxc formatter
+				"oxlint", -- oxc linter
+				"debugpy", -- python debugger
+				"delve", -- go debugger
+				"java-debug-adapter", -- java debugger
+				"java-test", -- java test runner
+				"js-debug-adapter", -- js debugger
 			},
 		})
 	end,

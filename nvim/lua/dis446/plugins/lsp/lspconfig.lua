@@ -111,6 +111,8 @@ return {
 			end,
 		},
 			marksman = {},
+			gopls = {},
+			templ = {},
 			lua_ls = {
 				settings = {
 					Lua = {
