@@ -29,21 +29,21 @@ local commands = {
 
 ---@type overseer.TemplateFileProvider
 return {
-  cache_key = function(_opts)
-    -- Always show docker tasks if docker is installed
-    if vim.fn.executable("docker") == 1 then
-      return "docker"
-    end
-    return nil
+  cache_key = function(opts)
+    return find_dockerfile(opts)
   end,
   generator = function(opts)
+    local dockerfile_path = find_dockerfile(opts)
+    if not dockerfile_path then
+      return "No Dockerfile found in project"
+    end
+
     local docker_cmd, err = get_docker_cmd()
     if not docker_cmd then
       return err
     end
 
-    local dockerfile_path = find_dockerfile(opts)
-    local project_dir = dockerfile_path and vim.fs.dirname(dockerfile_path) or opts.dir or vim.fn.getcwd()
+    local project_dir = vim.fs.dirname(dockerfile_path)
 
     local ret = {}
     for _, cmd in ipairs(commands) do
