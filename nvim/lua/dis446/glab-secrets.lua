@@ -375,7 +375,10 @@ local function parse_yaml_env(yaml_lines)
       if name_match then
         current_name = name_match
       elseif current_name then
-        local value_match = line:match("^%s*value:%s*\"(.+)\"") or line:match("^%s*value:%s*(%S+)")
+        -- Strip YAML quoting: try double-quoted, then single-quoted, then bare token.
+        local value_match = line:match("^%s*value:%s*\"([^\"]*)\"")
+          or line:match("^%s*value:%s*'([^']*)'")
+          or line:match("^%s*value:%s*(%S+)")
         if value_match then
           table.insert(env, current_name .. "=" .. value_match)
           current_name = nil
