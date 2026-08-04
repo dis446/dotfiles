@@ -137,9 +137,13 @@ local function apply_replacements(src_buf, src_lines, replacements)
     local nl = line
     for _, var in ipairs(sorted) do
       local val = replacements[var]
+      -- Escape % in the value: gsub treats % specially in the *replacement* string,
+      -- so a value like Firebase SA JSON containing %40 raised "invalid capture index"
+      -- and aborted the whole replacement (leaving every $VAR unresolved).
+      local esc_val = val:gsub("%%", "%%%%")
       -- ${VAR} first (exact match), then $VAR (end-of-line aware via [^%w]?)
-      nl = nl:gsub("%${" .. var .. "}", val)
-      nl = nl:gsub("%$" .. var .. "([^%w]?)", val .. "%1")
+      nl = nl:gsub("%${" .. var .. "}", esc_val)
+      nl = nl:gsub("%$" .. var .. "([^%w]?)", esc_val .. "%1")
     end
     table.insert(new_lines, nl)
   end
@@ -268,7 +272,7 @@ function M.resolve()
     end
 
     -- Append final report
-    local report = final_report(status, vars, total, resolved_count, final_failed, retry_scope and "project default" or nil)
+    local report = final_report(status, vars, total, resolved_count, final_failed, retry_scope)
     local existing = vim.api.nvim_buf_get_lines(float_buf, 0, -1, false)
     for _, line in ipairs(report) do
       table.insert(existing, line)
@@ -282,8 +286,11 @@ function M.resolve()
     end
   end
 
-  -- Phase 2: retry failed vars with default (no -s flag) --
-  local function phase2()
+  -- Phase 2/3: retry failed vars with fallback scopes.
+  -- Phase 2 = project default (no -s flag).
+  -- Phase 3 = "*" (all-environments) — required for masked vars like SONAR_*,
+  -- which glab only returns when queried with -s "*" (no-flag 404s).
+  local function retry_phase(phase_scope, phase_label)
     local retry_vars = {}
     for _, var in ipairs(vars) do
       if status[var] == "fail" then
@@ -297,27 +304,33 @@ function M.resolve()
       return
     end
 
-    retry_scope = "default"
+    retry_scope = phase_label
     -- Update float title
     if float_win_id then
       pcall(vim.api.nvim_win_set_config, float_win_id, {
-        title = " glab " .. scope .. " → default ",
+        title = " glab " .. scope .. " → " .. phase_label .. " ",
         title_pos = "center",
       })
     end
     update_redraw()
 
-    spawn_jobs(retry_vars, nil, replacements, status, function()
+    spawn_jobs(retry_vars, phase_scope, replacements, status, function()
+      local still_failed = false
       -- Re-tally: successful retries
       for _, var in ipairs(retry_vars) do
         if status[var] == "ok" then
           resolved_count = resolved_count + 1
         elseif status[var] == "fail" then
-          table.insert(failed_vars, var)
+          still_failed = true
         end
       end
-      update_redraw()
-      on_all_done()
+      if still_failed and phase_scope == nil then
+        -- Last fallback: variables at "*" (all-environments) scope
+        retry_phase("*", "all-env")
+      else
+        update_redraw()
+        on_all_done()
+      end
     end)
   end
 
@@ -332,7 +345,7 @@ function M.resolve()
       end
     end
     update_redraw()
-    phase2()
+    retry_phase(nil, "project default")
   end)
 end
 
