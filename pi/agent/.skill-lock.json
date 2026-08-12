@@ -52,6 +52,15 @@
       "skillFolderHash": "485122a5eaa93278adeca0f556df060b15ba0afd",
       "installedAt": "2026-07-19T12:09:20.021Z",
       "updatedAt": "2026-07-19T12:09:20.021Z"
+    },
+    "lombok-patterns": {
+      "source": "emvnuel/skill.md",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/emvnuel/skill.md.git",
+      "skillPath": "lombok-patterns/SKILL.md",
+      "skillFolderHash": "cc96bebe0c8e1f7cef920bd363708e2c3d31da96",
+      "installedAt": "2026-08-12T01:11:17.915Z",
+      "updatedAt": "2026-08-12T01:11:17.915Z"
     }
   },
   "dismissed": {
