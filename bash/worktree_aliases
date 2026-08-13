@@ -1,0 +1,228 @@
+# ── Git worktree sessions ────────────────────────────────────────────
+# Workflow: run multiple tasks on the same repo concurrently, one tmux
+# session per task, each session running its own Neovim + Pi agent.
+#
+# Conventions:
+#   session name   <repo-session>/<branch-slug>   e.g. gSimClient/feature-new-api
+#   worktree dir   <gitroot-parent>/<gitroot-name>__<branch-slug>
+#                  e.g. ~/Code/gSim/globalSimClient__feature-new-api
+#   branch-slug    branch name with '/' -> '-'    (feature/new-api → feature-new-api)
+#
+# "Repo session" = the existing tmux session for the main checkout
+# (e.g. gSimClient). Its working dir must be inside the git repo.
+#
+# Each worktree gets its own:
+#   - tmux session (1 window, 1 pane, nvim .)
+#   - Neovim auto-session state (per-directory)
+#   - Pi agent session (pi.lua hashes the worktree git root)
+#
+# Lifecycle:
+#   wtadd gSimClient feature/new-api     create worktree + session + nvim, attach
+#   wtls                                 list all worktree sessions + status
+#   wtgo gSimClient/feature-new-api      jump to a worktree session
+#   wtrm gSimClient/feature-new-api      kill session + remove worktree + branch
+#   wtprune gSimClient                   clean stale worktree metadata
+#
+# SAFETY: wtrm only deletes directories git recognizes as registered
+# worktrees of the resolved repo, and never the main checkout itself.
+
+# Internal: git root of a tmux session's working directory.
+# $1 = session name (main repo session or worktree session).
+# Returns non-zero if the session is missing, its cwd is invalid, or
+# the cwd is not inside a git repo. Never falls back to the shell cwd.
+_wt_root_of_session() {
+  tmux has-session -t "$1" >/dev/null 2>&1 || return 1
+  local cwd
+  cwd="$(tmux display-message -t "$1" -p '#{pane_current_path}' 2>/dev/null)"
+  [ -n "$cwd" ] || return 1
+  [ -d "$cwd" ] || return 1
+  local root
+  root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)" || return 1
+  [ -n "$root" ] || return 1
+  echo "$root"
+}
+
+# Internal: branch name -> filesystem-safe slug (replace '/' with '-').
+_wt_slug() { echo "${1//\//-}"; }
+
+# Internal: attach to a session whether or not we're inside tmux.
+_wt_attach() {
+  if [ -n "$TMUX" ]; then tmux switch-client -t "$1"; else tmux attach -t "$1"; fi
+}
+
+# Internal: guard — $1 must be a registered worktree of repo $2, and not
+# the main checkout. Aborts wtrm with a message if not.
+_wt_guard_worktree() {
+  local dir="$1" root="$2"
+  [ "$dir" != "$root" ] || {
+    echo "✗ REFUSED: '$dir' is the main checkout, not a worktree. Nothing deleted."
+    return 1
+  }
+  git -C "$root" worktree list --porcelain | grep -Fqx "worktree $dir" || {
+    echo "✗ REFUSED: '$dir' is not a registered worktree of '$root'."
+    echo "  (session or git-root misresolution — nothing was deleted)"
+    return 1
+  }
+}
+
+# wtadd <repo-session> <branch> [<base>]
+# Create a worktree (new branch), a tmux session, and drop into Neovim.
+# Base defaults to the main session's current branch.
+wtadd() {
+  local session="${1:?usage: wtadd <repo-session> <branch> [<base>]}"
+  local branch="${2:?usage: wtadd <repo-session> <branch> [<base>]}"
+  local base="${3:-}"
+
+  case "$session" in
+    */*) echo "✗ '$session' is a worktree session. Create worktrees from the main repo session."; return 1 ;;
+  esac
+
+  local root name slug dir wt
+  root="$(_wt_root_of_session "$session")" || { echo "✗ no git repo found for session '$session'"; return 1; }
+  name="$(basename "$root")"
+  slug="$(_wt_slug "$branch")"
+  dir="$(dirname "$root")/${name}__${slug}"
+  wt="${session}/${slug}"
+
+  [ -e "$dir" ] && { echo "✗ worktree dir already exists: $dir"; return 1; }
+  tmux has-session -t "$wt" >/dev/null 2>&1 && { echo "✗ tmux session already exists: $wt"; return 1; }
+
+  [ -z "$base" ] && base="$(git -C "$root" branch --show-current 2>/dev/null)"
+
+  git -C "$root" worktree add -b "$branch" "$dir" "$base" || return 1
+
+  if ! tmux new-session -d -s "$wt" -c "$dir"; then
+    git -C "$root" worktree remove --force "$dir"
+    echo "✗ failed to create tmux session, worktree removed"
+    return 1
+  fi
+  tmux send-keys -t "$wt" "nvim ." Enter
+
+  _wt_attach "$wt"
+  echo "✓ worktree: $dir"
+  echo "✓ branch:   $branch (from '$base')"
+  echo "✓ session:  $wt"
+}
+
+# wtrm <worktree-session>
+# Kill the session, remove the worktree, delete the branch.
+# Safe: refuses to discard uncommitted changes without confirmation, and
+# refuses to touch anything git does not recognize as a linked worktree.
+wtrm() {
+  local wt="${1:?usage: wtrm <worktree-session>}"
+  local session="${wt%%/*}" slug="${wt#*/}"
+
+  if [ "$slug" = "$wt" ] || [ -z "$slug" ]; then
+    echo "✗ '$wt' is not a worktree session (expected <repo-session>/<branch>)"
+    return 1
+  fi
+
+  # Resolve the worktree path: if the worktree session is alive, its git
+  # root IS the worktree. Otherwise derive it from the main repo session.
+  local root dir branch mainroot
+  root="$(_wt_root_of_session "$wt")"
+  if [ -n "$root" ]; then
+    dir="$root"
+  else
+    root="$(_wt_root_of_session "$session")" \
+      || { echo "✗ can't find the git repo. Start the '$wt' or '$session' session first."; return 1; }
+    dir="$(dirname "$root")/$(basename "$root")__${slug}"
+  fi
+
+  # Resolve the MAIN repo root from the worktree's git metadata.
+  # (--git-common-dir prints the main repo's .git dir: absolute from a
+  # linked worktree, relative ".git" from the main checkout itself.)
+  mainroot="$(git -C "$dir" rev-parse --git-common-dir 2>/dev/null)"
+  case "$mainroot" in
+    .git)       mainroot="$dir" ;;                      # dir IS the main checkout
+    /*)         mainroot="$(dirname "$mainroot")" ;;    # absolute: main repo's .git
+    */)         mainroot="$(dirname "$mainroot")" ;;
+    "")        mainroot="$root" ;;
+    *)          mainroot="$(dirname "$dir/$mainroot")" ;; # relative path (unlikely)
+  esac
+
+  _wt_guard_worktree "$dir" "$mainroot" || return 1
+
+  branch="$(git -C "$dir" branch --show-current 2>/dev/null)"
+  tmux has-session -t "$wt" >/dev/null 2>&1 && tmux kill-session -t "$wt" >/dev/null 2>&1
+
+  if ! git -C "$mainroot" worktree remove "$dir" 2>/dev/null; then
+    echo "⚠ worktree has uncommitted changes:"
+    git -C "$dir" status --short | head -20
+    local ans
+    read -r -p "Force remove (discards these changes)? [y/N] " ans
+    if [[ ! "$ans" =~ ^[yY]$ ]]; then
+      echo "✗ aborted, worktree kept"
+      return 1
+    fi
+    git -C "$mainroot" worktree remove --force "$dir" 2>/dev/null \
+      || { rm -rf "$dir"; git -C "$mainroot" worktree prune; }
+  fi
+  echo "✓ removed worktree: $dir"
+
+  if [ -n "$branch" ]; then
+    # Safe delete: only removes the branch if it's merged. Unmerged
+    # branches are kept and reported, so nothing is silently lost.
+    if git -C "$mainroot" branch -d "$branch" 2>/dev/null; then
+      echo "✓ deleted branch: $branch"
+    else
+      echo "⚠ kept branch (not fully merged): $branch"
+    fi
+  fi
+}
+
+# wtls
+# Dashboard of every worktree session: session, branch, dirty files, path.
+# tmux sessions are the registry — anything named <repo>/<branch> shows up.
+wtls() {
+  local sessions
+  mapfile -t sessions < <(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '/')
+
+  if [ "${#sessions[@]}" -eq 0 ]; then
+    echo "no worktree sessions (create one with: wtadd <repo-session> <branch>)"
+    return 0
+  fi
+
+  printf "%-30s %-22s %5s  %s\n" "SESSION" "BRANCH" "DIRTY" "WORKTREE"
+  local wt root branch dirty attached path
+  for wt in "${sessions[@]}"; do
+    root="$(_wt_root_of_session "$wt")"
+    if [ -z "$root" ]; then
+      printf "%-30s %-22s %5s  %s\n" "$wt" "?" "-" "(no git root)"
+      continue
+    fi
+    branch="$(git -C "$root" branch --show-current 2>/dev/null)"
+    dirty="$(git -C "$root" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+    attached="$(tmux display-message -t "$wt" -p '#{session_attached}' 2>/dev/null)"
+    path="${root/#$HOME/~}"
+    printf "%-30s %-22s %5s  %s\n" "${wt}${attached:+ ✓}" "${branch:-detached}" "$dirty" "$path"
+  done
+}
+
+# wtgo <worktree-session>
+# Jump to a worktree session from inside or outside tmux.
+wtgo() {
+  local wt="${1:?usage: wtgo <worktree-session>}"
+  if tmux has-session -t "$wt" >/dev/null 2>&1; then
+    _wt_attach "$wt"
+  else
+    echo "✗ no session '$wt' (list them with: wtls)"
+    return 1
+  fi
+}
+
+# wtprune <repo-session>
+# Remove stale worktree metadata after manual directory deletions.
+wtprune() {
+  local session="${1:?usage: wtprune <repo-session>}"
+  local root
+  root="$(_wt_root_of_session "$session")" || { echo "✗ no git repo found for session '$session'"; return 1; }
+  git -C "$root" worktree prune && echo "✓ pruned stale worktree entries in $root"
+}
+
+# Tab-completion: complete worktree session names for wtgo / wtrm.
+_wt_sessions() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  COMPREPLY=( $(compgen -W "$(tmux list-sessions -F '#{session_name}' 2>/dev/null | grep '/')" -- "$cur") )
+}
+complete -F _wt_sessions wtgo wtrm
