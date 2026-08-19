@@ -29,6 +29,15 @@ claude/*
 # Reproducibility comes from settings.json: extraKnownMarketplaces + enabledPlugins
 # auto-install everything on startup. So plugins/ stays fully ignored.
 
+# Herdr (~/.config/herdr) — track config only, ignore runtime.
+# Only herdr/config.toml is symlinked; the rest of ~/.config/herdr stays local
+# (session.json, sockets, logs, plugin lock are machine-local runtime state).
+herdr/*.log
+herdr/*.sock
+herdr/session.json
+herdr/.plugins.lock
+herdr/agent-detection/
+
 # IntelliJ — track config only, ignore machine-local state.
 # Unlike claude/ and pi/, the whole IntelliJ config dir CANNOT be symlinked
 # (version-specific path, machine state mixed with config). Settings Sync
