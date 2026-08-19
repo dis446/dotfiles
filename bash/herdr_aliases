@@ -9,6 +9,9 @@
 # `ha` must be run OUTSIDE herdr (herdr blocks nested launches by design).
 
 # h <path>  create/re-attach workspace, switch to it (was: t)
+# Guard: older shells may still carry `alias h="history | grep"` from before it
+# moved to hg — an alias would expand at parse time and break `h()`.
+unalias h 2>/dev/null
 h() { herdr workspace create --cwd "${1:-$PWD}" --label "$(basename "${1:-$PWD}")" --focus; }
 # hs <path> create workspace without switching (was: ts, tmux new -s)
 hs() { herdr workspace create --cwd "${1:-$PWD}" --label "$(basename "${1:-$PWD}")" --no-focus; }
