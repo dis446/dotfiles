@@ -47,6 +47,7 @@ sudo pip install pydf
 
 mise use -g node@24
 mise use -g java@temurin-21
+mise use -g herdr
 
 sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 
