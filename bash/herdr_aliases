@@ -1,0 +1,38 @@
+# Quick herdr workspace creation / re-attach
+# Mirrors tmux_aliases — tmux session ⇄ herdr workspace.
+#
+# herdr workspaces are bound to a directory (identity_cwd), so `h <path>`
+# replaces `t <session-name>`. Creating a workspace for a directory that
+# already has one re-attaches to the existing workspace.
+#
+# These work from inside herdr (any pane shell) or from a plain terminal.
+# `ha` must be run OUTSIDE herdr (herdr blocks nested launches by design).
+
+# h <path>  create/re-attach workspace, switch to it (was: t)
+h() { herdr workspace create --cwd "${1:-$PWD}" --label "$(basename "${1:-$PWD}")" --focus; }
+# hs <path> create workspace without switching (was: ts, tmux new -s)
+hs() { herdr workspace create --cwd "${1:-$PWD}" --label "$(basename "${1:-$PWD}")" --no-focus; }
+# hl        list workspaces (was: tl, tmux ls)
+hl() { herdr workspace list; }
+# ha        attach to herdr session (was: ta) — run OUTSIDE herdr
+ha() { herdr; }
+# hw        focus dotfiles workspace (was: tw)
+hw() { herdr workspace focus "$(_h_id dotfiles)"; }
+# hk <label-or-id>  close workspace (was: tk, tmux kill-session) — see hl for ids
+hk() {
+  local id="${1:-}"
+  case "$id" in
+    w[0-9]*) ;;
+    *) id="$(_h_id "$id")" ;;
+  esac
+  [ -n "$id" ] && herdr workspace close "$id" || echo "usage: hk <workspace-label|id>"
+}
+
+# Internal: resolve a workspace id from its label.
+_h_id() {
+  herdr workspace list 2>/dev/null | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+print(next((w['workspace_id'] for w in d['result']['workspaces'] if w['label'] == '$1'), ''))
+"
+}
