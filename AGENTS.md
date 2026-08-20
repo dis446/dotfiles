@@ -314,7 +314,7 @@ systemctl --user disable tmux.service
 
 ## Feature Workflow (alpha master repo)
 
-`features/` scripts orchestrate concurrent alpha features: one feature = `~/Code/and/alpha/features/<name>/` containing a git worktree per touched repo (branch `feat/<name>` off `origin/dev`) + `BRIEF.md` (line 1 = MR title). `feature-start` also opens a herdr workspace (nvim tab per repo, pi feature-lead tab, term tab) and spawns the feature-lead agent. Aliases: `fstart`/`fmr`/`fstop`/`flist`. Full operating pattern lives in `e2e-performance-tests/AGENTS.md`; the pi tools (`feature_start` etc.) are a repo-local extension in that repo's `.pi/extensions/`.
+`features/` scripts orchestrate concurrent alpha features: one feature = `~/Code/and/alpha/features/<name>/` containing a git worktree per touched repo (branch `feat/<name>` off `origin/dev`) + `BRIEF.md` (line 1 = MR title). `feature-start` also opens a herdr workspace (nvim tab per repo, pi feature-lead tab, term tab) and spawns the feature-lead agent. Aliases: `fstart`/`fmr`/`fstop`/`flist`. In the master repo's pi session, `/feature-start <name>` (name required + unique) creates the feature and spawns the feature-lead pi with the global `feature-master` skill (`pi/agent/skills/feature-master/`) — prompt it with requirements and it discovers repos, creates worktrees, spawns sub-agents, and opens MRs to dev. Full operating pattern lives in `e2e-performance-tests/AGENTS.md`; the pi tools/commands (`feature_start`, `/feature-start`, …) are a repo-local extension in that repo's `.pi/extensions/`.
 
 ## Additional Notes
 

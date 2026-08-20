@@ -69,6 +69,7 @@ sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 sudo dnf install cargo -y
 cargo install cargo-binstall -y
 cargo binstall -y zellij
+cargo install -y glab-tui-crate
 
 curl -f https://zed.dev/install.sh | sh
 

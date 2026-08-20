@@ -169,7 +169,8 @@ try:
     d = json.load(sys.stdin)
 except Exception:
     raise SystemExit
-print(d.get('result', {}).get('root_pane', '') or '')
+rp = d.get('result', {}).get('root_pane') or {}
+print(rp.get('pane_id', '') or '')
 ")"
     if [ -n "$pi_root" ]; then
       sdir="$(pi_session_dir "$git_root")"
