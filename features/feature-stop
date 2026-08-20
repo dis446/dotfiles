@@ -42,6 +42,14 @@ BRANCH="$(feature_branch "$NAME")"
 
 confirm() {
   [ "$YES" = 1 ] && return 0
+  # Never hang on a prompt nobody can see: when stdin is not an interactive
+  # terminal (e.g. the script was spawned by pi), refuse with instructions.
+  if [ ! -t 0 ]; then
+    echo "refusing: confirmation prompt needs an interactive terminal (stdin is not a TTY)." >&2
+    echo "  from the workspace's pi:       run /feature-stop --yes, or ask the agent to call feature_stop with yes=true" >&2
+    echo "  from the workspace's term tab: run fstop --yes" >&2
+    exit 1
+  fi
   local ans
   read -r -p "Close feature '$NAME'? Removes its worktrees and closes the herdr workspace. [y/N] " ans
   [ "$ans" = "y" ] || [ "$ans" = "Y" ]
