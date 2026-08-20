@@ -16,6 +16,7 @@ NAME="${1:-}"
 [ -n "$NAME" ] || { echo "usage: feature-mr <name> [--dry-run]" >&2; exit 1; }
 DRY=0
 [ "${2:-}" = "--dry-run" ] && DRY=1
+BRANCH="$(feature_branch "$NAME")"
 
 ROOT="$(feature_root "$NAME")"
 [ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
@@ -34,8 +35,8 @@ for wt in "$ROOT"/*/; do
   [ -e "$wt/.git" ] || continue
   repo="$(basename "$wt")"
   branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
-  if [ "$branch" != "feat/$NAME" ]; then
-    echo "skip $repo: on '$branch', not feat/$NAME" >&2
+  if [ "$branch" != "$BRANCH" ]; then
+    echo "skip $repo: on '$branch', not $BRANCH" >&2
     continue
   fi
   if [ -n "$(git -C "$wt" status --porcelain)" ]; then
@@ -49,21 +50,21 @@ for wt in "$ROOT"/*/; do
   [ -n "$target" ] || target="dev"
 
   if [ "$DRY" = 1 ]; then
-    echo "[dry-run] $repo: git push -u origin feat/$NAME; glab mr create --source-branch feat/$NAME --target-branch $target --squash-before-merge --remove-source-branch --assignee '$ASSIGNEE' --title '$TITLE'"
+    echo "[dry-run] $repo: git push -u origin $BRANCH; glab mr create --source-branch $BRANCH --target-branch $target --squash-before-merge --remove-source-branch --assignee '$ASSIGNEE' --title '$TITLE'"
     RESULTS+=("$repo | DRY-RUN")
     continue
   fi
 
   # existing MR?
-  if [ -n "$(glab mr list --source-branch "feat/$NAME" --repo "$glab_repo" 2>/dev/null)" ]; then
-    echo "SKIP $repo: MR already exists for feat/$NAME" >&2
+  if [ -n "$(glab mr list --source-branch "$BRANCH" --repo "$glab_repo" 2>/dev/null)" ]; then
+    echo "SKIP $repo: MR already exists for $BRANCH" >&2
     RESULTS+=("$repo | MR already exists")
     continue
   fi
 
   echo "== $repo"
-  git -C "$wt" push -u origin "feat/$NAME" 2>&1 | sed 's/^/  push: /'
-  mr_flags=(--source-branch "feat/$NAME" --target-branch "$target" \
+  git -C "$wt" push -u origin "$BRANCH" 2>&1 | sed 's/^/  push: /'
+  mr_flags=(--source-branch "$BRANCH" --target-branch "$target" \
     --title "$TITLE" --description "$DESC" --repo "$glab_repo" \
     --squash-before-merge --remove-source-branch)
   [ -n "$ASSIGNEE" ] && mr_flags+=(--assignee "$ASSIGNEE")

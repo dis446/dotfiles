@@ -42,7 +42,9 @@ time — they want to start describing the feature immediately.
 ## Your feature root
 
 - cwd = the feature root: `~/Code/and/alpha/features/<name>/`. Feature name =
-  the directory basename; branch = `feat/<name>`; base = `origin/dev`.
+  the directory basename; branch = **`feat/<name-lowercased>`** (standardized —
+  `feature-start` derives it from the feature name, lowercase); base =
+  `origin/dev`.
 - `BRIEF.md` is the contract — **keep it current** (line 1 = MR title, body =
   MR description, `## Touched repos` list must reflect reality).
 - The herdr workspace already has: an nvim tab per initial worktree, your pi
@@ -64,8 +66,13 @@ time — they want to start describing the feature immediately.
 2. **Repos are discovered, not assumed.** If the user did not list them, find
    them from the requirements before implementing (research phase below).
 3. **Create worktrees with:** `~/dotfiles/features/feature-start <name> <repo...>`
-   (adds missing worktrees, branch `feat/<name>` off `origin/dev`) or directly
-   `git -C <repo-dir> worktree add -b feat/<name> <root>/<basename> origin/dev`.
+   (adds missing worktrees, branch `feat/<name-lowercased>` off `origin/dev`).
+   Always use `feature-start` — it derives the standardized branch. If you
+   must add a worktree directly, the branch MUST be the lowercased feature
+   name (`feat/$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')`) — never
+   invent a different branch name (e.g. a summary-based name):
+   `feature-mr`/`feature-stop` match the standardized branch and will skip or
+   orphan your work.
 4. **Create herdr tabs for new repos you add mid-feature** (a tab per repo so
    the user can inspect/edit it):
    ```bash
@@ -194,5 +201,7 @@ Every task you hand to a sub-agent MUST include all of the following:
   `fstart`/`fmr`/`fstop`/`flist`). `feature-list` shows all features.
 - The user starts features with `/feature-start <name>` from their master
   (e2e-performance-tests) pi session; that spawns you.
-- Feature names are `[A-Za-z0-9-]` (case-sensitive); branch = `feat/<name>`; MRs target `dev` via
+- Feature names are `[A-Za-z0-9-]` (case-sensitive, mixed case ok); the branch
+  is always the **lowercased** name — `feat/<name-lowercased>` (e.g. feature
+  `drillDownPathService` → `feat/drilldownpathservice`). MRs target `dev` via
   glab; nothing is ever auto-merged.

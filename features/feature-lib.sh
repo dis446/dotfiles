@@ -39,6 +39,10 @@ link_knowledge_dirs() {
   done
 }
 
+# Standardized branch for a feature: feat/<name-lowercased>. Single source of
+# truth so feature-start/mr/stop/list all match the same branch.
+feature_branch() { printf 'feat/%s' "$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"; }
+
 # Resolve a repo argument (basename, alpha-relative path, or absolute path)
 # to its git directory under $ALPHA_ROOT. Prints nothing on failure.
 resolve_repo_dir() {
