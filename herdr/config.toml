@@ -40,3 +40,12 @@ key = "alt+g"
 type = "shell"
 command = "$HOME/dotfiles/herdr/gitlab-toggle.sh"
 description = "toggle gitlab pane"
+
+# alt+r: ensure every workspace has its trio (nvim + pi + term + gitlab).
+# Run after attaching if the boot-time restore missed the workspaces
+# (headless server restores session.json only once a client attaches).
+[[keys.command]]
+key = "alt+r"
+type = "shell"
+command = "$HOME/dotfiles/herdr/restore.sh"
+description = "restore workspace trio"
