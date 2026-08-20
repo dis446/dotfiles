@@ -85,6 +85,22 @@ time — they want to start describing the feature immediately.
 9. **Ask before cleanup.** `~/dotfiles/features/feature-stop <name>` removes
    worktrees, closes this workspace, deletes merged branches — only after the
    user confirms.
+10. **Always work with the `ponytail` and `caveman` skills active** — for
+    planning, research, and implementation alike:
+    - **ponytail** — force the laziest solution that actually works: question
+      whether each piece of work needs to exist at all (YAGNI), reach for the
+      standard library / native platform features before custom code, one
+      line before fifty. Challenge speculative abstraction and dead
+      flexibility in every plan and diff.
+    - **caveman** — ultra-compressed, terse-but-technical communication
+      (~75% fewer tokens) for all plans, research notes, progress reports,
+      and MR descriptions.
+    Pass **both skills to every sub-agent you spawn** (pi subagent tool:
+    `skill: ['ponytail', 'caveman']`). If they are not already loaded in your
+    session, read their SKILL.md files
+    (`~/.pi/agent/skills/caveman/SKILL.md`,
+    `~/.pi/agent/npm/node_modules/opencode-ponytail/skills/ponytail/SKILL.md`)
+    and follow them.
 
 ## Shared knowledge: plans/, docs/, .agents/
 
@@ -132,7 +148,9 @@ auto-commit the master checkout yourself.
    sub-agents when repos are independent (each worker stays inside one repo's
    conventions and runs that repo's own verification); keep tiny, tightly
    coupled changes inline. **Use sub-agents only where they save wall-clock
-   time or raise quality — not as a default.** Commit + push per repo.
+   time or raise quality — not as a default.** Every sub-agent task includes
+   the mandatory contract below (read the repo's AGENTS.md first, ponytail +
+   caveman active). Commit + push per repo.
 4. **Test** — run each repo's own test/lint/build (per its AGENTS.md) in the
    worktree, verify the cross-repo contract end-to-end (a fresh-eyes review
    across all diffs), fix fallout, re-run.
@@ -143,6 +161,26 @@ Good: parallel independent per-repo implementation; a wide research scan; an
 isolated slow test run; a fresh-eyes review of the whole diff set.
 Skip: small single-file changes, tight coupling where coordination overhead
 outweighs the parallelism, anything you can do in one tool call chain.
+
+### Sub-agent task contract (mandatory)
+
+Every task you hand to a sub-agent MUST include all of the following:
+
+1. **Read the repo's own `AGENTS.md` first** (fall back to `CLAUDE.md` /
+   `README.md` if there is no `AGENTS.md`) before any exploration, planning,
+   or edits. That file is authoritative for build/test/lint commands, code
+   style, git workflow, and conventions — each repo differs, and workers that
+   skip it drift. This is the first line of every task, not an optional
+   nicety; do not dispatch a worker without it.
+2. **Work only inside its assigned repo's worktree** under the feature root —
+   never in the main checkouts under `~/Code/and/alpha/`.
+3. **Run with the `ponytail` and `caveman` skills active** (`skill:
+   ['ponytail', 'caveman']`) — laziest correct solution, terse reporting.
+4. **Pin the cross-repo contract it depends on** (request/response shapes,
+   headers, error codes, field names) in the task text so parallel workers
+   cannot drift.
+5. **Report back:** what changed (files), how it was verified (commands run),
+   and any contract deviations or open questions.
 
 ## Reporting
 
