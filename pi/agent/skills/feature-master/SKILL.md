@@ -47,12 +47,20 @@ time — they want to start describing the feature immediately.
   MR description, `## Touched repos` list must reflect reality).
 - The herdr workspace already has: an nvim tab per initial worktree, your pi
   tab, a term tab.
+- **Shared knowledge dirs (symlinked in by `feature-start`):** `plans/`,
+  `docs/`, `.agents/` at the feature root all point at the master
+  e2e-performance-tests checkout — the single shared source of truth across
+  all concurrent features (see “Shared knowledge” below).
 
 ## Golden rules
 
-1. **Work only inside this feature root's worktrees.** Never modify the main
-   checkouts under `~/Code/and/alpha/` — they are the shared diagnosis base
-   across all concurrent features.
+1. **Work only inside this feature root's worktrees for code.** Never modify
+   code in the main checkouts under `~/Code/and/alpha/` — they are the shared
+   diagnosis base. **One deliberate exception: knowledge.** Plans and analysis
+   belong in the master e2e-performance-tests checkout's `plans/` and `docs/`
+   (via the feature-root symlinks) — that repo is the orchestrator/knowledge
+   hub, not a code repo. Never write code, configs, or secrets to the master
+   checkout.
 2. **Repos are discovered, not assumed.** If the user did not list them, find
    them from the requirements before implementing (research phase below).
 3. **Create worktrees with:** `~/dotfiles/features/feature-start <name> <repo...>`
@@ -78,6 +86,33 @@ time — they want to start describing the feature immediately.
    worktrees, closes this workspace, deletes merged branches — only after the
    user confirms.
 
+## Shared knowledge: plans/, docs/, .agents/
+
+`feature-start` symlinks the master repo's knowledge dirs into the feature
+root (idempotent; older features can be backfilled by running
+`feature-start <name> <repo...>` again or calling `link_knowledge_dirs`). They
+are shared across **all** concurrent features — treat them as the team's
+memory, and always write via your own feature root's symlink paths
+(`~/Code/and/alpha/features/<name>/plans/...`), never another feature's
+copies.
+
+- **`plans/`** — source of truth for planned work (per the master AGENTS.md).
+  Your plan lives in **`plans/<name>/`**. Read sibling plans before writing;
+  reference the owning plan in commits and the MR description.
+- **`docs/`** — analysis and incident/debug reports. Findings that outlive the
+  feature (flow analyses, contract notes, post-mortems) go here, e.g.
+  `docs/<name>-<topic>.md`.
+- **`.agents/skills/`** — repo-local agent skills (DB access, debugging,
+  state-machine authoring, n8n, bastion tunnel…). Load the matching skill
+  before psql/mysql/mongosh/n8n calls or editing a state-machine definition
+  JSON. Credentials come from skill-local `.env` files that live in the master
+  checkout.
+
+Writes to these land in the master checkout's working tree as uncommitted
+changes. When wrapping up, tell the user which plans/docs you added or changed
+so they can commit/push them (dev or their current branch) — do not
+auto-commit the master checkout yourself.
+
 ## The workflow: research → plan → implement → test
 
 1. **Research** — understand the requirement and the terrain before writing
@@ -85,9 +120,14 @@ time — they want to start describing the feature immediately.
    touch points (endpoints, schemas, consumers), check existing similar
    features/plans. Use a sub-agent for a wide scan (e.g. "find every caller of
    X across back-end/") so you stay focused.
-2. **Plan** — write the plan into `BRIEF.md`: which repos, which contract
-   changes, in what order. Pin the cross-repo contract exactly. Get the repos
-   into worktrees (`feature-start <name> <repo...>`) and add herdr tabs.
+2. **Plan** — write the detailed plan into **`plans/<name>/`** (your feature's
+   dedicated folder under the shared `plans/`; create it if missing). Cover:
+   problem, proposal, verified current behavior, cross-repo contract, order of
+   work. First read sibling plans in `plans/` and relevant `docs/` so you build
+   on existing analysis. Keep `BRIEF.md` as the concise contract: which repos,
+   which contract changes, in what order. Pin the cross-repo contract exactly.
+   Get the repos into worktrees (`feature-start <name> <repo...>`) and add
+   herdr tabs.
 3. **Implement** — do the work in the worktrees. Delegate per repo to
    sub-agents when repos are independent (each worker stays inside one repo's
    conventions and runs that repo's own verification); keep tiny, tightly

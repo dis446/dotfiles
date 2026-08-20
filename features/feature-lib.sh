@@ -16,6 +16,29 @@ feature_name_valid() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9-]*$ ]]; }
 
 feature_root() { printf '%s/%s' "$FEATURES_ROOT" "$1"; }
 
+# Master (e2e-performance-tests) checkout — the orchestrator/knowledge hub that
+# owns the shared plans/, docs/, .agents/ dirs.
+E2E_MAIN="$ALPHA_ROOT/back-end/e2e-performance-tests"
+
+# Symlink the master repo's knowledge dirs into a feature root so every feature
+# workspace shares the canonical plans/, docs/, and .agents/skills/. Idempotent;
+# warns on pre-existing real dirs and missing master dirs.
+link_knowledge_dirs() {
+  local root="$1" d
+  for d in plans docs .agents; do
+    if [ ! -e "$E2E_MAIN/$d" ]; then
+      echo "  WARN: $E2E_MAIN/$d missing — skipping" >&2
+      continue
+    fi
+    if [ -e "$root/$d" ] && [ ! -L "$root/$d" ]; then
+      echo "  WARN: $root/$d exists and is not a symlink — leaving as-is" >&2
+      continue
+    fi
+    ln -sfn "$E2E_MAIN/$d" "$root/$d"
+    echo "  linked $d -> $E2E_MAIN/$d"
+  done
+}
+
 # Resolve a repo argument (basename, alpha-relative path, or absolute path)
 # to its git directory under $ALPHA_ROOT. Prints nothing on failure.
 resolve_repo_dir() {
