@@ -139,7 +139,7 @@ if [ -n "$WSID" ]; then
     skill="$HOME/.pi/agent/skills/feature-master"
     skill_flag=""
     [ -d "$skill" ] && skill_flag=" --skill '$skill'"
-    prompt="Await the requirements for feature '$NAME'. Operate as the feature master per the feature-master skill."
+    prompt="Stand by — feature '$NAME' is ready. Do NOT use tools, read files, or explore anything yet (no repo discovery, no feature-list, no reading AGENTS.md). The user will give you the feature requirements next. When they do, read the feature-master skill and begin. For now, reply with a one-line ready confirmation only."
     json pane run "$rp" "pi -c --session-dir '$sdir'$skill_flag \"$prompt\"" >/dev/null 2>&1
     echo "  feature-lead pi started (feature-master skill, $sdir)"
   fi
