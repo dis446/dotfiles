@@ -132,19 +132,31 @@ Common uses in the workspace terminal:
 - Running tests
 - Quick shell commands
 
-### GitLab TUI (glab-tui)
+### GitLab TUI (gitlab-tui)
 
-Every workspace has a **glab-tui** pane in its own `gitlab` tab — the GitLab
-web UI in your terminal (issues, MRs, pipelines, runners, releases, todos):
+Every workspace has a **gitlab-tui** pane in its own `gitlab` tab — the GitLab
+web UI in your terminal with **native vim keybindings** and keyboard-first
+navigation:
 
 ```bash
 alt+g          # toggle the gitlab tab (herdr-level, works from any pane)
 ```
 
-glab-tui auto-detects the workspace's project from the `origin` remote of the
-repo root, and delegates all API calls to `glab` (already authenticated).
-Useful for checking your feature's MRs and pipelines without leaving the
-terminal.
+```
+j/k        scroll lists          n/p    next/prev page or comment
+Tab/1-7    switch tabs           e      edit MR / issue
+Enter      open detail           c      create MR / issue
+r          refresh               x      close    O  reopen
+S          switch server         P      switch project
+s          state filter          a      approve   m  merge
+p          pipelines             +/−    vote up/down    q  quit
+```
+
+gitlab-tui auto-detects the workspace's project from the `origin` remote of
+the repo root (SSH remotes included) and authenticates with the token in
+`~/.config/gitlab-tui/config.json` (git.and.global server; configured by
+`fedora/install.sh` from `$GITLAB_TOKEN`). Covers MRs, pipelines, issues,
+branches, tags, and the container registry.
 
 ### LazyGit (git TUI)
 
@@ -237,7 +249,7 @@ systemd (user login)
                  ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
                  │                per-workspace agent; resumes the same session)
                  ├─ term tab  -> shell in the repo root
-                 └─ gitlab tab-> glab-tui (git repos only)
+                 └─ gitlab tab-> gitlab-tui (vim-key GitLab TUI, git repos only)
   └─ user opens a terminal -> `herdr` (TUI client attaches)
        └─ pi agents resume natively via herdr's integration
 ```

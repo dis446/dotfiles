@@ -57,7 +57,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit tmux podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl gcc-c++ -y --skip-unavailable
+sudo dnf install git vim neovim lazygit tmux podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl gcc-c++ make -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
@@ -69,7 +69,24 @@ sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 sudo dnf install cargo -y
 cargo install cargo-binstall -y
 cargo binstall -y zellij
-cargo binstall -y glab-tui-crate
+
+# GitLab TUI (vim-key GitLab browser); needs go + make (installed above)
+git clone -q --depth 1 https://github.com/nospor/gitlab-tui /tmp/gitlab-tui-build 2>/dev/null || true
+make -C /tmp/gitlab-tui-build install PREFIX="$HOME/.local" 2>/dev/null || true
+rm -rf /tmp/gitlab-tui-build
+# config.json: git.and.global server, token from GITLAB_TOKEN when present
+if [ -n "${GITLAB_TOKEN:-}" ]; then
+  mkdir -p "$HOME/.config/gitlab-tui"
+  python3 - "$GITLAB_TOKEN" <<'PYEOF'
+import json, os, sys
+cfg = {"servers": [{"name": "git.and.global", "url": "https://git.and.global", "token": sys.argv[1], "default": True}], "theme": "catppuccin"}
+os.makedirs(os.path.expanduser("~/.config/gitlab-tui"), exist_ok=True)
+with open(os.path.expanduser("~/.config/gitlab-tui/config.json"), "w") as f:
+    json.dump(cfg, f, indent=2)
+PYEOF
+else
+  echo "GITLAB_TOKEN not set — create ~/.config/gitlab-tui/config.json manually (see github.com/nospor/gitlab-tui)"
+fi
 
 curl -f https://zed.dev/install.sh | sh
 
