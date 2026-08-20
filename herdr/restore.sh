@@ -181,7 +181,7 @@ print(rp.get('pane_id', '') or '')
     fi
   fi
 
-  # 4. gitlab tab (glab-tui) — only when the workspace root is a real git repo
+  # 4. gitlab tab (gitlab-tui) — only when the workspace root is a real git repo
   if git -C "$root" rev-parse --show-toplevel >/dev/null 2>&1; then
     gl_tab="$(printf '%s' "$tabs" | python3 -c "
 import json, sys
@@ -204,7 +204,7 @@ print(rp.get('pane_id', '') or '')
       if [ -n "$gl_root" ]; then
         wait_prompt "$gl_root" 8
         json pane run "$gl_root" "gitlab-tui" >/dev/null 2>&1
-        say "  started glab-tui in $gl_root ($git_root)"
+        say "  started gitlab-tui in $gl_root ($git_root)"
       else
         say "  WARN: failed to create gitlab tab"
       fi
