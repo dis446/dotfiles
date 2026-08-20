@@ -2,6 +2,11 @@ mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 link_target() {
   local src="$1"
   local dest="$2"
+  if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+    echo "WARN: source missing, skipping symlink: $src" >&2
+    return 1
+  fi
+  mkdir -p "$(dirname "$dest")"
   rm -rf "$dest"
   ln -s "$src" "$dest"
 }
@@ -24,6 +29,8 @@ link_target "$HOME/dotfiles/pi" "$HOME/.pi"
 link_target "$HOME/dotfiles/.ai" "$HOME/.ai"
 link_target "$HOME/dotfiles/claude" "$HOME/.claude"
 link_target "$HOME/dotfiles/herdr/config.toml" "$HOME/.config/herdr/config.toml"
+# Apply the keybinding to a running herdr server immediately (no-op on fresh installs).
+herdr server reload-config >/dev/null 2>&1 || true
 link_target "$HOME/dotfiles/.editorconfig" "$HOME/.editorconfig"
 sudo_link_target "$HOME/dotfiles/fedora/dnf.conf" "/etc/dnf/dnf.conf"
 mkdir -p "$HOME/.config/lazygit"
