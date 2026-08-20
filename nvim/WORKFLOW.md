@@ -5,64 +5,74 @@
 
 ## Overview
 
-The user runs **one Neovim instance per project**, each in its own **tmux
-session**. All terminal work (shell, lazygit, pi agent) happens **inside
-Neovim** via `Snacks.terminal()`. No tmux panes, no tmux tabs — just one
-terminal window per session, running Neovim.
+The user runs **one herdr workspace per project (repo)**, and each workspace
+contains the standard trio: **Neovim** (main tab), a **pi agent** pane (pi
+tab), and a **terminal** (term tab). herdr is the terminal multiplexer —
+workspaces, tabs, panes, and agents all live in herdr. Neovim is launched
+inside the workspace's main tab; the pi agent and the workspace terminal are
+herdr panes that nvim routes to (`<M-k>` / `<leader>ot`), not floats.
 
 ```
-┌────────────────────────────────────────────────┐
-│ tmux session "gSim"     (1 window, 1 pane)     │
-│ ┌────────────────────────────────────────────┐ │
-│ │  Neovim                                    │ │
-│ │  ┌──────┬────────────────┬──────────────┐  │ │
-│ │  │expl. │  source.ts     │  test.ts     │  │ │
-│ │  │      │                │              │  │ │
-│ │  │      │                │              │  │ │
-│ │  ├──────┴────────────────┴──────────────┤  │ │
-│ │  │ terminal (Snacks, lazygit, or shell) │  │ │
-│ │  └──────────────────────────────────────┘  │ │
-│ └────────────────────────────────────────────┘ │
-└────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────┐
+│ herdr workspace "state-machine"                    │
+│  tab 1 (main):  nvim                               │
+│  tab pi:        pi agent  (alt+k toggles)          │
+│  tab term:      shell / lazygit  (alt+i toggles)   │
+│                                                    │
+│  ┌─────────────┬───────────────────────────────┐   │
+│  │ main        │ pi / term (toggle via nvim)   │   │
+│  └─────────────┴───────────────────────────────┘   │
+└────────────────────────────────────────────────────┘
 ```
 
-## Tmux Sessions = Code Repos
+herdr is mouse-native (click panes/tabs/workspaces) and keyboard-driven. The
+prefix key is `ctrl+b`.
 
-Each code repo gets its own tmux session. Sessions are created/attached with:
+## Herdr Workspaces = Code Repos
 
-```bash
-t <name>     # alias: tmux new-session -A -s <name>
-ts <name>    # alias: tmux new -s <name>
-tl           # list sessions
-ta <name>    # attach to session
-tk <name>    # kill session
-```
+Each code repo gets its own herdr workspace. Workspaces are persistent: the
+headless herdr server keeps every workspace (and its panes) running between
+TUI sessions.
 
-### Current sessions (as of 2026-07-19)
+### Current workspaces
 
-| Session       | Repository / context                          |
-|---------------|-----------------------------------------------|
-| `dotfiles`    | `~/dotfiles` — personal dotfiles (attached)   |
-| `gSim`        | gSim monorepo / core service                  |
-| `gSimClient`  | gSim client service                           |
-| `gSimConfig`  | gSim config service                           |
-| `gSimNaut`    | gSim Naut service                             |
-| `gSimSales`   | gSim Sales service                            |
-| `gSimWeb`     | gSim Web service                              |
-| `home`        | `~` — home directory                          |
-| `middleware`  | Middleware project                            |
-| `vpn`         | VPN management                                |
+| Workspace          | Repository / context                          |
+|--------------------|-----------------------------------------------|
+| `dotfiles`         | `~/dotfiles` — personal dotfiles              |
+| `e2e-performance-tests` | alpha master repo (diagnostics, planning) |
+| `relationStore`    | `back-end/relationStore`                      |
+| `state-machine`    | `back-end/state-machine`                      |
+| `middleware`       | `front-end/formio/middleware`                 |
 
-Tmux session names match repo directory names. Session switching uses
-`prefix + s` (filterable `choose-tree`), and `prefix + (`/`)` cycles prev/next.
+### Keybindings
 
-When restoring after reboot, `tmux-continuum` auto-saves every 15 minutes and
-restores on server start. Systemd user service handles auto-start on login.
+| Key                | Action                                       |
+|--------------------|----------------------------------------------|
+| `prefix+w`         | Workspace navigation (switch workspaces)     |
+| `prefix+g`         | Goto picker                                  |
+| `prefix+c`         | New tab                                      |
+| `prefix+v` / `prefix+-` | Split right / down                      |
+| `prefix+h/j/k/l`   | Move between panes                           |
+| `prefix+b`         | Toggle sidebar (agents list)                 |
+| `prefix+shift+n/w/d` | New / rename / close workspace            |
+| `prefix+q`         | Detach (everything keeps running)            |
+| `alt+k`            | Toggle the pi agent pane (pi tab)            |
+| `alt+i`            | Toggle the workspace terminal (term tab)     |
+
+`alt+k`/`alt+i` are herdr-level keybindings wired to
+`herdr/pi-toggle.sh` / `herdr/term-toggle.sh` (park the pane in its own tab;
+the agent keeps running while hidden). When focus is inside nvim, the same
+chords route through nvim's `<M-k>` / `<leader>ot` handlers instead (see
+below).
+
+The Agent sidebar (`prefix+b`) shows every pi agent across all workspaces with
+live state (working / idle / blocked), so you can monitor multiple concurrent
+agents in real time.
 
 ## Inside Neovim: The Full Stack
 
-One Neovim instance runs in the single tmux pane. Everything else lives inside
-Neovim:
+One Neovim instance runs in the workspace's main tab. Everything else lives
+inside Neovim or in the workspace's herdr panes:
 
 ### File navigation
 
@@ -102,16 +112,17 @@ a tab bar at the top showing open buffers:
 
 This is the primary way to switch between files within a project.
 
-### Terminal (Snacks)
+### Terminal (herdr term tab, Snacks fallback)
 
-All terminal access goes through `Snacks.terminal()` — never outside Neovim.
+The workspace has **one terminal** in its own `term` tab (herdr-managed). From
+nvim, `<leader>ot` toggles it:
 
-| Key               | Terminal              |
-|-------------------|-----------------------|
-| `<leader>ot`      | Toggle bottom split   |
-| `<leader>oT`      | Floating terminal     |
+| Key               | In herdr (`HERDR_ENV=1`)    | Outside herdr      |
+|-------------------|-----------------------------|--------------------|
+| `<leader>ot`      | Toggle the herdr term tab   | Snacks bottom split|
+| `<M-k>`           | Focus the herdr pi pane     | Snacks float (pi)  |
 
-Common uses inside the snack terminal:
+Common uses in the workspace terminal:
 - Running build/watch commands (e.g., `npm run dev`, `./mvnw quarkus:dev`)
 - Git operations outside lazygit
 - Running tests
@@ -131,16 +142,20 @@ here. No git CLI from the terminal for day-to-day work.
 
 ### Pi coding agent
 
-AI coding assistant integrated via `pi.lua` (`dis446.pi`). Opens a floating
-Snacks terminal running `pi -c` in the repo's git root:
+AI coding assistant integrated via `pi.lua` (`dis446.pi`). Inside herdr, pi
+runs as a **real herdr pane** (workspace `pi` tab); outside herdr it falls back
+to a floating Snacks terminal:
 
 ```bash
-<M-k>          # Toggle Pi in floating window
+<M-k>          # herdr: focus/split the pi pane   outside herdr: float
+alt+k          # herdr-level: toggle the pi tab (works even from a shell pane)
 ```
 
 Pi auto-detects the git root of the current file (or falls back to `cwd`) and
 creates per-repo session data under
-`~/.local/state/nvim/pi-sessions/<repo-name>-<hash>/`.
+`~/.local/state/nvim/pi-sessions/<repo-name>-<hash>/`. The same deterministic
+session dir is used by the boot restore, so pi resumes the same session after a
+server restart.
 
 ### Sessions (auto-session)
 
@@ -180,42 +195,45 @@ mode).
 
 ## Project Switch Workflow
 
-1. **Switch tmux session:** `prefix + s` (type to filter, Enter)
-2. **Session is ready:** tmux-resurrect restored it, continuum restarted Neovim
+1. **Switch workspace:** `prefix+w` (or the goto picker `prefix+g`), pick the
+   workspace — the server kept it running, so panes are already alive
+2. **Neovim is still running** in the main tab (no restart needed)
 3. **auto-session restores** buffer list, cursor positions, and window layout
 4. **LSP re-attaches** automatically via `post_restore` hook
 5. **Start working:** `<leader>ff` to find files, `<leader>fs` to grep, etc.
 
 No need to manually start Neovim, reopen files, or restart language servers
-when coming back to a project.
+when coming back to a project. `prefix+q` detaches (leaves everything running);
+the Agent sidebar shows pi agents across all workspaces at a glance.
 
 ## Boot Flow (after system reboot)
 
 ```
 systemd (user login)
-  └─ tmux server (continuum boot)
-       ├─ tmux-resurrect restores all sessions
-       │    └─ each session: 1 window, 1 pane
-       │         └─ neovim starts (auto-restore)  ← continuum's @resurrect-strategy-vim 'session'
-       │              └─ auto-session restores buffers
-       │              └─ LSP re-attaches
-       └─ continuum auto-save timer starts (every 15 min)
+  └─ herdr-server.service (headless server, `herdr/systemd/`)
+       └─ ExecStartPost: restore.sh  (herdr/restore.sh, idempotent)
+            └─ per workspace, ensures the trio:
+                 ├─ main tab  -> nvim .  (auto-session restores buffers,
+                 │                           LSP re-attaches)
+                 ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
+                 │                per-workspace agent; resumes the same session)
+                 └─ term tab  -> shell in the repo root
+  └─ user opens a terminal -> `herdr` (TUI client attaches)
+       └─ pi agents resume natively via herdr's integration
 ```
 
-Persistent Neovim sessions are handled by `tmux-resurrect`'s vim strategy (not
-auto-session) — continuum triggers `nvim --headless -c "SessionRestore"` via
-resurrect's saved vim session file.
-
-Auto-session handles fine-grained buffer/window layout within the running
-Neovim instance (daily saves on exit). Resurrect/continuum handles the
-cross-reboot persistence of the tmux + Neovim state.
+Workspace/panel topology (cwd, tab labels, pane layout) persists in herdr's
+session file. Pi sessions persist in `~/.local/state/nvim/pi-sessions/` and
+resume natively when the client attaches. Neovim instances are re-launched by
+`restore.sh` and rebuild their buffers via auto-session.
 
 ## Constraints to Remember
 
-- **One terminal per session:** no tmux panes, no tmux tabs, no second tmux
-  window — just the single Neovim instance
-- **One repo per session:** never open files from different repos in the same
+- **One workspace per repo:** never open files from different repos in the same
   Neovim instance
+- **One terminal per workspace:** the herdr `term` tab — no extra shell panes
+- **Pi lives in its herdr pane:** `<M-k>` / `alt+k` focuses it; agents keep
+  running when the tab is hidden (monitor via the Agent sidebar)
 - **LazyGit is the git interface:** the git CLI is rarely used directly
-- **Pi runs inside Neovim:** `Alt+K` opens the pi agent in a floating terminal
-  inside the current Neovim instance, sharing the repo context
+- **herdr is the multiplexer:** tmux/zellij sessions are not used; everything
+  terminal-related is herdr workspaces/tabs/panes
