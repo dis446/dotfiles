@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# Create MRs to dev for every worktree in a feature.
+#   - title/description come from BRIEF.md (line 1 = title, rest = body)
+#   - skips worktrees with uncommitted changes or an existing MR
+#   - never merges; MRs land in your review queue
+#
+# Usage: feature-mr <name> [--dry-run]
+set -u
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=feature-lib.sh
+. "$SCRIPT_DIR/feature-lib.sh"
+
+NAME="${1:-}"
+[ -n "$NAME" ] || { echo "usage: feature-mr <name> [--dry-run]" >&2; exit 1; }
+DRY=0
+[ "${2:-}" = "--dry-run" ] && DRY=1
+
+ROOT="$(feature_root "$NAME")"
+[ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
+
+TITLE="$(sed -n '1p' "$ROOT/BRIEF.md")"
+[ -n "$TITLE" ] || { echo "BRIEF.md first line (MR title) is empty in $ROOT" >&2; exit 1; }
+DESC="$(sed '1,1d' "$ROOT/BRIEF.md")"
+
+declare -a RESULTS
+shopt -s nullglob
+for wt in "$ROOT"/*/; do
+  [ -e "$wt/.git" ] || continue
+  repo="$(basename "$wt")"
+  branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
+  if [ "$branch" != "feat/$NAME" ]; then
+    echo "skip $repo: on '$branch', not feat/$NAME" >&2
+    continue
+  fi
+  if [ -n "$(git -C "$wt" status --porcelain)" ]; then
+    echo "SKIP $repo: uncommitted changes (commit first)" >&2
+    RESULTS+=("$repo | SKIPPED: uncommitted changes")
+    continue
+  fi
+  glab_repo="$(glab_repo_of "$wt")"
+  target="dev"
+  git -C "$wt" show-ref --verify --quiet refs/remotes/origin/dev || target="$(base_branch "$wt" | sed 's|^origin/||')"
+  [ -n "$target" ] || target="dev"
+
+  if [ "$DRY" = 1 ]; then
+    echo "[dry-run] $repo: git push -u origin feat/$NAME; glab mr create --source-branch feat/$NAME --target-branch $target --title '$TITLE'"
+    RESULTS+=("$repo | DRY-RUN")
+    continue
+  fi
+
+  # existing MR?
+  if [ -n "$(glab mr list --source-branch "feat/$NAME" --repo "$glab_repo" 2>/dev/null)" ]; then
+    echo "SKIP $repo: MR already exists for feat/$NAME" >&2
+    RESULTS+=("$repo | MR already exists")
+    continue
+  fi
+
+  echo "== $repo"
+  git -C "$wt" push -u origin "feat/$NAME" 2>&1 | sed 's/^/  push: /'
+  out="$(glab mr create --source-branch "feat/$NAME" --target-branch "$target" \
+    --title "$TITLE" --description "$DESC" --repo "$glab_repo" 2>&1)"
+  if [ $? -eq 0 ] && [ -n "$out" ]; then
+    url="$(printf '%s\n' "$out" | tail -1)"
+    echo "  MR: $url"
+    RESULTS+=("$repo | $url")
+  else
+    echo "  FAILED: $out" >&2
+    RESULTS+=("$repo | FAILED: $(printf '%s' "$out" | tail -1)")
+  fi
+done
+
+echo
+echo "=== summary ==="
+for r in "${RESULTS[@]}"; do echo "  $r"; done
