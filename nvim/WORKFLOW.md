@@ -235,5 +235,5 @@ resume natively when the client attaches. Neovim instances are re-launched by
 - **Pi lives in its herdr pane:** `<M-k>` / `alt+k` focuses it; agents keep
   running when the tab is hidden (monitor via the Agent sidebar)
 - **LazyGit is the git interface:** the git CLI is rarely used directly
-- **herdr is the multiplexer:** tmux/zellij sessions are not used; everything
-  terminal-related is herdr workspaces/tabs/panes
+- **herdr is the multiplexer:** everything terminal-related lives in herdr
+  workspaces/tabs/panes — nothing else is used for session management
