@@ -5,6 +5,13 @@ After=default.target
 [Service]
 Type=simple
 Environment=HERDR_BIN_PATH=%h/.local/share/mise/installs/herdr/latest/herdr
+# GUI session env: systemd user services get a minimal environment by default.
+# Without these, panes lack WAYLAND_DISPLAY/DISPLAY and Neovim's clipboard
+# providers (wl-copy/xsel) report "No provider" -- yy yanks silently no-op.
+# Adjust values if you switch session types (e.g. X11-only: drop WAYLAND_DISPLAY).
+Environment=WAYLAND_DISPLAY=wayland-0
+Environment=DISPLAY=:0
+Environment=XDG_SESSION_TYPE=wayland
 ExecStart=%h/dotfiles/herdr/server.sh
 ExecStartPost=%h/dotfiles/herdr/restore.sh
 Restart=on-failure
