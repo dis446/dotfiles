@@ -1,0 +1,14 @@
+[Unit]
+Description=Herdr headless server (persistent workspaces, agents, and terminals)
+After=default.target
+
+[Service]
+Type=simple
+Environment=HERDR_BIN_PATH=%h/.local/share/mise/installs/herdr/latest/herdr
+ExecStart=%h/dotfiles/herdr/server.sh
+ExecStartPost=%h/dotfiles/herdr/restore.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

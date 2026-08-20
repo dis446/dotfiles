@@ -31,6 +31,13 @@ link_target "$HOME/dotfiles/claude" "$HOME/.claude"
 link_target "$HOME/dotfiles/herdr/config.toml" "$HOME/.config/herdr/config.toml"
 # Apply the keybinding to a running herdr server immediately (no-op on fresh installs).
 herdr server reload-config >/dev/null 2>&1 || true
+
+# herdr headless server + boot restore (nvim/pi/terminal per workspace)
+mkdir -p "$HOME/.config/systemd/user"
+cp "$HOME/dotfiles/herdr/systemd/herdr-server.service" "$HOME/.config/systemd/user/herdr-server.service"
+systemctl --user daemon-reload
+systemctl --user enable herdr-server.service
+
 link_target "$HOME/dotfiles/.editorconfig" "$HOME/.editorconfig"
 sudo_link_target "$HOME/dotfiles/fedora/dnf.conf" "/etc/dnf/dnf.conf"
 mkdir -p "$HOME/.config/lazygit"
