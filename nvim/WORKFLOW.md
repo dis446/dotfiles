@@ -19,7 +19,7 @@ workspace terminal, and the GitLab TUI are herdr panes that nvim routes to
 │  tab 1 (main):  nvim                               │
 │  tab pi:        pi agent  (alt+k toggles)          │
 │  tab term:      shell / lazygit  (alt+i toggles)   │
-│  tab gitlab:    glab-tui  (alt+g toggles)          │
+│  tab gitlab:    gitlab-tui  (alt+g toggles)          │
 │                                                    │
 │  ┌─────────────┬───────────────────────────────┐   │
 │  │ main        │ pi / term / gitlab (toggles)  │   │

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Toggle the workspace GitLab TUI pane, bound to alt+g in herdr/config.toml.
 #
-# One glab-tui per herdr workspace, living in its own tab labeled "gitlab".
-#   bring up:  focus the "gitlab" tab (creates it on first use, launches glab-tui)
+# One gitlab-tui per herdr workspace, living in its own tab labeled "gitlab".
+#   bring up:  focus the "gitlab" tab (creates it on first use, launches gitlab-tui)
 #   dismiss:   focus the main tab
 #
 # herdr spawns custom shell commands detached with HERDR_ACTIVE_PANE_ID /
@@ -41,7 +41,7 @@ print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
 ")"
 
 if [ -z "$gl_tab" ]; then
-    # First use: create the gitlab tab (glab-tui in the focused pane's cwd)
+    # First use: create the gitlab tab (gitlab-tui in the focused pane's cwd)
     cwd="$(json pane get "$focused" | python3 -c "
 import json, sys
 try:
