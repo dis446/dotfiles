@@ -8,6 +8,13 @@ delivery = "system"
 [ui]
 show_agent_labels_on_pane_borders = true
 
+# Show pi-subagents async-run state (busy/blocked metadata) in the Agent sidebar.
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", "workspace", "tab"],
+  ["agent", "state_text"],
+]
+
 # alt+k: collapse/expand the pi agent pane (see herdr/pi-toggle.sh).
 # Collapse parks pi in its own tab (agent keeps running); anywhere else the
 # chord is forwarded to the focused pane, so nvim's <M-k> handler still works.
