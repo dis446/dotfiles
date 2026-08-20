@@ -20,6 +20,7 @@ done
 
 ROOT="$(feature_root "$NAME")"
 [ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
+BRANCH="$(feature_branch "$NAME")"
 
 confirm() {
   [ "$YES" = 1 ] && return 0
@@ -54,10 +55,10 @@ for wt in "$ROOT"/*/; do
       && { echo "  removed worktree: $wt"; removed=$((removed+1)); } \
       || echo "WARN: could not remove $wt" >&2
     if [ "$KEEP" != 1 ]; then
-      if git -C "$main" branch -d "feat/$NAME" 2>/dev/null | grep -q 'Deleted'; then
-        echo "  deleted branch feat/$NAME in $(basename "$main")"
+      if git -C "$main" branch -d "$BRANCH" 2>/dev/null | grep -q 'Deleted'; then
+        echo "  deleted branch $BRANCH in $(basename "$main")"
       else
-        echo "  (branch feat/$NAME not merged in $(basename "$main"); kept)"
+        echo "  (branch $BRANCH not merged in $(basename "$main"); kept)"
       fi
     fi
   else

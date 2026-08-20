@@ -18,6 +18,7 @@ for d in "$FEATURES_ROOT"/*/; do
     [ -e "$wt/.git" ] || continue
     repo="$(basename "$wt")"
     branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
+    [ "$branch" = "$(feature_branch "$name")" ] || branch="$branch (NONSTANDARD)"
     dirty="$(git -C "$wt" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
     ahead="$(git -C "$wt" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
     behind="$(git -C "$wt" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
