@@ -107,5 +107,5 @@ outweighs the parallelism, anything you can do in one tool call chain.
   `fstart`/`fmr`/`fstop`/`flist`). `feature-list` shows all features.
 - The user starts features with `/feature-start <name>` from their master
   (e2e-performance-tests) pi session; that spawns you.
-- Feature names are `[a-z0-9-]`; branch = `feat/<name>`; MRs target `dev` via
+- Feature names are `[A-Za-z0-9-]` (case-sensitive); branch = `feat/<name>`; MRs target `dev` via
   glab; nothing is ever auto-merged.

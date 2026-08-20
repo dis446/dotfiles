@@ -12,7 +12,7 @@ hdr="${HERDR_BIN_PATH:-herdr}"
 
 json() { "$hdr" "$@" 2>/dev/null; }
 
-feature_name_valid() { [[ "$1" =~ ^[a-z0-9][a-z0-9-]*$ ]]; }
+feature_name_valid() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9-]*$ ]]; }
 
 feature_root() { printf '%s/%s' "$FEATURES_ROOT" "$1"; }
 
