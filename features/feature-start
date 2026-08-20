@@ -60,6 +60,9 @@ if [ -e "$ROOT" ]; then
       echo "  worktree (new branch feat/$NAME off $base): $wt"
     fi
   done
+  # backfill shared knowledge dirs for existing feature roots too
+  link_knowledge_dirs "$ROOT"
+  [ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/plans/$NAME"
   exit 0
 fi
 
@@ -87,6 +90,11 @@ done
     printf '%s\n' '- (none yet — feature master discovers repos from the requirements)'
   fi
 } > "$ROOT/BRIEF.md"
+
+# shared knowledge dirs: symlink plans/, docs/, .agents/ from the master repo,
+# and give this feature its dedicated plan folder (plans/<name>)
+link_knowledge_dirs "$ROOT"
+[ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/plans/$NAME"
 
 # worktrees
 for d in "${DIRS[@]}"; do
@@ -156,6 +164,7 @@ if [ ${#DIRS[@]} -gt 0 ]; then
   echo "feature '$NAME' ready:"
   echo "  root:    $ROOT"
   echo "  brief:   $ROOT/BRIEF.md  (edit line 1 = MR title)"
+  echo "  plans:   $ROOT/plans/$NAME  (shared -> $E2E_MAIN/plans/$NAME)"
   echo "  worktrees:"
   for d in "${DIRS[@]}"; do echo "    $ROOT/$(basename "$d")  (branch feat/$NAME)"; done
   echo "next: prompt the feature-lead pi in the feature workspace, or run: feature-mr $NAME"
