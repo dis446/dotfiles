@@ -6,11 +6,12 @@
 ## Overview
 
 The user runs **one herdr workspace per project (repo)**, and each workspace
-contains the standard trio: **Neovim** (main tab), a **pi agent** pane (pi
-tab), and a **terminal** (term tab). herdr is the terminal multiplexer —
-workspaces, tabs, panes, and agents all live in herdr. Neovim is launched
-inside the workspace's main tab; the pi agent and the workspace terminal are
-herdr panes that nvim routes to (`<M-k>` / `<leader>ot`), not floats.
+contains the standard set: **Neovim** (main tab), a **pi agent** pane (pi
+tab), a **terminal** (term tab), and a **GitLab TUI** pane (gitlab tab). herdr
+is the terminal multiplexer — workspaces, tabs, panes, and agents all live in
+herdr. Neovim is launched inside the workspace's main tab; the pi agent, the
+workspace terminal, and the GitLab TUI are herdr panes that nvim routes to
+(`<M-k>` / `<leader>ot`) or that you toggle with `alt+k` / `alt+i` / `alt+g`.
 
 ```
 ┌────────────────────────────────────────────────────┐
@@ -18,9 +19,10 @@ herdr panes that nvim routes to (`<M-k>` / `<leader>ot`), not floats.
 │  tab 1 (main):  nvim                               │
 │  tab pi:        pi agent  (alt+k toggles)          │
 │  tab term:      shell / lazygit  (alt+i toggles)   │
+│  tab gitlab:    glab-tui  (alt+g toggles)          │
 │                                                    │
 │  ┌─────────────┬───────────────────────────────┐   │
-│  │ main        │ pi / term (toggle via nvim)   │   │
+│  │ main        │ pi / term / gitlab (toggles)  │   │
 │  └─────────────┴───────────────────────────────┘   │
 └────────────────────────────────────────────────────┘
 ```
@@ -36,34 +38,35 @@ TUI sessions.
 
 ### Current workspaces
 
-| Workspace          | Repository / context                          |
-|--------------------|-----------------------------------------------|
-| `dotfiles`         | `~/dotfiles` — personal dotfiles              |
+| Workspace               | Repository / context                      |
+| ----------------------- | ----------------------------------------- |
+| `dotfiles`              | `~/dotfiles` — personal dotfiles          |
 | `e2e-performance-tests` | alpha master repo (diagnostics, planning) |
-| `relationStore`    | `back-end/relationStore`                      |
-| `state-machine`    | `back-end/state-machine`                      |
-| `middleware`       | `front-end/formio/middleware`                 |
+| `relationStore`         | `back-end/relationStore`                  |
+| `state-machine`         | `back-end/state-machine`                  |
+| `middleware`            | `front-end/formio/middleware`             |
 
 ### Keybindings
 
-| Key                | Action                                       |
-|--------------------|----------------------------------------------|
-| `prefix+w`         | Workspace navigation (switch workspaces)     |
-| `prefix+g`         | Goto picker                                  |
-| `prefix+c`         | New tab                                      |
-| `prefix+v` / `prefix+-` | Split right / down                      |
-| `prefix+h/j/k/l`   | Move between panes                           |
-| `prefix+b`         | Toggle sidebar (agents list)                 |
-| `prefix+shift+n/w/d` | New / rename / close workspace            |
-| `prefix+q`         | Detach (everything keeps running)            |
-| `alt+k`            | Toggle the pi agent pane (pi tab)            |
-| `alt+i`            | Toggle the workspace terminal (term tab)     |
+| Key                     | Action                                   |
+| ----------------------- | ---------------------------------------- |
+| `prefix+w`              | Workspace navigation (switch workspaces) |
+| `prefix+g`              | Goto picker                              |
+| `prefix+c`              | New tab                                  |
+| `prefix+v` / `prefix+-` | Split right / down                       |
+| `prefix+h/j/k/l`        | Move between panes                       |
+| `prefix+b`              | Toggle sidebar (agents list)             |
+| `prefix+shift+n/w/d`    | New / rename / close workspace           |
+| `prefix+q`              | Detach (everything keeps running)        |
+| `alt+k`                 | Toggle the pi agent pane (pi tab)        |
+| `alt+i`                 | Toggle the workspace terminal (term tab) |
+| `alt+g`                 | Toggle the GitLab TUI pane (gitlab tab)  |
 
-`alt+k`/`alt+i` are herdr-level keybindings wired to
-`herdr/pi-toggle.sh` / `herdr/term-toggle.sh` (park the pane in its own tab;
-the agent keeps running while hidden). When focus is inside nvim, the same
-chords route through nvim's `<M-k>` / `<leader>ot` handlers instead (see
-below).
+`alt+k`/`alt+i`/`alt+g` are herdr-level keybindings wired to
+`herdr/pi-toggle.sh` / `herdr/term-toggle.sh` / `herdr/gitlab-toggle.sh`
+(park the pane in its own tab; the agent keeps running while hidden). When
+focus is inside nvim, the same chords route through nvim's `<M-k>` /
+`<leader>ot` handlers instead (see below).
 
 The Agent sidebar (`prefix+b`) shows every pi agent across all workspaces with
 live state (working / idle / blocked), so you can monitor multiple concurrent
@@ -76,14 +79,14 @@ inside Neovim or in the workspace's herdr panes:
 
 ### File navigation
 
-| Action               | Key               |
-|----------------------|-------------------|
-| File explorer        | `<leader>ee`      |
-| Reveal current file  | `<leader>ef`      |
-| Find file            | `<leader>ff`      |
-| Recent files         | `<leader>fr`      |
-| Grep (text search)   | `<leader>fs`      |
-| Grep word at cursor  | `<leader>fc`      |
+| Action              | Key          |
+| ------------------- | ------------ |
+| File explorer       | `<leader>ee` |
+| Reveal current file | `<leader>ef` |
+| Find file           | `<leader>ff` |
+| Recent files        | `<leader>fr` |
+| Grep (text search)  | `<leader>fs` |
+| Grep word at cursor | `<leader>fc` |
 
 All powered by `Snacks.picker()`. The explorer is a sidebar (0.66 width, no
 preview). File pickers exclude `node_modules/`, `.next/`, `.turbo/`,
@@ -93,22 +96,22 @@ preview). File pickers exclude `node_modules/`, `.next/`, `.turbo/`,
 
 Neovim panes (splits) for side-by-side editing of related files:
 
-| Keys                  | Action               |
-|-----------------------|----------------------|
-| `<C-w>s`              | Split horizontal     |
-| `<C-w>v`              | Split vertical       |
-| `<C-w>h/j/k/l`        | Move between panes   |
-| `<C-w>c` / `<C-w>o`  | Close / close others |
+| Keys                | Action               |
+| ------------------- | -------------------- |
+| `<C-w>s`            | Split horizontal     |
+| `<C-w>v`            | Split vertical       |
+| `<C-w>h/j/k/l`      | Move between panes   |
+| `<C-w>c` / `<C-w>o` | Close / close others |
 
 Neovim tabs aren't used as OS-style tabs. Instead, **bufferline.nvim** provides
 a tab bar at the top showing open buffers:
 
-| Keys              | Action              |
-|-------------------|---------------------|
-| `<M-h>` / `<M-l>` | Previous/next buffer|
-| `<leader>tw`      | Close buffer        |
-| `<leader>to`      | Close other buffers |
-| `<leader>t1-9`    | Go to buffer 1-9    |
+| Keys              | Action               |
+| ----------------- | -------------------- |
+| `<M-h>` / `<M-l>` | Previous/next buffer |
+| `<leader>tw`      | Close buffer         |
+| `<leader>to`      | Close other buffers  |
+| `<leader>t1-9`    | Go to buffer 1-9     |
 
 This is the primary way to switch between files within a project.
 
@@ -117,16 +120,31 @@ This is the primary way to switch between files within a project.
 The workspace has **one terminal** in its own `term` tab (herdr-managed). From
 nvim, `<leader>ot` toggles it:
 
-| Key               | In herdr (`HERDR_ENV=1`)    | Outside herdr      |
-|-------------------|-----------------------------|--------------------|
-| `<leader>ot`      | Toggle the herdr term tab   | Snacks bottom split|
-| `<M-k>`           | Focus the herdr pi pane     | Snacks float (pi)  |
+| Key          | In herdr (`HERDR_ENV=1`)  | Outside herdr       |
+| ------------ | ------------------------- | ------------------- |
+| `<leader>ot` | Toggle the herdr term tab | Snacks bottom split |
+| `<M-k>`      | Focus the herdr pi pane   | Snacks float (pi)   |
 
 Common uses in the workspace terminal:
+
 - Running build/watch commands (e.g., `npm run dev`, `./mvnw quarkus:dev`)
 - Git operations outside lazygit
 - Running tests
 - Quick shell commands
+
+### GitLab TUI (glab-tui)
+
+Every workspace has a **glab-tui** pane in its own `gitlab` tab — the GitLab
+web UI in your terminal (issues, MRs, pipelines, runners, releases, todos):
+
+```bash
+alt+g          # toggle the gitlab tab (herdr-level, works from any pane)
+```
+
+glab-tui auto-detects the workspace's project from the `origin` remote of the
+repo root, and delegates all API calls to `glab` (already authenticated).
+Useful for checking your feature's MRs and pipelines without leaving the
+terminal.
 
 ### LazyGit (git TUI)
 
@@ -160,6 +178,7 @@ server restart.
 ### Sessions (auto-session)
 
 **auto-session.nvim** saves/restores Neovim state per directory:
+
 - **Auto-restore** when opening Neovim in a project directory (`nvim .`)
 - **Auto-save** on exit
 - Suppressed for `~/`, `~/Dev/`, `~/Downloads/`, etc. — only restores in actual
@@ -168,12 +187,12 @@ server restart.
 
 ### Build / run tasks (overseer.nvim)
 
-| Keys               | Action                  |
-|--------------------|-------------------------|
-| `<leader>mm`       | Run task                |
-| `<leader>mr`       | Rerun last task         |
-| `<leader>mk`       | Task actions            |
-| `<leader>m,`       | Toggle task list panel  |
+| Keys         | Action                 |
+| ------------ | ---------------------- |
+| `<leader>mm` | Run task               |
+| `<leader>mr` | Rerun last task        |
+| `<leader>mk` | Task actions           |
+| `<leader>m,` | Toggle task list panel |
 
 A task list + output panel opens at the bottom when a task runs, showing status
 and live output.
@@ -182,13 +201,13 @@ and live output.
 
 Debugging uses `nvim-dap` with adapters via Mason:
 
-| Keys               | Action                  |
-|--------------------|-------------------------|
-| `<leader>rd` / F5  | Start / continue        |
-| F10                | Step over               |
-| F11                | Step into               |
-| `<leader>dt`       | Toggle breakpoint       |
-| `<leader>du`       | Toggle DAP UI panels    |
+| Keys              | Action               |
+| ----------------- | -------------------- |
+| `<leader>rd` / F5 | Start / continue     |
+| F10               | Step over            |
+| F11               | Step into            |
+| `<leader>dt`      | Toggle breakpoint    |
+| `<leader>du`      | Toggle DAP UI panels |
 
 For Quarkus projects: JVM remote attach on port 5005 (standard Quarkus dev
 mode).
@@ -212,12 +231,13 @@ the Agent sidebar shows pi agents across all workspaces at a glance.
 systemd (user login)
   └─ herdr-server.service (headless server, `herdr/systemd/`)
        └─ ExecStartPost: restore.sh  (herdr/restore.sh, idempotent)
-            └─ per workspace, ensures the trio:
+            └─ per workspace, ensures the set:
                  ├─ main tab  -> nvim .  (auto-session restores buffers,
                  │                           LSP re-attaches)
                  ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
                  │                per-workspace agent; resumes the same session)
-                 └─ term tab  -> shell in the repo root
+                 ├─ term tab  -> shell in the repo root
+                 └─ gitlab tab-> glab-tui (git repos only)
   └─ user opens a terminal -> `herdr` (TUI client attaches)
        └─ pi agents resume natively via herdr's integration
 ```
@@ -232,6 +252,8 @@ resume natively when the client attaches. Neovim instances are re-launched by
 - **One workspace per repo:** never open files from different repos in the same
   Neovim instance
 - **One terminal per workspace:** the herdr `term` tab — no extra shell panes
+- **One GitLab TUI per workspace:** the herdr `gitlab` tab (`alt+g`) — repo
+  context auto-detected from the workspace root
 - **Pi lives in its herdr pane:** `<M-k>` / `alt+k` focuses it; agents keep
   running when the tab is hidden (monitor via the Agent sidebar)
 - **LazyGit is the git interface:** the git CLI is rarely used directly

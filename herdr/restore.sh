@@ -180,6 +180,38 @@ print(rp.get('pane_id', '') or '')
       say "  WARN: failed to create pi tab"
     fi
   fi
+
+  # 4. gitlab tab (glab-tui) — only when the workspace root is a real git repo
+  if git -C "$root" rev-parse --show-toplevel >/dev/null 2>&1; then
+    gl_tab="$(printf '%s' "$tabs" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+ws = '$ws'
+print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
+            if t.get('workspace_id') == ws and t.get('label') == 'gitlab'), ''))
+")"
+    if [ -z "$gl_tab" ]; then
+      created="$(json tab create --workspace "$ws" --label gitlab --cwd "$git_root" --no-focus 2>/dev/null)"
+      gl_root="$(printf '%s' "$created" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    raise SystemExit
+rp = d.get('result', {}).get('root_pane') or {}
+print(rp.get('pane_id', '') or '')
+")"
+      if [ -n "$gl_root" ]; then
+        wait_prompt "$gl_root" 8
+        json pane run "$gl_root" "glab-tui" >/dev/null 2>&1
+        say "  started glab-tui in $gl_root ($git_root)"
+      else
+        say "  WARN: failed to create gitlab tab"
+      fi
+    fi
+  else
+    say "  skip gitlab tab: not a git repo ($root)"
+  fi
 done
 
 say "done"
