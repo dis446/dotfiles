@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# List all features with per-worktree status.
+set -u
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=feature-lib.sh
+. "$SCRIPT_DIR/feature-lib.sh"
+
+[ -d "$FEATURES_ROOT" ] || { echo "no features yet ($FEATURES_ROOT)"; exit 0; }
+
+found=0
+shopt -s nullglob
+for d in "$FEATURES_ROOT"/*/; do
+  found=1
+  name="$(basename "$d")"
+  title="$(sed -n '1p' "$d/BRIEF.md" 2>/dev/null)"
+  echo "== $name  (${title:-no brief})"
+  for wt in "$d"/*/; do
+    [ -e "$wt/.git" ] || continue
+    repo="$(basename "$wt")"
+    branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
+    dirty="$(git -C "$wt" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+    ahead="$(git -C "$wt" rev-list --count '@{u}..HEAD' 2>/dev/null || echo '?')"
+    behind="$(git -C "$wt" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo '?')"
+    printf '    %-40s [%s] dirty:%s ahead:%s behind:%s\n' "$repo" "$branch" "$dirty" "$ahead" "$behind"
+  done
+done
+[ "$found" = 1 ] || echo "no features yet ($FEATURES_ROOT)"

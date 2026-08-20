@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# Start a new alpha feature:
+#   - creates ~/Code/and/alpha/features/<name>/ (or $FEATURES_ROOT)
+#   - one git worktree per touched repo, branch feat/<name> off origin/dev
+#   - scaffolds BRIEF.md (first line = MR title)
+#   - opens a herdr workspace: nvim tab per repo, pi feature-lead tab, term tab
+#
+# Usage: feature-start <name> [repo ...] [--no-focus]
+#   repos default to the current git repo. Repos accept basenames
+#   (e.g. state-machine), alpha-relative paths (back-end/state-machine),
+#   or absolute paths.
+set -u
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=feature-lib.sh
+. "$SCRIPT_DIR/feature-lib.sh"
+
+NAME="${1:-}"
+[ -n "$NAME" ] || { echo "usage: feature-start <name> [repo ...] [--no-focus]" >&2; exit 1; }
+shift
+feature_name_valid "$NAME" || { echo "invalid feature name '$NAME' (use [a-z0-9][a-z0-9-]*)" >&2; exit 1; }
+
+FOCUS=1
+REPOS=()
+for a in "$@"; do
+  [ "$a" = "--no-focus" ] && { FOCUS=0; continue; }
+  REPOS+=("$a")
+done
+if [ ${#REPOS[@]} -eq 0 ]; then
+  cur="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  [ -n "$cur" ] && REPOS=("$cur")
+fi
+[ ${#REPOS[@]} -gt 0 ] || { echo "no repos given and not inside a git repo" >&2; exit 1; }
+
+ROOT="$(feature_root "$NAME")"
+[ -e "$ROOT" ] && { echo "feature '$NAME' already exists: $ROOT" >&2; exit 1; }
+mkdir -p "$ROOT" || exit 1
+
+# resolve repos
+declare -a DIRS
+for r in "${REPOS[@]}"; do
+  d="$(resolve_repo_dir "$r")" || { echo "cannot resolve repo: $r" >&2; rmdir "$ROOT" 2>/dev/null; exit 1; }
+  DIRS+=("$d")
+done
+
+# BRIEF.md scaffold: line 1 = MR title, rest = description
+{
+  printf 'feat(%s): <one-line summary>\n\n## What\n\n<describe the feature. the first line above becomes the MR title.>\n\n## Touched repos\n\n' "$NAME"
+  for d in "${DIRS[@]}"; do printf -- '- %s\n' "$(basename "$d")"; done
+} > "$ROOT/BRIEF.md"
+
+# worktrees
+for d in "${DIRS[@]}"; do
+  base="$(base_branch "$d")" || { echo "cannot determine base branch for $d" >&2; exit 1; }
+  wt="$ROOT/$(basename "$d")"
+  echo "== $(basename "$d")"
+  if [ -e "$wt/.git" ]; then
+    echo "  (worktree already exists: $wt)"
+  elif git -C "$d" show-ref --verify --quiet "refs/heads/feat/$NAME"; then
+    git -C "$d" worktree add "$wt" "feat/$NAME" || { echo "  worktree add failed: $d" >&2; exit 1; }
+    echo "  worktree (existing branch): $wt"
+  elif git -C "$d" show-ref --verify --quiet "refs/remotes/origin/feat/$NAME"; then
+    git -C "$d" worktree add --track -b "feat/$NAME" "$wt" "origin/feat/$NAME" || { echo "  worktree add failed: $d" >&2; exit 1; }
+    echo "  worktree (tracking origin): $wt"
+  else
+    git -C "$d" fetch -q origin dev 2>/dev/null || true
+    git -C "$d" worktree add -b "feat/$NAME" "$wt" "$base" || { echo "  worktree add failed: $d" >&2; exit 1; }
+    echo "  worktree (new branch feat/$NAME off $base): $wt"
+  fi
+done
+
+# herdr workspace: main tab = first repo (nvim), extra repo tabs, pi, term
+WSJSON="$(json workspace create --cwd "${DIRS[0]}" --label "$NAME" --no-focus 2>/dev/null)"
+WSID="$(printf '%s' "$WSJSON" | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+r = d.get('result', {})
+w = r.get('workspace', r)
+print(w.get('workspace_id', w.get('id', '')) or '')
+")"
+
+if [ -n "$WSID" ]; then
+  # 1. main tab: nvim in the first repo
+  mp="$(main_pane_of_ws "$WSID")"
+  if [ -n "$mp" ] && wait_prompt "$mp" 8; then
+    json pane run "$mp" "nvim ." >/dev/null 2>&1
+  fi
+  # 2. additional repo tabs, nvim in each
+  for d in "${DIRS[@]:1}"; do
+    created="$(json tab create --workspace "$WSID" --label "$(basename "$d")" --cwd "$d" --no-focus 2>/dev/null)"
+    rp="$(root_pane_of "$created")"
+    [ -n "$rp" ] && wait_prompt "$rp" 8 && json pane run "$rp" "nvim ." >/dev/null 2>&1
+  done
+  # 3. pi tab: feature-lead agent, cwd = feature root (non-git => hashed dir)
+  created="$(json tab create --workspace "$WSID" --label pi --cwd "$ROOT" --no-focus 2>/dev/null)"
+  rp="$(root_pane_of "$created")"
+  if [ -n "$rp" ]; then
+    sdir="$(pi_session_dir "$ROOT")"
+    wait_prompt "$rp" 8
+    json pane run "$rp" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
+    echo "  feature-lead pi started ($sdir)"
+  fi
+  # 4. term tab
+  json tab create --workspace "$WSID" --label term --cwd "$ROOT" --no-focus >/dev/null 2>&1
+  if [ "$FOCUS" = 1 ]; then json workspace focus "$WSID" >/dev/null 2>&1; fi
+  echo "herdr workspace: $WSID (label '$NAME')"
+else
+  echo "WARN: herdr workspace create failed (server down?). Worktrees are ready regardless." >&2
+fi
+
+echo
+echo "feature '$NAME' ready:"
+echo "  root:    $ROOT"
+echo "  brief:   $ROOT/BRIEF.md  (edit line 1 = MR title)"
+echo "  worktrees:"
+for d in "${DIRS[@]}"; do echo "    $ROOT/$(basename "$d")  (branch feat/$NAME)"; done
+echo "next: work in the worktrees, commit per repo, then: feature-mr $NAME"

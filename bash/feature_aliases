@@ -1,0 +1,6 @@
+# Feature workflow (alpha master repo): worktrees + MRs to dev
+# Scripts: ~/dotfiles/features/  (see e2e-performance-tests AGENTS.md)
+alias fstart="$HOME/dotfiles/features/feature-start"
+alias fmr="$HOME/dotfiles/features/feature-mr"
+alias fstop="$HOME/dotfiles/features/feature-stop"
+alias flist="$HOME/dotfiles/features/feature-list"

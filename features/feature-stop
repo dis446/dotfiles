@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# Teardown a feature: remove its worktrees (git-registered only), close its
+# herdr workspace, delete merged feat/<name> branches.
+#   - worktrees with uncommitted changes are left alone (never force-removed)
+#   - the feature root + BRIEF.md are kept as the feature record
+#
+# Usage: feature-stop <name> [--yes] [--keep-branches]
+set -u
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=feature-lib.sh
+. "$SCRIPT_DIR/feature-lib.sh"
+
+NAME="${1:-}"
+[ -n "$NAME" ] || { echo "usage: feature-stop <name> [--yes] [--keep-branches]" >&2; exit 1; }
+YES=0; KEEP=0
+for a in "${@:2}"; do
+  [ "$a" = "--yes" ] && YES=1
+  [ "$a" = "--keep-branches" ] && KEEP=1
+done
+
+ROOT="$(feature_root "$NAME")"
+[ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
+
+confirm() {
+  [ "$YES" = 1 ] && return 0
+  local ans
+  read -r -p "Close feature '$NAME'? Removes its worktrees and closes the herdr workspace. [y/N] " ans
+  [ "$ans" = "y" ] || [ "$ans" = "Y" ]
+}
+confirm || { echo "aborted" >&2; exit 1; }
+
+# find the herdr workspace by label
+WSID="$(json workspace list 2>/dev/null | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+print(next((w.get('workspace_id', '') for w in d.get('result', {}).get('workspaces', [])
+            if w.get('label') == '$NAME'), ''))
+")"
+
+removed=0
+shopt -s nullglob
+for wt in "$ROOT"/*/; do
+  [ -e "$wt/.git" ] || continue
+  repo="$(basename "$wt")"
+  if [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ]; then
+    echo "SKIP $repo: worktree has uncommitted changes (commit/stash first)" >&2
+    continue
+  fi
+  main="$(git -C "$wt" rev-parse --git-common-dir 2>/dev/null || true)"
+  if [[ "$main" == */.git/worktrees/* ]]; then main="${main%/.git/worktrees/*}"; else main="${main%/.git}"; fi
+  if [ -n "$main" ] && [ -d "$main/.git" ]; then
+    git -C "$main" worktree remove "$wt" 2>/dev/null \
+      && { echo "  removed worktree: $wt"; removed=$((removed+1)); } \
+      || echo "WARN: could not remove $wt" >&2
+    if [ "$KEEP" != 1 ]; then
+      if git -C "$main" branch -d "feat/$NAME" 2>/dev/null | grep -q 'Deleted'; then
+        echo "  deleted branch feat/$NAME in $(basename "$main")"
+      else
+        echo "  (branch feat/$NAME not merged in $(basename "$main"); kept)"
+      fi
+    fi
+  else
+    echo "WARN: cannot resolve main repo for $wt" >&2
+  fi
+done
+
+if [ -n "$WSID" ]; then
+  json workspace close "$WSID" >/dev/null 2>&1 \
+    && echo "  closed herdr workspace $WSID (label '$NAME')" \
+    || echo "WARN: could not close herdr workspace $WSID" >&2
+else
+  echo "  (no herdr workspace labeled '$NAME' found)"
+fi
+
+echo
+echo "removed $removed worktree(s). Feature record kept at: $ROOT/BRIEF.md"
+echo "delete manually when done: rm -rf \"$ROOT\""

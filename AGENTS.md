@@ -11,6 +11,7 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 | Path                                      | Symlinked to         | Purpose                                                |
 | ----------------------------------------- | -------------------- | ------------------------------------------------------ |
 | `bash/`                                   | (sourced)            | Cross-platform shell aliases, split by topic           |
+| `features/`                               | (invoked)            | Alpha feature workflow: worktrees per repo + MRs to dev |
 | `fedora/`, `nobara/`, `macos/`, `ubuntu/` | (per OS)             | OS-specific aliases, bashrc, install scripts           |
 | `nvim/`                                   | `~/.config/nvim`     | Neovim config (Lua, lazy.nvim)                         |
 | `tmux/`                                   | `~/.config/tmux`     | tmux config + plugins (tpm, resurrect, continuum)      |
@@ -310,6 +311,10 @@ systemctl --user restart tmux.service
 systemctl --user disable tmux.service
 # Then set @continuum-boot 'off' in tmux.conf
 ```
+
+## Feature Workflow (alpha master repo)
+
+`features/` scripts orchestrate concurrent alpha features: one feature = `~/Code/and/alpha/features/<name>/` containing a git worktree per touched repo (branch `feat/<name>` off `origin/dev`) + `BRIEF.md` (line 1 = MR title). `feature-start` also opens a herdr workspace (nvim tab per repo, pi feature-lead tab, term tab) and spawns the feature-lead agent. Aliases: `fstart`/`fmr`/`fstop`/`flist`. Full operating pattern lives in `e2e-performance-tests/AGENTS.md`; the pi tools (`feature_start` etc.) are a repo-local extension in that repo's `.pi/extensions/`.
 
 ## Additional Notes
 
