@@ -80,13 +80,14 @@ wait_prompt() {
   return 1
 }
 
-# extract .result.root_pane from a herdr tab create response
+# extract .result.root_pane.pane_id from a herdr tab create response
 root_pane_of() {
   printf '%s' "$1" | python3 -c "
 import json, sys
 try: d = json.load(sys.stdin)
 except Exception: raise SystemExit
-print(d.get('result', {}).get('root_pane', '') or '')
+rp = d.get('result', {}).get('root_pane') or {}
+print(rp.get('pane_id', '') or '')
 "
 }
 
