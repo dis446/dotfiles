@@ -55,8 +55,9 @@ for wt in "$ROOT"/*/; do
     continue
   fi
 
-  # existing MR?
-  if [ -n "$(glab mr list --source-branch "$BRANCH" --repo "$glab_repo" 2>/dev/null)" ]; then
+  # existing MR? (glab mr list prints "No open merge requests match your
+  # search..." to stdout when empty, so match on machine-readable API JSON)
+  if glab api "projects/:id/merge_requests?source_branch=${BRANCH//\//%2F}&state=opened" --repo "$glab_repo" 2>/dev/null | grep -q '"iid"'; then
     echo "SKIP $repo: MR already exists for $BRANCH" >&2
     RESULTS+=("$repo | MR already exists")
     continue
