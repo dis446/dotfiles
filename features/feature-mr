@@ -2,6 +2,8 @@
 # Create MRs to dev for every worktree in a feature.
 #   - title/description come from BRIEF.md (line 1 = title, rest = body)
 #   - skips worktrees with uncommitted changes or an existing MR
+#   - every MR: squash commits on merge, delete source branch on merge,
+#     assigned to the authenticated GitLab user (you)
 #   - never merges; MRs land in your review queue
 #
 # Usage: feature-mr <name> [--dry-run]
@@ -21,6 +23,10 @@ ROOT="$(feature_root "$NAME")"
 TITLE="$(sed -n '1p' "$ROOT/BRIEF.md")"
 [ -n "$TITLE" ] || { echo "BRIEF.md first line (MR title) is empty in $ROOT" >&2; exit 1; }
 DESC="$(sed '1,1d' "$ROOT/BRIEF.md")"
+
+# Assign every MR to the authenticated GitLab user (your credentials).
+ASSIGNEE="$(glab api user 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["username"])' 2>/dev/null || true)"
+[ -n "$ASSIGNEE" ] || echo "WARN: could not resolve GitLab assignee — MRs created without assignee" >&2
 
 declare -a RESULTS
 shopt -s nullglob
@@ -43,7 +49,7 @@ for wt in "$ROOT"/*/; do
   [ -n "$target" ] || target="dev"
 
   if [ "$DRY" = 1 ]; then
-    echo "[dry-run] $repo: git push -u origin feat/$NAME; glab mr create --source-branch feat/$NAME --target-branch $target --title '$TITLE'"
+    echo "[dry-run] $repo: git push -u origin feat/$NAME; glab mr create --source-branch feat/$NAME --target-branch $target --squash-before-merge --remove-source-branch --assignee '$ASSIGNEE' --title '$TITLE'"
     RESULTS+=("$repo | DRY-RUN")
     continue
   fi
@@ -57,8 +63,11 @@ for wt in "$ROOT"/*/; do
 
   echo "== $repo"
   git -C "$wt" push -u origin "feat/$NAME" 2>&1 | sed 's/^/  push: /'
-  out="$(glab mr create --source-branch "feat/$NAME" --target-branch "$target" \
-    --title "$TITLE" --description "$DESC" --repo "$glab_repo" 2>&1)"
+  mr_flags=(--source-branch "feat/$NAME" --target-branch "$target" \
+    --title "$TITLE" --description "$DESC" --repo "$glab_repo" \
+    --squash-before-merge --remove-source-branch)
+  [ -n "$ASSIGNEE" ] && mr_flags+=(--assignee "$ASSIGNEE")
+  out="$(glab mr create "${mr_flags[@]}" 2>&1)"
   if [ $? -eq 0 ] && [ -n "$out" ]; then
     url="$(printf '%s\n' "$out" | tail -1)"
     echo "  MR: $url"
