@@ -1,24 +1,42 @@
 #!/usr/bin/env bash
 # Teardown a feature: remove its worktrees (git-registered only), close its
-# herdr workspace, delete merged feat/<name> branches.
+# herdr workspace, delete merged feat/<name-lowercased> branches.
+#   - SAFETY: refuses to do anything unless invoked from INSIDE a feature
+#     herdr workspace (~/Code/and/alpha/features/<name>/ or a subdir). Run it
+#     from the feature's herdr term tab (`fstop [--yes]`) or its pi tab
+#     (`/feature-stop`).
 #   - worktrees with uncommitted changes are left alone (never force-removed)
 #   - the feature root + BRIEF.md are kept as the feature record
 #
-# Usage: feature-stop <name> [--yes] [--keep-branches]
+# Usage: fstop [name] [--yes] [--keep-branches]   (must run inside the workspace)
 set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=feature-lib.sh
 . "$SCRIPT_DIR/feature-lib.sh"
 
-NAME="${1:-}"
-[ -n "$NAME" ] || { echo "usage: feature-stop <name> [--yes] [--keep-branches]" >&2; exit 1; }
-YES=0; KEEP=0
-for a in "${@:2}"; do
-  [ "$a" = "--yes" ] && YES=1
-  [ "$a" = "--keep-branches" ] && KEEP=1
+NAME=""; YES=0; KEEP=0
+for a in "$@"; do
+  case "$a" in
+    --yes) YES=1 ;;
+    --keep-branches) KEEP=1 ;;
+    --*) echo "unknown option: $a" >&2; exit 1 ;;
+    *) [ -z "$NAME" ] && NAME="$a" || { echo "unexpected extra argument: $a" >&2; exit 1; } ;;
+  esac
 done
 
+# Refuse outside a feature herdr workspace: derive the feature from cwd when
+# no name was given; either way cwd must be inside the feature's root.
+if [ -z "$NAME" ]; then
+  case "$PWD" in
+    "$FEATURES_ROOT"/*) NAME="${PWD#"$FEATURES_ROOT"/}"; NAME="${NAME%%/*}" ;;
+    *) echo "refusing: feature-stop must be run from inside a feature herdr workspace ($FEATURES_ROOT/<name>), not from $PWD" >&2; exit 1 ;;
+  esac
+fi
 ROOT="$(feature_root "$NAME")"
+case "$PWD" in
+  "$ROOT"|"$ROOT"/*) ;;
+  *) echo "refusing: teardown of '$NAME' must be run from inside its workspace ($ROOT) — run 'fstop' in the feature's herdr term tab" >&2; exit 1 ;;
+esac
 [ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
 BRANCH="$(feature_branch "$NAME")"
 

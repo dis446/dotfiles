@@ -89,9 +89,13 @@ time — they want to start describing the feature immediately.
 8. **Never merge.** When done and verified, run
    `~/dotfiles/features/feature-mr <name>` (or tell the user to run `fmr <name>`):
    it pushes every worktree and opens MRs to `dev` for the user to review.
-9. **Ask before cleanup.** `~/dotfiles/features/feature-stop <name>` removes
-   worktrees, closes this workspace, deletes merged branches — only after the
-   user confirms.
+9. **Ask before cleanup — the user runs it themselves.** Teardown is a manual
+   step only the human performs, from inside this workspace: either the term
+   tab (`fstop [--yes]`) or this pi tab (`/feature-stop`). `feature-stop`
+   refuses to run anywhere else (it validates that cwd is inside
+   `~/Code/and/alpha/features/<name>/`), so you cannot — and must not — tear
+   this workspace down on your own. Never auto-stop; never tell the user to
+   run it from the master repo.
 10. **Always work with the `ponytail` and `caveman` skills active** — for
     planning, research, and implementation alike:
     - **ponytail** — force the laziest solution that actually works: question
@@ -199,6 +203,8 @@ Every task you hand to a sub-agent MUST include all of the following:
 
 - Scripts: `~/dotfiles/features/feature-{start,mr,stop,list}` (aliases
   `fstart`/`fmr`/`fstop`/`flist`). `feature-list` shows all features.
+- Teardown (`fstop` / `/feature-stop`) only works from inside the feature's
+  herdr workspace — the scripts refuse anywhere else.
 - The user starts features with `/feature-start <name>` from their master
   (e2e-performance-tests) pi session; that spawns you.
 - Feature names are `[A-Za-z0-9-]` (case-sensitive, mixed case ok); the branch
