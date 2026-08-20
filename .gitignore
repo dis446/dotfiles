@@ -55,3 +55,4 @@ tmux/plugins/
 /pi/agent/settings.json
 /pi/agent/models-store.json
 /pi/agent/run-history.jsonl
+pi/agent/missions/
