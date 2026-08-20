@@ -34,7 +34,7 @@ command = "$HOME/dotfiles/herdr/term-toggle.sh"
 description = "toggle terminal pane"
 
 # alt+g: toggle the workspace GitLab TUI pane (see herdr/gitlab-toggle.sh).
-# One glab-tui per workspace, parked in its own "gitlab" tab.
+# One gitlab-tui (vim-key GitLab browser) per workspace, in its own "gitlab" tab.
 [[keys.command]]
 key = "alt+g"
 type = "shell"

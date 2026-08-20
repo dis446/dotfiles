@@ -203,7 +203,7 @@ print(rp.get('pane_id', '') or '')
 ")"
       if [ -n "$gl_root" ]; then
         wait_prompt "$gl_root" 8
-        json pane run "$gl_root" "glab-tui" >/dev/null 2>&1
+        json pane run "$gl_root" "gitlab-tui" >/dev/null 2>&1
         say "  started glab-tui in $gl_root ($git_root)"
       else
         say "  WARN: failed to create gitlab tab"

@@ -62,7 +62,7 @@ except Exception:
 print(d.get('result', {}).get('root_pane', {}).get('pane_id', '') or '')
 ")"
     [ -n "$root_pane" ] || exit 0
-    json pane run "$root_pane" "glab-tui" >/dev/null 2>&1
+    json pane run "$root_pane" "gitlab-tui" >/dev/null 2>&1
     gl_tab="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
