@@ -24,10 +24,10 @@ type = "shell"
 command = "$HOME/dotfiles/herdr/pi-toggle.sh"
 description = "toggle pi panel"
 
-# prefix+t: toggle the workspace terminal pane (see herdr/term-toggle.sh).
+# alt+t: toggle the workspace terminal pane (see herdr/term-toggle.sh).
 # One terminal per workspace, parked in its own "term" tab.
 [[keys.command]]
-key = "prefix+t"
+key = "alt+t"
 type = "shell"
 command = "$HOME/dotfiles/herdr/term-toggle.sh"
 description = "toggle terminal pane"
