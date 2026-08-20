@@ -16,9 +16,9 @@ rows = [
   ["agent", "state_text"],
 ]
 
-# alt+k: collapse/expand the pi agent pane (see herdr/pi-toggle.sh).
-# Collapse parks pi in its own tab (agent keeps running); anywhere else the
-# chord is forwarded to the focused pane, so nvim's <M-k> handler still works.
+# alt+k: toggle the pi agent pane (see herdr/pi-toggle.sh).
+# Pure focus toggle, works from any pane: focuses the workspace's "pi" tab
+# (creating it + spawning pi on first use), toggles back to the main tab.
 [[keys.command]]
 key = "alt+k"
 type = "shell"
