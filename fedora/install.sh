@@ -70,22 +70,37 @@ sudo dnf install cargo -y
 cargo install cargo-binstall -y
 cargo binstall -y zellij
 
-# GitLab TUI (vim-key GitLab browser); needs go + make (installed above)
-git clone -q --depth 1 https://github.com/nospor/gitlab-tui /tmp/gitlab-tui-build 2>/dev/null || true
-make -C /tmp/gitlab-tui-build install PREFIX="$HOME/.local" 2>/dev/null || true
-rm -rf /tmp/gitlab-tui-build
-# config.json: git.and.global server, token from GITLAB_TOKEN when present
-if [ -n "${GITLAB_TOKEN:-}" ]; then
-  mkdir -p "$HOME/.config/gitlab-tui"
-  python3 - "$GITLAB_TOKEN" <<'PYEOF'
+# ── GitLab TUI (gitlab-tui: vim-key GitLab browser) ─────────────────────
+# Builds from source (go.mod declares module 'gitlab-tui', so `go install
+# @latest` fails) and writes ~/.config/gitlab-tui/config.json for git.and.global.
+# ~/.local/bin is on PATH via fedora/bashrc.
+if command -v gitlab-tui >/dev/null 2>&1; then
+  echo "gitlab-tui already installed: $(command -v gitlab-tui)"
+elif command -v go >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
+  git clone -q --depth 1 https://github.com/nospor/gitlab-tui /tmp/gitlab-tui-build
+  if make -C /tmp/gitlab-tui-build install PREFIX="$HOME/.local"; then
+    echo "gitlab-tui installed to $HOME/.local/bin"
+  else
+    echo "WARN: gitlab-tui build failed — re-run or install manually (github.com/nospor/gitlab-tui)" >&2
+  fi
+  rm -rf /tmp/gitlab-tui-build
+else
+  echo "WARN: go/make missing — skipping gitlab-tui build (install golang+make via dnf)" >&2
+fi
+
+# config: git.and.global server; token from $GITLAB_TOKEN, else placeholder
+mkdir -p "$HOME/.config/gitlab-tui"
+python3 - "${GITLAB_TOKEN:-__PASTE_GITLAB_TOKEN_HERE__}" <<'PYEOF'
 import json, os, sys
 cfg = {"servers": [{"name": "git.and.global", "url": "https://git.and.global", "token": sys.argv[1], "default": True}], "theme": "catppuccin"}
 os.makedirs(os.path.expanduser("~/.config/gitlab-tui"), exist_ok=True)
 with open(os.path.expanduser("~/.config/gitlab-tui/config.json"), "w") as f:
     json.dump(cfg, f, indent=2)
 PYEOF
+if [ -n "${GITLAB_TOKEN:-}" ]; then
+  echo "gitlab-tui configured for git.and.global (token from GITLAB_TOKEN)"
 else
-  echo "GITLAB_TOKEN not set — create ~/.config/gitlab-tui/config.json manually (see github.com/nospor/gitlab-tui)"
+  echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi
 
 curl -f https://zed.dev/install.sh | sh
