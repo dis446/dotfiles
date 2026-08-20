@@ -78,8 +78,15 @@ end, { desc = "Buffer diagnostics" })
 
 -- ── Terminal ────────────────────────────────────────
 keymap.set({ "n", "t" }, "<leader>ot", function()
-  Snacks.terminal()
-end, { desc = "Toggle terminal" })
+  if vim.env.HERDR_ENV == "1" then
+    -- herdr-managed terminal pane (one "term" tab per workspace)
+    vim.fn.jobstart({
+      "bash", vim.fn.expand("$HOME/dotfiles/herdr/term-toggle.sh"),
+    }, { detach = true })
+  else
+    Snacks.terminal()
+  end
+end, { desc = "Toggle terminal (herdr pane or snacks)" })
 keymap.set("n", "<leader>oT", function()
   Snacks.terminal(nil, {
     win = { position = "float", border = "rounded", width = 0.9, height = 0.9 },
