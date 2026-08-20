@@ -31,7 +31,14 @@ done
 json() { "$hdr" "$@" 2>/dev/null; }
 
 # ---- workspace ids -----------------------------------------------------
-ws_ids="$(json workspace list | python3 -c "
+# A headless server (systemd boot) does not restore session.json workspaces
+# until a client attaches (or restores asynchronously). Wait for them instead
+# of bailing on the first empty poll — otherwise the boot run misses every
+# workspace. If they never appear (no client attached in time), the user can
+# re-run restore.sh later (herdr keybinding alt+r, or run it manually).
+ws_ids=""
+for i in $(seq 1 180); do
+  ws_ids="$(json workspace list | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -40,7 +47,15 @@ except Exception:
 for w in d.get('result', {}).get('workspaces', []):
     print(w.get('workspace_id', ''))
 ")"
-[ -n "$ws_ids" ] || { say "no workspaces found"; exit 0; }
+  [ -n "$ws_ids" ] && break
+  if [ $((i % 30)) -eq 0 ]; then say "  waiting for workspaces... (${i}s)"; fi
+  sleep 1
+done
+if [ -z "$ws_ids" ]; then
+  say "no workspaces after 180s (client not attached yet) — press alt+r in herdr or run: ~/dotfiles/herdr/restore.sh"
+  exit 0
+fi
+say "workspaces restored: $(echo "$ws_ids" | tr '\n' ' ')"
 
 # ---- helpers -----------------------------------------------------------
 # true if the last non-empty line of $1 ends with a shell prompt char ($, #, >, %)

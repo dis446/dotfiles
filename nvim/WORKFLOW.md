@@ -61,12 +61,14 @@ TUI sessions.
 | `alt+k`                 | Toggle the pi agent pane (pi tab)        |
 | `alt+i`                 | Toggle the workspace terminal (term tab) |
 | `alt+g`                 | Toggle the GitLab TUI pane (gitlab tab)  |
+| `alt+r`                 | Re-run the trio restore (nvim+pi+term+gitlab) |
 
-`alt+k`/`alt+i`/`alt+g` are herdr-level keybindings wired to
-`herdr/pi-toggle.sh` / `herdr/term-toggle.sh` / `herdr/gitlab-toggle.sh`
-(park the pane in its own tab; the agent keeps running while hidden). When
-focus is inside nvim, the same chords route through nvim's `<M-k>` /
-`<leader>ot` handlers instead (see below).
+`alt+k`/`alt+i`/`alt+g`/`alt+r` are herdr-level keybindings wired to
+`herdr/pi-toggle.sh` / `herdr/term-toggle.sh` / `herdr/gitlab-toggle.sh` /
+`herdr/restore.sh` (park the pane in its own tab; the agent keeps running
+while hidden). When focus is inside nvim, the same chords route through nvim's
+`<M-k>` / `<leader>ot` handlers instead (see below). `alt+r` re-runs the boot
+restore — use it after attaching if the boot-time run missed the workspaces.
 
 The Agent sidebar (`prefix+b`) shows every pi agent across all workspaces with
 live state (working / idle / blocked), so you can monitor multiple concurrent
@@ -241,17 +243,20 @@ the Agent sidebar shows pi agents across all workspaces at a glance.
 
 ```
 systemd (user login)
-  └─ herdr-server.service (headless server, `herdr/systemd/`)
-       └─ ExecStartPost: restore.sh  (herdr/restore.sh, idempotent)
-            └─ per workspace, ensures the set:
-                 ├─ main tab  -> nvim .  (auto-session restores buffers,
-                 │                           LSP re-attaches)
-                 ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
-                 │                per-workspace agent; resumes the same session)
-                 ├─ term tab  -> shell in the repo root
-                 └─ gitlab tab-> gitlab-tui (vim-key GitLab TUI, git repos only)
+  ├─ herdr-server.service (headless server)
+  │    └─ ExecStartPost: restore.sh — waits for the server to restore its
+  │         session workspaces (headless server does this once a client
+  │         attaches, so restore.sh polls up to 180s; if no client attached
+  │         in time, press alt+r after attaching to re-run it)
+  │              └─ per workspace, ensures the set:
+  │                   ├─ main tab  -> nvim .  (auto-session restores buffers,
+  │                   │                           LSP re-attaches)
+  │                   ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
+  │                   │                per-workspace agent; resumes the same session)
+  │                   ├─ term tab  -> shell in the repo root
+  │                   └─ gitlab tab-> gitlab-tui (vim-key GitLab TUI, git repos only)
   └─ user opens a terminal -> `herdr` (TUI client attaches)
-       └─ pi agents resume natively via herdr's integration
+       └─ workspaces restore from session.json; pi agents resume natively
 ```
 
 Workspace/panel topology (cwd, tab labels, pane layout) persists in herdr's
