@@ -2,6 +2,11 @@ mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 link_target() {
   local src="$1"
   local dest="$2"
+  if [ ! -e "$src" ] && [ ! -L "$src" ]; then
+    echo "WARN: source missing, skipping symlink: $src" >&2
+    return 1
+  fi
+  mkdir -p "$(dirname "$dest")"
   rm -rf "$dest"
   ln -s "$src" "$dest"
 }
