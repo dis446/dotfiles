@@ -99,8 +99,8 @@ time — they want to start describing the feature immediately.
    `~/Code/and/alpha/features/<name>/`), so you cannot — and must not — tear
    this workspace down on your own. Never auto-stop; never tell the user to
    run it from the master repo.
-10. **Always work with the `ponytail` and `caveman` skills active** — for
-    planning, research, and implementation alike:
+10. **Always work with `ponytail`, `caveman`, and `design-doc-mermaid` active** —
+    for planning, research, and implementation alike:
     - **ponytail** — force the laziest solution that actually works: question
       whether each piece of work needs to exist at all (YAGNI), reach for the
       standard library / native platform features before custom code, one
@@ -109,11 +109,17 @@ time — they want to start describing the feature immediately.
     - **caveman** — ultra-compressed, terse-but-technical communication
       (~75% fewer tokens) for all plans, research notes, progress reports,
       and MR descriptions.
-    Pass **both skills to every sub-agent you spawn** (pi subagent tool:
-    `skill: ['ponytail', 'caveman']`). If they are not already loaded in your
-    session, read their SKILL.md files
+    - **design-doc-mermaid** — generate Mermaid diagrams for all markdown
+      reports (plans, docs, BRIEF.md updates, analysis). Every markdown
+      report you write MUST include Mermaid diagrams (activity, sequence,
+      architecture, or deployment — whichever fits the content). Use the
+      skill's guides, templates, and scripts for validation.
+    Pass **all three skills to every sub-agent you spawn** (pi subagent tool:
+    `skill: ['ponytail', 'caveman', 'design-doc-mermaid']`). If they are not
+    already loaded in your session, read their SKILL.md files
     (`~/.pi/agent/skills/caveman/SKILL.md`,
-    `~/.pi/agent/npm/node_modules/opencode-ponytail/skills/ponytail/SKILL.md`)
+    `~/.pi/agent/npm/node_modules/opencode-ponytail/skills/ponytail/SKILL.md`,
+    `~/.pi/agent/skills/design-doc-mermaid/SKILL.md`)
     and follow them.
 
 ## Shared knowledge: plans/, docs/, .agents/
@@ -169,6 +175,9 @@ so they can see the team's shared knowledge move.
    work. First read sibling plans in `plans/` and relevant `docs/` so you build
    on existing analysis. Keep `BRIEF.md` as the concise contract: which repos,
    which contract changes, in what order. Pin the cross-repo contract exactly.
+   **Generate Mermaid diagrams** for all plan/docs/BRIEF reports using the
+   `design-doc-mermaid` skill (activity diagrams for workflows, sequence
+   diagrams for API interactions, architecture for system changes).
    Get the repos into worktrees (`feature-start <name> <repo...>`) and add
    herdr tabs. **Commit and push the plan to the master checkout's remote as
    soon as it is written, and after every substantive update** (see Shared
@@ -219,7 +228,7 @@ Every task you hand to a sub-agent MUST include all of the following:
    nicety; do not dispatch a worker without it.
 2. **Work only inside its assigned repo's worktree** under the feature root —
    never in the main checkouts under `~/Code/and/alpha/`.
-3. **Run with the `ponytail` and `caveman` skills active** (`skill:
+3. **Run with `ponytail` and `caveman` skills active** (`skill:
    ['ponytail', 'caveman']`) — laziest correct solution, terse reporting.
 4. **Pin the cross-repo contract it depends on** (request/response shapes,
    headers, error codes, field names) in the task text so parallel workers
@@ -237,6 +246,8 @@ Every task you hand to a sub-agent MUST include all of the following:
 ## Reporting
 
 - Keep `BRIEF.md` current (title, what, touched repos, plan).
+  **Include Mermaid diagrams** in BRIEF.md and all plan/docs — use
+  `design-doc-mermaid` to generate them.
 - Tell the user: repos found + why, what changed per repo, how you verified
   (tests run), and which MRs were auto-created (with URLs) or skipped.
 
