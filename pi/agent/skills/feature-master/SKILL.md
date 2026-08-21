@@ -177,9 +177,17 @@ so they can see the team's shared knowledge move.
    time or raise quality — not as a default.** Every sub-agent task includes
    the mandatory contract below (read the repo's AGENTS.md first, ponytail +
    caveman active). Commit + push per repo.
-4. **Test** — run each repo's own test/lint/build (per its AGENTS.md) in the
-   worktree, verify the cross-repo contract end-to-end (a fresh-eyes review
-   across all diffs), fix fallout, re-run.
+4. **Test** — pi-lens gives you per-edit diagnostics automatically at turn end
+   (Java: JDT LS launched with the repo's own Lombok agent; TS: tsserver/tsc) —
+   **use those to catch syntax/type errors while working; never run
+   `mvn test`/`npm test` to check a syntax error** (with 5+ concurrent agents
+   that's what eats RAM). Full integration suites run **once per repo**, in
+   this phase, **serially per repo — never all repos concurrently**: run each
+   repo's own test/lint/build (per its AGENTS.md) in the worktree, verify the
+   cross-repo contract end-to-end (a fresh-eyes review across all diffs), fix
+   fallout, re-run the affected suite. Before declaring a repo done, confirm
+   with `lens_diagnostics mode=full` — a `cold`/`unconfirmed` verdict is NOT
+   clean.
 
 ### When to spawn sub-agents (judgment)
 
@@ -207,6 +215,13 @@ Every task you hand to a sub-agent MUST include all of the following:
    cannot drift.
 5. **Report back:** what changed (files), how it was verified (commands run),
    and any contract deviations or open questions.
+6. **Defer full integration suites to the end.** pi-lens feeds per-edit
+   diagnostics back at turn end (Java: JDT LS with the repo's Lombok agent;
+   TS: tsserver/tsc) — rely on those for syntax/type errors while working; do
+   not run `mvn test`/`npm test` mid-work to check errors. Run the repo's full
+   suite ONCE, at the end (serially, not concurrently with other workers), and
+   include `lens_diagnostics mode=full` in your verification — a
+   `cold`/`unconfirmed` verdict is not clean.
 
 ## Reporting
 
@@ -216,6 +231,11 @@ Every task you hand to a sub-agent MUST include all of the following:
 
 ## Useful facts
 
+- **Code quality feedback: pi-lens** is installed globally — per-edit LSP
+  diagnostics land at turn end automatically (Java: JDT LS + the repo's
+  Lombok agent; TS: tsserver/tsc). `tests` and `format` are disabled in
+  `~/.pi-lens/config.json` (no test-on-write JVM forks, no autoformat churn).
+  Verify health with `/lens-health`; triage findings with `lens_diagnostic_mark`.
 - Scripts: `~/dotfiles/features/feature-{start,mr,stop,list}` (aliases
   `fstart`/`fmr`/`fstop`/`flist`). `feature-list` shows all features.
 - Teardown (`fstop` / `/feature-stop`) only works from inside the feature's
