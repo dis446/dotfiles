@@ -70,6 +70,15 @@
       "skillFolderHash": "427cc06d9e296acc89aa5644832ffaf6254bf354",
       "installedAt": "2026-08-19T15:09:08.006Z",
       "updatedAt": "2026-08-19T15:09:08.006Z"
+    },
+    "design-doc-mermaid": {
+      "source": "spillwavesolutions/design-doc-mermaid",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/spillwavesolutions/design-doc-mermaid.git",
+      "skillPath": "SKILL.md",
+      "skillFolderHash": "e13f987306d5cd7a34f541927a3228343dd90e45",
+      "installedAt": "2026-08-21T07:17:27.228Z",
+      "updatedAt": "2026-08-21T07:17:27.228Z"
     }
   },
   "dismissed": {

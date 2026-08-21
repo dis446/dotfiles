@@ -86,9 +86,12 @@ time — they want to start describing the feature immediately.
    end-to-end after implementation.
 7. **Commit per repo as you go; push regularly** (`git push -u origin feat/<name>`).
    Rebase on `origin/dev` before finishing.
-8. **Never merge.** When done and verified, run
-   `~/dotfiles/features/feature-mr <name>` (or tell the user to run `fmr <name>`):
-   it pushes every worktree and opens MRs to `dev` for the user to review.
+8. **Auto-create MRs when done.** Once verification passes (phase 4), **call
+   `~/dotfiles/features/feature-mr <name>` yourself** — do not wait or ask the
+   user to do it. It pushes every worktree and opens MRs to `dev` for the user
+   to review. The MRs are never auto-merged; they land in the review queue.
+   After the script finishes, report the results (which MRs were created,
+   which were skipped — with URLs).
 9. **Ask before cleanup — the user runs it themselves.** Teardown is a manual
    step only the human performs, from inside this workspace: either the term
    tab (`fstop [--yes]`) or this pi tab (`/feature-stop`). `feature-stop`
@@ -177,17 +180,25 @@ so they can see the team's shared knowledge move.
    time or raise quality — not as a default.** Every sub-agent task includes
    the mandatory contract below (read the repo's AGENTS.md first, ponytail +
    caveman active). Commit + push per repo.
-4. **Test** — pi-lens gives you per-edit diagnostics automatically at turn end
-   (Java: JDT LS launched with the repo's own Lombok agent; TS: tsserver/tsc) —
-   **use those to catch syntax/type errors while working; never run
-   `mvn test`/`npm test` to check a syntax error** (with 5+ concurrent agents
-   that's what eats RAM). Full integration suites run **once per repo**, in
-   this phase, **serially per repo — never all repos concurrently**: run each
-   repo's own test/lint/build (per its AGENTS.md) in the worktree, verify the
-   cross-repo contract end-to-end (a fresh-eyes review across all diffs), fix
-   fallout, re-run the affected suite. Before declaring a repo done, confirm
+4. **Test & auto-MR** — pi-lens gives you per-edit diagnostics automatically at
+   turn end (Java: JDT LS launched with the repo's own Lombok agent; TS:
+   tsserver/tsc) — **use those to catch syntax/type errors while working; never
+   run `mvn test`/`npm test` to check a syntax error** (with 5+ concurrent
+   agents that's what eats RAM). Full integration suites run **once per repo**,
+   in this phase, **serially per repo — never all repos concurrently**: run
+   each repo's own test/lint/build (per its AGENTS.md) in the worktree, verify
+   the cross-repo contract end-to-end (a fresh-eyes review across all diffs),
+   fix fallout, re-run the affected suite. Before declaring a repo done, confirm
    with `lens_diagnostics mode=full` — a `cold`/`unconfirmed` verdict is NOT
    clean.
+
+   **Once all repos are verified, call
+   `~/dotfiles/features/feature-mr <name>` immediately** — it pushes every
+   worktree and opens MRs. Do not ask the user first; do not wait. The MRs
+   land in the review queue; nothing merges automatically.
+
+   Report back: which repos had MRs created (with URLs), which were skipped
+   (uncommitted changes / existing MR), and any failures.
 
 ### When to spawn sub-agents (judgment)
 
@@ -227,7 +238,7 @@ Every task you hand to a sub-agent MUST include all of the following:
 
 - Keep `BRIEF.md` current (title, what, touched repos, plan).
 - Tell the user: repos found + why, what changed per repo, how you verified
-  (tests run), and the MRs to review.
+  (tests run), and which MRs were auto-created (with URLs) or skipped.
 
 ## Useful facts
 
