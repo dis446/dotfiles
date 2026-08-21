@@ -60,7 +60,7 @@ local function herdr_pi_pane()
   return nil
 end
 
--- M-k outside herdr (plain terminal / tmux): floating terminal, as before.
+-- M-k outside herdr (plain terminal): floating terminal, as before.
 local function pi_float()
   local root = detect_root()
   local session_dir = pi_session_dir(root)

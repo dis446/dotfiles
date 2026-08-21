@@ -1,7 +1,0 @@
-# Quick tmux session creation / re-attach
-alias t="tmux new-session -A -s"
-alias tl="tmux ls"
-alias ta="tmux attach -t"
-alias tw="tmux attach -t dotfiles"
-alias tk="tmux kill-session -t"
-alias ts="tmux new -s"  # shorthand: ts dotfiles
