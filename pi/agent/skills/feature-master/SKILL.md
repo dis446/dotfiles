@@ -136,9 +136,22 @@ copies.
   checkout.
 
 Writes to these land in the master checkout's working tree as uncommitted
-changes. When wrapping up, tell the user which plans/docs you added or changed
-so they can commit/push them (dev or their current branch) — do not
-auto-commit the master checkout yourself.
+changes. **Keep them current on the remote at all times — commit and push
+every plan/doc update promptly, never just at wrap-up.**
+
+- Whenever you add or update a plan, doc, or repo-local skill, commit it on
+the master checkout's current branch and push to `origin` (follow the
+branch's existing upstream — dev or the current feature branch). Do this
+immediately after writing, and again whenever the plan evolves (new user
+decisions, scope changes) and before wrapping up.
+- **Stage only the files you changed.** The master checkout is shared across
+all concurrent features — run `git status` first, and never sweep in other
+features' uncommitted work (their knowledge dirs, `.agents/skills` `.env`
+credentials, unrelated modifications). Leave those untouched.
+- Never `--force`-push. Never commit code, configs, or secrets to the master
+checkout — plans/docs only (golden rule 1).
+- Tell the user which plans/docs you changed and pushed (with commit hashes)
+so they can see the team's shared knowledge move.
 
 ## The workflow: research → plan → implement → test
 
@@ -154,7 +167,9 @@ auto-commit the master checkout yourself.
    on existing analysis. Keep `BRIEF.md` as the concise contract: which repos,
    which contract changes, in what order. Pin the cross-repo contract exactly.
    Get the repos into worktrees (`feature-start <name> <repo...>`) and add
-   herdr tabs.
+   herdr tabs. **Commit and push the plan to the master checkout's remote as
+   soon as it is written, and after every substantive update** (see Shared
+   knowledge — the team must always see the latest plan remotely).
 3. **Implement** — do the work in the worktrees. Delegate per repo to
    sub-agents when repos are independent (each worker stays inside one repo's
    conventions and runs that repo's own verification); keep tiny, tightly

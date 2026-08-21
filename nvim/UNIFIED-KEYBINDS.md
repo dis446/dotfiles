@@ -119,9 +119,10 @@ Neovim, perform commit/push/pull inside lazygit.
 | `Space+ot` | Toggle terminal           | `ActivateTerminalToolWindow` | `Snacks.terminal()`            |
 | `Space+oT` | Floating terminal         | — (no mapping)               | `Snacks.terminal()` (floating) |
 
-**Note on Neovim + tmux:** When running Neovim inside a tmux session, you
-still have a bash shell available at `Ctrl+b [` for scrollback.
-`Space+ot` opens a bottom-split terminal inside Neovim.
+**Note on Neovim + herdr:** When running Neovim inside a herdr workspace, you
+still have a bash shell available in the workspace's `term` tab (`alt+i`), and
+`Space+ot` opens a bottom-split terminal inside Neovim (or routes to the herdr
+term tab when `HERDR_ENV=1`).
 
 **User commands:**
 - `:SnacksTerminal` — toggle terminal
@@ -160,10 +161,12 @@ zellij is configured to pass F-keys through (`pane.focus` unbound from those key
 or using `F5` passthrough in the layout). Within zellij, use the `Space+d*`
 alternatives.
 
-## Pi AI (tmux)
+## Pi AI (herdr)
 
-Pi runs in a `Snacks.terminal()` floating window — same pattern as
-LazyGit.  Toggle hides/shows; Alt+K works from normal or terminal mode.
+Inside herdr, Pi runs in the workspace's `pi` tab (`alt+k` toggles it, or
+`Space+k`/`Alt+K` from nvim). Outside herdr it falls back to a
+`Snacks.terminal()` floating window — same pattern as LazyGit. Toggle
+hides/shows.
 New session opens a fresh terminal alongside existing ones.
 
 | Key          | Action                   | IntelliJ backend                | Neovim backend              |
@@ -246,13 +249,13 @@ These differences are environment-specific and don't affect muscle memory:
 
 | Area                  | IntelliJ                                  | Neovim                                |
 | --------------------- | ----------------------------------------- | ------------------------------------- |
-| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | `Ctrl+b s` — session picker (text-filterable) |
-| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Ctrl+b` prefix; one tmux window per project |
-| **Session mode**      | — (no session manager)                     | `Ctrl+b s` for session picker         |
+| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | `Ctrl+b w` — workspace picker (text-filterable) |
+| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Ctrl+b` prefix; one herdr workspace per project |
+| **Session mode**      | — (no session manager)                     | `Ctrl+b w` for workspace picker         |
 | **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
 | **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
 | **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |
-| **Session restore**   | Automatic (IDE remembers state)           | `auto-session` + `tmux-resurrect`/`continuum` auto-save and restore across reboots |
+| **Session restore**   | Automatic (IDE remembers state)           | herdr server + `restore.sh` (nvim/pi/term/gitlab per workspace) |
 
 ---
 
