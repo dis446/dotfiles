@@ -51,7 +51,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl gcc-c++ make -y --skip-unavailable
+sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl gcc-c++ make mpv-libs -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
@@ -100,6 +100,76 @@ fi
 curl -f https://zed.dev/install.sh | sh
 
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
+
+# ── Noize (YouTube Music client — replaces the Firefox tab) ────────────
+# Ensures the latest Linux release is installed/updated at ~/Applications/noize
+# on every run (queries the GitHub latest release each invocation, verifies the
+# sha256, and swaps the bundle). Needs libmpv (media_kit audio backend) —
+# installed via dnf above (mpv-libs).
+NOIZE_DIR="$HOME/Applications/noize"
+NOIZE_ARCHIVE="$HOME/Applications/noize-linux-release.tar.gz"
+if command -v curl >/dev/null 2>&1; then
+  if curl -fsSL -o /tmp/noize-release.json https://api.github.com/repos/anandssm/noize/releases/latest 2>/dev/null; then
+    NOIZE_VERSION="$(python3 -c "import json; print(json.load(open('/tmp/noize-release.json')).get('tag_name',''))" 2>/dev/null)"
+    if [ -n "$NOIZE_VERSION" ]; then
+      if [ "$(cat "$NOIZE_DIR/.version" 2>/dev/null || true)" != "$NOIZE_VERSION" ]; then
+        echo "noize: updating to $NOIZE_VERSION (was $(cat "$NOIZE_DIR/.version" 2>/dev/null || echo not-installed))"
+        read -r NOIZE_URL NOIZE_SHA <<META
+$(python3 - <<'PYEOF'
+import json
+d = json.load(open('/tmp/noize-release.json'))
+for a in d.get('assets', []):
+    if a.get('state') == 'uploaded' and a.get('name', '').endswith('linux-release.tar.gz'):
+        print(a['browser_download_url'], (a.get('digest') or '').replace('sha256:', ''))
+        break
+PYEOF
+)
+META
+        if [ -n "$NOIZE_URL" ] && [ -n "$NOIZE_SHA" ] \
+           && curl -fsSL -o "$NOIZE_ARCHIVE" "$NOIZE_URL" \
+           && echo "$NOIZE_SHA  $NOIZE_ARCHIVE" | sha256sum -c - >/dev/null 2>&1; then
+          rm -rf /tmp/noize-extract
+          mkdir -p /tmp/noize-extract
+          tar -xzf "$NOIZE_ARCHIVE" -C /tmp/noize-extract --strip-components=1
+          rm -rf "$NOIZE_DIR"
+          mv /tmp/noize-extract "$NOIZE_DIR"
+          chmod +x "$NOIZE_DIR/noize"
+          echo "$NOIZE_VERSION" > "$NOIZE_DIR/.version"
+          echo "noize: installed $NOIZE_VERSION at $NOIZE_DIR"
+        else
+          echo "WARN: noize download/checksum failed — keeping existing install" >&2
+        fi
+        rm -f "$NOIZE_ARCHIVE"
+      else
+        echo "noize: already at $NOIZE_VERSION"
+      fi
+    else
+      echo "WARN: noize release metadata unreadable — keeping existing install" >&2
+    fi
+  else
+    echo "WARN: noize GitHub API unreachable (offline?) — keeping existing install" >&2
+  fi
+else
+  echo "WARN: curl missing — skipping noize update" >&2
+fi
+
+# desktop entry + icon (idempotent; icon referenced from the bundle)
+mkdir -p "$HOME/.local/share/applications"
+cat > "$HOME/.local/share/applications/noize.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Noize
+GenericName=YouTube Music Client
+Comment=Free, open-source YouTube Music client (no Firefox tab needed)
+Exec=$HOME/Applications/noize/noize
+Icon=$HOME/Applications/noize/data/flutter_assets/assets/default_artwork.png
+Terminal=false
+Categories=Audio;Music;Player;
+StartupNotify=true
+StartupWMClass=noize
+EOF
+chmod +x "$HOME/.local/share/applications/noize.desktop"
+update-desktop-database "$HOME/.local/share/applications" >/dev/null 2>&1 || true
 
 source "$HOME/.bashrc"
 
