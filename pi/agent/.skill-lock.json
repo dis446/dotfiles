@@ -15,9 +15,9 @@
       "sourceType": "github",
       "sourceUrl": "https://github.com/juliusbrussee/caveman.git",
       "skillPath": "skills/caveman/SKILL.md",
-      "skillFolderHash": "a22aa2a0a64d7d4b7b59bbddbdb865fedfb40d9c",
+      "skillFolderHash": "75d927c628bcb304f061e193c80c21d617a314e5",
       "installedAt": "2026-04-16T08:51:55.850Z",
-      "updatedAt": "2026-06-15T11:49:02.001Z"
+      "updatedAt": "2026-08-23T11:45:23.649Z"
     },
     "and-audit-publish-nestjs": {
       "source": "developer-portal.alpha.looms.cloud",
