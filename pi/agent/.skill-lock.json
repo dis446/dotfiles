@@ -42,7 +42,7 @@
       "skillPath": "skills/create-agentsmd/SKILL.md",
       "skillFolderHash": "290ab8ae85ba8695e9bceb674e74177e76f8633d",
       "installedAt": "2026-07-15T15:04:59.065Z",
-      "updatedAt": "2026-07-15T15:04:59.065Z"
+      "updatedAt": "2026-08-23T11:46:30.434Z"
     },
     "cve-research": {
       "source": "fusengine/agents",
