@@ -196,8 +196,10 @@ print(rp.get('pane_id', '') or '')
     fi
   fi
 
-  # 4. gitlab tab (gitlab-tui) — only when the workspace root is a real git repo
-  if git -C "$root" rev-parse --show-toplevel >/dev/null 2>&1; then
+  # 4. gitlab tab (gitlab-tui) — only when gitlab-tui is installed AND the
+  #    workspace root is a real git repo (gitlab-tui is optional; skip on
+  #    machines where it's not installed, e.g. the home server)
+  if command -v gitlab-tui >/dev/null 2>&1 && git -C "$root" rev-parse --show-toplevel >/dev/null 2>&1; then
     gl_tab="$(printf '%s' "$tabs" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
@@ -225,7 +227,7 @@ print(rp.get('pane_id', '') or '')
       fi
     fi
   else
-    say "  skip gitlab tab: not a git repo ($root)"
+    say "  skip gitlab tab: gitlab-tui not installed or not a git repo ($root)"
   fi
 done
 
