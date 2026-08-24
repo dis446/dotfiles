@@ -207,9 +207,42 @@ ws = '$ws'
 print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
             if t.get('workspace_id') == ws and t.get('label') == 'gitlab'), ''))
 ")"
-    if [ -z "$gl_tab" ]; then
+
+    # Find the gitlab pane (existing tab or new)
+    gl_pane=""
+    if [ -n "$gl_tab" ]; then
+      gl_pane="$(printf '%s' "$panes" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+tab = '$gl_tab'
+for p in d.get('result', {}).get('panes', []):
+    if p.get('tab_id') == tab:
+        print(p.get('pane_id', '')); break
+")"
+      if [ -n "$gl_pane" ]; then
+        # Check if gitlab-tui is already running inside the pane
+        pg_out="$(json pane process-info --pane "$gl_pane" 2>/dev/null)"
+        gl_running="$(printf '%s' "$pg_out" | python3 -c "
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    raise SystemExit
+fps = d.get('result', {}).get('process_info', {}).get('foreground_processes', [])
+cmd = ' '.join(p.get('cmdline','') for p in fps)
+print('yes' if 'gitlab-tui' in cmd else 'no')
+")"
+        if [ "$gl_running" = "yes" ]; then
+          say "  gitlab-tui already running in $gl_pane"
+        else
+          wait_prompt "$gl_pane" 8
+          json pane run "$gl_pane" "gitlab-tui" >/dev/null 2>&1
+          say "  started gitlab-tui in existing tab ($gl_pane)"
+        fi
+      fi
+    else
       created="$(json tab create --workspace "$ws" --label gitlab --cwd "$git_root" --no-focus 2>/dev/null)"
-      gl_root="$(printf '%s' "$created" | python3 -c "
+      gl_pane="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -218,10 +251,10 @@ except Exception:
 rp = d.get('result', {}).get('root_pane') or {}
 print(rp.get('pane_id', '') or '')
 ")"
-      if [ -n "$gl_root" ]; then
-        wait_prompt "$gl_root" 8
-        json pane run "$gl_root" "gitlab-tui" >/dev/null 2>&1
-        say "  started gitlab-tui in $gl_root ($git_root)"
+      if [ -n "$gl_pane" ]; then
+        wait_prompt "$gl_pane" 8
+        json pane run "$gl_pane" "gitlab-tui" >/dev/null 2>&1
+        say "  started gitlab-tui in new tab ($gl_pane, $git_root)"
       else
         say "  WARN: failed to create gitlab tab"
       fi
