@@ -57,7 +57,8 @@ focus_tab() {
 }
 
 if [ -z "$pi_pane" ]; then
-  # ---- first use: create the pi tab (spawn pi in the focused pane's repo root)
+  # ---- first use: reuse an existing (empty, restored) pi tab if present,
+  #      else create the pi tab. Spawn pi in the focused pane's repo root.
   cwd="$(json pane get "$focused" | python3 -c "
 import json, sys
 try:
@@ -68,8 +69,31 @@ print(d.get('result', {}).get('pane', {}).get('cwd', ''))
 ")"
   root="$cwd"
   [ -n "$cwd" ] && root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || echo "$cwd")"
-  created="$(json tab create --workspace "$ws" --label pi --cwd "$root" --no-focus 2>/dev/null)"
-  rp="$(printf '%s' "$created" | python3 -c "
+
+  rp=""
+  tab_id=""
+  existing_pi_tab="$(json tab list --workspace "$ws" | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+ws = '$ws'
+print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
+            if t.get('workspace_id') == ws and t.get('label') == 'pi'), ''))
+")"
+  if [ -n "$existing_pi_tab" ]; then
+    rp="$(json pane list --workspace "$ws" | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+tab = '$existing_pi_tab'
+print(next((p['pane_id'] for p in d.get('result', {}).get('panes', [])
+            if p.get('tab_id') == tab), ''))
+")"
+    tab_id="$existing_pi_tab"
+  fi
+  if [ -z "$rp" ]; then
+    created="$(json tab create --workspace "$ws" --label pi --cwd "$root" --no-focus 2>/dev/null)"
+    rp="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -78,10 +102,7 @@ except Exception:
 rp = d.get('result', {}).get('root_pane') or {}
 print(rp.get('pane_id', '') or '')
 ")"
-  [ -n "$rp" ] || exit 0
-  sdir="$(pi_session_dir "$root")"
-  json pane run "$rp" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
-  focus_tab "$(printf '%s' "$created" | python3 -c "
+    tab_id="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -89,6 +110,11 @@ except Exception:
     raise SystemExit
 print(d.get('result', {}).get('tab', {}).get('tab_id', ''))
 ")"
+  fi
+  [ -n "$rp" ] || exit 0
+  sdir="$(pi_session_dir "$root")"
+  json pane run "$rp" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
+  focus_tab "$tab_id"
   exit 0
 fi
 
