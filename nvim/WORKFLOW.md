@@ -61,7 +61,7 @@ TUI sessions.
 | `alt+k`                 | Toggle the pi agent pane (pi tab)        |
 | `alt+i`                 | Toggle the workspace terminal (term tab) |
 | `alt+g`                 | Toggle the GitLab TUI pane (gitlab tab)  |
-| `alt+r`                 | Re-run the trio restore (nvim+pi+term+gitlab) |
+| `alt+r`                 | Re-run the boot restore (nvim + term; pi agents stay lazy) |
 
 `alt+k`/`alt+i`/`alt+g`/`alt+r` are herdr-level keybindings wired to
 `herdr/pi-toggle.sh` / `herdr/term-toggle.sh` / `herdr/gitlab-toggle.sh` /
@@ -249,20 +249,24 @@ systemd (user login)
   │         attaches, so restore.sh polls up to 180s; if no client attached
   │         in time, press alt+r after attaching to re-run it)
   │              └─ per workspace, ensures the set:
-  │                   ├─ main tab  -> nvim .  (auto-session restores buffers,
-  │                   │                           LSP re-attaches)
-  │                   ├─ pi tab    -> pi -c --session-dir <dir>  (feature-lead /
-  │                   │                per-workspace agent; resumes the same session)
+  │                   ├─ main tab  -> nvim .  (opens empty — auto-session is
+  │                   │               disabled, so no buffers/LSP at boot)
   │                   ├─ term tab  -> shell in the repo root
-  │                   └─ gitlab tab-> gitlab-tui (vim-key GitLab TUI, git repos only)
+  │                   └─ pi tab    -> LEFT EMPTY (lazy). Each pi agent costs
+  │                       ~200MB RSS plus a tsserver (~400-700MB) that pi-lens
+  │                       spawns, so booting one per workspace is ~16GB across
+  │                       40 workspaces. Spawn on demand with alt+k (pi-toggle.sh
+  │                       reuses the restored empty tab). Set RESTORE_PI=1 on the
+  │                       restore.sh run to boot them anyway.
   └─ user opens a terminal -> `herdr` (TUI client attaches)
-       └─ workspaces restore from session.json; pi agents resume natively
+       └─ workspaces restore from session.json
 ```
 
 Workspace/panel topology (cwd, tab labels, pane layout) persists in herdr's
 session file. Pi sessions persist in `~/.local/state/nvim/pi-sessions/` and
-resume natively when the client attaches. Neovim instances are re-launched by
-`restore.sh` and rebuild their buffers via auto-session.
+resume natively when the agent is started (alt+k). Neovim instances are
+re-launched by `restore.sh` and open empty — buffers/LSP come up when you
+actually open files in that workspace.
 
 ## Constraints to Remember
 

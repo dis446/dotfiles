@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Ensure every herdr workspace has its trio: nvim (main tab), pi, terminal.
+# Ensure every herdr workspace has its core set: nvim (main tab) and a
+# terminal tab. The pi agent tab is LAZY — pi agents are heavy (each ~200MB
+# RSS plus a tsserver pi-lens spawns), so they are NOT booted here; they
+# start on first alt+k via pi-toggle.sh. Set RESTORE_PI=1 to boot them.
 #
 # Runs automatically after the herdr server starts (systemd ExecStartPost in
 # herdr/systemd/herdr-server.service), or manually at any time:
@@ -8,8 +11,9 @@
 # Per workspace, idempotently:
 #   1. main tab (label != pi/term) -> launch `nvim .` if the pane is at a shell prompt
 #   2. "term" tab -> create if missing (shell in the repo root)
-#   3. "pi" tab   -> create if missing and start `pi -c --session-dir <dir>`
-#                    (existing pi panes resume natively via herdr's integration)
+#   3. "pi" tab   -> only with RESTORE_PI=1: create if missing and start
+#                    `pi -c --session-dir <dir>` (otherwise left empty;
+#                    existing pi panes resume natively via herdr's integration)
 set -u
 
 hdr="${HERDR_BIN_PATH:-herdr}"
@@ -26,7 +30,10 @@ for i in $(seq 1 90); do
   fi
   sleep 1
 done
-[ -n "$server_ready" ] || { say "ERROR: herdr server not reachable after 90s"; exit 1; }
+[ -n "$server_ready" ] || {
+  say "ERROR: herdr server not reachable after 90s"
+  exit 1
+}
 
 json() { "$hdr" "$@" 2>/dev/null; }
 
@@ -85,7 +92,7 @@ pi_session_dir() {
   printf '%s/%s-%s' "$base" "$name" "$hash"
 }
 
-tabs_of()  { json tab list --workspace "$1"; }
+tabs_of() { json tab list --workspace "$1"; }
 panes_of() { json pane list --workspace "$1"; }
 
 # ---- per workspace -----------------------------------------------------
@@ -113,7 +120,10 @@ cand = [t for t in d.get('result', {}).get('tabs', [])
 cand.sort(key=lambda t: t.get('number', 99))
 print(cand[0]['tab_id'] if cand else '')
 ")"
-  [ -n "$main_tab" ] || { say "  skip: no main tab"; continue; }
+  [ -n "$main_tab" ] || {
+    say "  skip: no main tab"
+    continue
+  }
 
   panes="$(panes_of "$ws")"
   [ -n "$panes" ] || continue
@@ -142,7 +152,10 @@ import json, sys
 d = json.load(sys.stdin)
 print(next((p['cwd'] for p in d.get('result', {}).get('panes', []) if p.get('cwd')), ''))
 ")"
-  [ -n "$root" ] || { say "  skip: no cwd"; continue; }
+  [ -n "$root" ] || {
+    say "  skip: no cwd"
+    continue
+  }
 
   # 1. nvim in the main pane
   if wait_prompt "$main_pane" 20; then
@@ -164,21 +177,29 @@ print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
             if t.get('workspace_id') == ws and t.get('label') == 'term'), ''))
 ")"
   if [ -z "$term_tab" ]; then
-    json tab create --workspace "$ws" --label term --cwd "$git_root" --no-focus >/dev/null 2>&1 \
-      && say "  created term tab ($git_root)" || say "  WARN: failed to create term tab"
+    json tab create --workspace "$ws" --label term --cwd "$git_root" --no-focus >/dev/null 2>&1 &&
+      say "  created term tab ($git_root)" || say "  WARN: failed to create term tab"
   fi
 
-  # 3. pi tab (existing pi panes resume natively on client attach)
-  pi_tab="$(printf '%s' "$tabs" | python3 -c "
+  # 3. pi tab — LAZY by default: each pi agent costs ~200MB RSS plus a
+  #    TypeScript language server (~400-700MB) that pi-lens spawns, so
+  #    booting one per workspace is the dominant RAM cost after a reboot
+  #    (~16GB for 40 workspaces). pi-toggle.sh (alt+k) already creates the
+  #    tab and starts the agent on first use, so nothing is lost — agents
+  #    just start on demand. Set RESTORE_PI=1 to boot them anyway.
+  if [ "${RESTORE_PI:-0}" != "1" ]; then
+    say "  pi tab skipped (lazy) — spawn on first alt+k"
+  else
+    pi_tab="$(printf '%s' "$tabs" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 ws = '$ws'
 print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
             if t.get('workspace_id') == ws and t.get('label') == 'pi'), ''))
 ")"
-  if [ -z "$pi_tab" ]; then
-    created="$(json tab create --workspace "$ws" --label pi --cwd "$git_root" --no-focus 2>/dev/null)"
-    pi_root="$(printf '%s' "$created" | python3 -c "
+    if [ -z "$pi_tab" ]; then
+      created="$(json tab create --workspace "$ws" --label pi --cwd "$git_root" --no-focus 2>/dev/null)"
+      pi_root="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
     d = json.load(sys.stdin)
@@ -187,12 +208,13 @@ except Exception:
 rp = d.get('result', {}).get('root_pane') or {}
 print(rp.get('pane_id', '') or '')
 ")"
-    if [ -n "$pi_root" ]; then
-      sdir="$(pi_session_dir "$git_root")"
-      json pane run "$pi_root" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
-      say "  started pi in $pi_root ($sdir)"
-    else
-      say "  WARN: failed to create pi tab"
+      if [ -n "$pi_root" ]; then
+        sdir="$(pi_session_dir "$git_root")"
+        json pane run "$pi_root" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
+        say "  started pi in $pi_root ($sdir)"
+      else
+        say "  WARN: failed to create pi tab"
+      fi
     fi
   fi
 

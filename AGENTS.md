@@ -47,7 +47,7 @@ cd ~/dotfiles
 
 All install scripts are **idempotent** — they use `rm -rf "$dest"` before `ln -s "$src"`, so re-running is safe.
 
-### What install scripts do (omitting OS-specific package mgmt):
+### What install scripts do (omitting OS-specific package mgmt)
 
 1. Create `~/.config/` and ghostty dir
 2. Symlink individual config dirs (nvim, herdr, zellij, zed, ghostty, pi, claude, .editorconfig)
@@ -57,7 +57,7 @@ All install scripts are **idempotent** — they use `rm -rf "$dest"` before `ln 
 6. Install packages (dnf, mise, npm, cargo, flatpak, etc.)
 7. Set git global config (user, email, pull.rebase)
 
-### Manual steps after first setup:
+### Manual steps after first setup
 
 ```bash
 # In Neovim, install plugins
@@ -80,7 +80,8 @@ done
 [ -f "$HOME/dotfiles/fedora/bash_aliases" ] && . "$HOME/dotfiles/fedora/bash_aliases"
 ```
 
-# Cross-platform aliases go in `bash/` (one file per topic): `git_aliases`, `docker_aliases`, `herdr_aliases`, `feature_aliases`, `general_aliases`, etc.
+# Cross-platform aliases go in `bash/` (one file per topic): `git_aliases`, `docker_aliases`, `herdr_aliases`, `feature_aliases`, `general_aliases`, etc
+
 - **OS-specific overrides** go in the OS dir (e.g., `fedora/bash_aliases`)
 - **Secrets** go in `bash/secret_aliases` (gitignored via `**/secret` pattern)
 - After editing any alias file, re-source: `src` (alias for `source ~/.bashrc`)
@@ -198,8 +199,11 @@ nvim -c "checkhealth" -c "qa"
 Terminal multiplexer (replaced tmux). One herdr workspace per repo, each with
 nvim (main tab), pi agent (pi tab), terminal (term tab), GitLab TUI (gitlab
 tab). Headless server via `herdr/systemd/herdr-server.service`;
-`herdr/restore.sh` (ExecStartPost, or `alt+r`) ensures every workspace has the
-trio. `herdr/pi-toggle.sh` / `term-toggle.sh` / `gitlab-toggle.sh` back the
+`herdr/restore.sh` (ExecStartPost, or `alt+r`) ensures every workspace has
+nvim + a term tab — the **pi agent tab is lazy** (each agent costs ~200MB RSS
+plus a tsserver pi-lens spawns, ~16GB across 40 workspaces, so agents start on
+first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
+`herdr/pi-toggle.sh` / `term-toggle.sh` / `gitlab-toggle.sh` back the
 `alt+k` / `alt+i` / `alt+g` keybindings. Full workflow: `nvim/WORKFLOW.md`.
 
 ## Code Style Guidelines
@@ -255,12 +259,12 @@ See `.gitignore` for full details. Key patterns:
 # 1. Is the headless server running?
 systemctl --user status herdr-server.service
 
-# 2. Did restore.sh ensure the trio (nvim + pi + term + gitlab)?
+# 2. Did restore.sh ensure nvim + term tabs (pi agents are lazy)?
 tail -30 ~/.config/herdr/restore.log
 
 # 3. Workspaces missing? The headless server restores session.json only once
 #    a client attaches — press alt+r in herdr (or run ~/dotfiles/herdr/restore.sh)
-#    to re-run the trio restore.
+#    to re-run the restore. pi agents: spawn per workspace with alt+k.
 
 # 4. Server log for restore/attach events
 less ~/.config/herdr/herdr-server.log
