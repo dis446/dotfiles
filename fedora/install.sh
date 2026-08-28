@@ -62,6 +62,7 @@ sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
 pi install npm:context-mode
 pi install npm:@juicesharp/rpiv-ask-user-question
 pi install npm:pi-subagents
+pi install npm:@dietrichgebert/ponytail
 
 sudo dnf install cargo -y
 cargo install cargo-binstall -y

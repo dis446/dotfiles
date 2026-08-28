@@ -31,8 +31,14 @@ ASSIGNEE="$(glab api user 2>/dev/null | python3 -c 'import json,sys; print(json.
 
 declare -a RESULTS
 shopt -s nullglob
-for wt in "$ROOT"/*/; do
-  [ -e "$wt/.git" ] || continue
+# Discover worktrees in both layouts: directly under the feature root AND
+# nested under worktrees/ (feature-lead agents may nest them there —
+# mirrors feature-stop's recursive discovery).
+WTS=()
+for wt in "$ROOT"/*/ "$ROOT"/worktrees/*/; do
+  [ -e "$wt/.git" ] && WTS+=("$wt")
+done
+for wt in "${WTS[@]}"; do
   repo="$(basename "$wt")"
   branch="$(git -C "$wt" branch --show-current 2>/dev/null)"
   if [ "$branch" != "$BRANCH" ]; then
@@ -48,6 +54,12 @@ for wt in "$ROOT"/*/; do
   target="dev"
   git -C "$wt" show-ref --verify --quiet refs/remotes/origin/dev || target="$(base_branch "$wt" | sed 's|^origin/||')"
   [ -n "$target" ] || target="dev"
+
+  if [ "$(git -C "$wt" rev-list --count "origin/$target..HEAD" 2>/dev/null || echo 0)" = "0" ]; then
+    echo "SKIP $repo: no commits ahead of $target (nothing to merge)" >&2
+    RESULTS+=("$repo | nothing to merge (already on $target)")
+    continue
+  fi
 
   if [ "$DRY" = 1 ]; then
     echo "[dry-run] $repo: git push -u origin $BRANCH; glab mr create --source-branch $BRANCH --target-branch $target --squash-before-merge --remove-source-branch --assignee '$ASSIGNEE' --title '$TITLE'"
