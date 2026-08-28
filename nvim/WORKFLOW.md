@@ -253,8 +253,7 @@ systemd (user login)
   │                   │               disabled, so no buffers/LSP at boot)
   │                   ├─ term tab  -> shell in the repo root
   │                   └─ pi tab    -> LEFT EMPTY (lazy). Each pi agent costs
-  │                       ~200MB RSS plus a tsserver (~400-700MB) that pi-lens
-  │                       spawns, so booting one per workspace is ~16GB across
+  │                       ~200MB RSS, so booting one per workspace is ~8GB across
   │                       40 workspaces. Spawn on demand with alt+k (pi-toggle.sh
   │                       reuses the restored empty tab). Set RESTORE_PI=1 on the
   │                       restore.sh run to boot them anyway.
