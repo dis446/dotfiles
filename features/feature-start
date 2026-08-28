@@ -147,7 +147,7 @@ if [ -n "$WSID" ]; then
   if [ -n "$rp" ]; then
     sdir="$(pi_session_dir "$ROOT")"
     wait_prompt "$rp" 8
-    skill="$HOME/.pi/agent/skills/feature-master"
+    skill="$E2E_MAIN/.agents/skills/feature-master"
     skill_flag=""
     [ -d "$skill" ] && skill_flag=" --skill '$skill'"
     prompt="Stand by — feature '$NAME' is ready. Do NOT use tools, read files, or explore anything yet (no repo discovery, no feature-list, no reading AGENTS.md). The user will give you the feature requirements next. When they do, read the feature-master skill and begin. For now, reply with a one-line ready confirmation only."
