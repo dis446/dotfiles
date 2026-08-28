@@ -10,8 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 found=0
 shopt -s nullglob
 for d in "$FEATURES_ROOT"/*/; do
-  found=1
   name="$(basename "$d")"
+  # knowledge dirs live beside the feature workspaces — skip them
+  [ "$name" = "plans" ] || [ "$name" = "docs" ] && continue
+  found=1
   title="$(sed -n '1p' "$d/BRIEF.md" 2>/dev/null)"
   echo "== $name  (${title:-no brief})"
   for wt in "$d"/*/; do

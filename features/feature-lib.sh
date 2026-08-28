@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Shared helpers for the alpha feature workflow (feature-start/mr/stop/list).
 #
-# A "feature" = a directory under $FEATURES_ROOT (default ~/Code/and/alpha/features)
+# A "feature" = a directory under $FEATURES_ROOT (default $E2E_MAIN/features)
 # containing one git worktree per touched repo, all on branch feat/<name>
 # based off origin/dev. Feature lead agents + MRs to dev live here.
 set -u
 
 ALPHA_ROOT="${ALPHA_ROOT:-$HOME/Code/and/alpha}"
-FEATURES_ROOT="${FEATURES_ROOT:-$ALPHA_ROOT/features}"
 hdr="${HERDR_BIN_PATH:-herdr}"
 
 json() { "$hdr" "$@" 2>/dev/null; }
@@ -16,26 +15,37 @@ feature_name_valid() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9-]*$ ]]; }
 
 feature_root() { printf '%s/%s' "$FEATURES_ROOT" "$1"; }
 
-# Master (e2e-performance-tests) checkout — the orchestrator/knowledge hub that
-# owns the shared plans/, docs/, .agents/ dirs.
+# Master (e2e-performance-tests) checkout — the dev umbrella / AI-harness
+# master repo / knowledge hub / planning area. Owns features/plans and
+# features/docs (git-tracked), .agents/, and the feature workspaces under
+# features/<name>/.
 E2E_MAIN="$ALPHA_ROOT/back-end/e2e-performance-tests"
+
+# Feature workspaces live INSIDE the master repo (globalSimConfig pattern):
+# $E2E_MAIN/features/<name>/.
+FEATURES_ROOT="${FEATURES_ROOT:-$E2E_MAIN/features}"
 
 # Symlink the master repo's knowledge dirs into a feature root so every feature
 # workspace shares the canonical plans/, docs/, and .agents/skills/. Idempotent;
 # warns on pre-existing real dirs and missing master dirs.
 link_knowledge_dirs() {
-  local root="$1" d
+  local root="$1" d target
   for d in plans docs .agents; do
-    if [ ! -e "$E2E_MAIN/$d" ]; then
-      echo "  WARN: $E2E_MAIN/$d missing — skipping" >&2
+    case "$d" in
+      plans) target="$E2E_MAIN/features/plans" ;;
+      docs)  target="$E2E_MAIN/features/docs" ;;
+      .agents) target="$E2E_MAIN/.agents" ;;
+    esac
+    if [ ! -e "$target" ]; then
+      echo "  WARN: $target missing — skipping" >&2
       continue
     fi
     if [ -e "$root/$d" ] && [ ! -L "$root/$d" ]; then
       echo "  WARN: $root/$d exists and is not a symlink — leaving as-is" >&2
       continue
     fi
-    ln -sfn "$E2E_MAIN/$d" "$root/$d"
-    echo "  linked $d -> $E2E_MAIN/$d"
+    ln -sfn "$target" "$root/$d"
+    echo "  linked $d -> $target"
   done
 }
 
