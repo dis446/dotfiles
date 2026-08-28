@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+# Teardown a globalSim feature: remove its worktrees (git-registered only),
+# close its herdr workspace, delete merged feat/<name-lowercased> branches.
+#   - SAFETY: refuses to do anything unless invoked from INSIDE a feature
+#     herdr workspace (~/Code/gSim/globalSimConfig/features/<name>/ or a subdir). Run it
+#     from the feature's herdr term tab (`fstop [--yes]`) or its pi tab
+#     (`/feature-stop`).
+#   - worktrees with uncommitted changes are left alone (never force-removed)
+#     unless --force is given
+#   - worktrees are discovered RECURSIVELY, so both layouts are handled:
+#       $ROOT/<repo>/            (feature-start default)
+#       $ROOT/worktrees/<repo>   (feature-lead agents may nest them here)
+#   - the feature root + BRIEF.md are kept unless --delete-root is given
+#
+# Usage: fstop [name] [--yes] [--force] [--keep-branches] [--delete-root]
+#   (must run inside the workspace)
+set -u
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=feature-lib.sh
+. "$SCRIPT_DIR/feature-lib.sh"
+
+NAME=""; YES=0; KEEP=0; FORCE=0; DELETE_ROOT=0
+for a in "$@"; do
+  case "$a" in
+    --yes) YES=1 ;;
+    --force) FORCE=1 ;;
+    --keep-branches) KEEP=1 ;;
+    --delete-root) DELETE_ROOT=1 ;;
+    --*) echo "unknown option: $a" >&2; exit 1 ;;
+    *) [ -z "$NAME" ] && NAME="$a" || { echo "unexpected extra argument: $a" >&2; exit 1; } ;;
+  esac
+done
+
+# Refuse outside a feature herdr workspace: derive the feature from cwd when
+# no name was given; either way cwd must be inside the feature's root.
+if [ -z "$NAME" ]; then
+  case "$PWD" in
+    "$FEATURES_ROOT"/*) NAME="${PWD#"$FEATURES_ROOT"/}"; NAME="${NAME%%/*}" ;;
+    *) echo "refusing: feature-stop must be run from inside a feature herdr workspace ($FEATURES_ROOT/<name>), not from $PWD" >&2; exit 1 ;;
+  esac
+fi
+ROOT="$(feature_root "$NAME")"
+case "$PWD" in
+  "$ROOT"|"$ROOT"/*) ;;
+  *) echo "refusing: teardown of '$NAME' must be run from inside its workspace ($ROOT) — run 'fstop' in the feature's herdr term tab" >&2; exit 1 ;;
+esac
+[ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
+BRANCH="$(feature_branch "$NAME")"
+
+confirm() {
+  [ "$YES" = 1 ] && return 0
+  # Never hang on a prompt nobody can see: when stdin is not an interactive
+  # terminal (e.g. the script was spawned by pi), refuse with instructions.
+  if [ ! -t 0 ]; then
+    echo "refusing: confirmation prompt needs an interactive terminal (stdin is not a TTY)." >&2
+    echo "  from the workspace's pi:       run /feature-stop --yes, or ask the agent to call feature_stop with yes=true" >&2
+    echo "  from the workspace's term tab: run fstop --yes" >&2
+    exit 1
+  fi
+  local ans
+  read -r -p "Close feature '$NAME'? Removes its worktrees and closes the herdr workspace. [y/N] " ans
+  [ "$ans" = "y" ] || [ "$ans" = "Y" ]
+}
+confirm || { echo "aborted" >&2; exit 1; }
+
+# find the herdr workspace by label (feature-start sets the label to the
+# feature name), falling back to any workspace whose pane cwd lives under the
+# feature root (covers workspaces created without an explicit label, whose
+# auto-derived label would be the first worktree's basename instead).
+WSID="$(json workspace list 2>/dev/null | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+print(next((w.get('workspace_id', '') for w in d.get('result', {}).get('workspaces', [])
+            if w.get('label') == '$NAME'), ''))
+")"
+if [ -z "$WSID" ]; then
+  for w in $(json workspace list 2>/dev/null | python3 -c "
+import json, sys
+try: d = json.load(sys.stdin)
+except Exception: raise SystemExit
+print(' '.join(w.get('workspace_id', '') for w in d.get('result', {}).get('workspaces', [])))
+"); do
+    if json pane list --workspace "$w" 2>/dev/null | grep -q "$ROOT"; then
+      WSID="$w"
+      break
+    fi
+  done
+fi
+
+removed=0
+skipped=0
+# Discover worktrees recursively: every .git under the feature root (a
+# directory for regular checkouts, a `gitdir:` file for git worktrees),
+# excluding the shared knowledge symlinks (docs/plans/.agents -> umbrella).
+while IFS= read -r -d '' gitpath; do
+  wt="$(dirname "$gitpath")"
+  repo="$(basename "$wt")"
+  dirty="$(git -C "$wt" status --porcelain 2>/dev/null)"
+  if [ -n "$dirty" ]; then
+    if [ "$FORCE" = 1 ]; then
+      echo "FORCE $repo: removing dirty worktree (--force)"
+    else
+      echo "SKIP $repo: worktree has uncommitted changes (commit/stash first, or re-run with --force)" >&2
+      skipped=$((skipped+1))
+      continue
+    fi
+  fi
+  main="$(git -C "$wt" rev-parse --git-common-dir 2>/dev/null || true)"
+  if [[ "$main" == */.git/worktrees/* ]]; then main="${main%/.git/worktrees/*}"; else main="${main%/.git}"; fi
+  if [ -n "$main" ] && [ -d "$main/.git" ]; then
+    flags=()
+    [ "$FORCE" = 1 ] && flags+=(--force)
+    if git -C "$main" worktree remove "${flags[@]}" "$wt" 2>/dev/null; then
+      echo "  removed worktree: $wt"
+      removed=$((removed+1))
+    else
+      echo "WARN: could not remove $wt" >&2
+      continue
+    fi
+    if [ "$KEEP" != 1 ]; then
+      if git -C "$main" branch -d "$BRANCH" 2>/dev/null | grep -q 'Deleted'; then
+        echo "  deleted branch $BRANCH in $(basename "$main")"
+      else
+        echo "  (branch $BRANCH not merged in $(basename "$main"); kept)"
+      fi
+    fi
+  else
+    echo "WARN: cannot resolve main repo for $wt" >&2
+  fi
+done < <(find "$ROOT" -mindepth 2 -name .git \
+          -not -path '*/docs/*' -not -path '*/plans/*' -not -path '*/.agents/*' \
+          -print0)
+
+if [ -n "$WSID" ]; then
+  json workspace close "$WSID" >/dev/null 2>&1 \
+    && echo "  closed herdr workspace $WSID (label '$NAME')" \
+    || echo "WARN: could not close herdr workspace $WSID" >&2
+else
+  echo "  (no herdr workspace found for '$NAME')"
+fi
+
+echo
+echo "removed $removed worktree(s), skipped $skipped."
+if [ "$DELETE_ROOT" = 1 ] && [ "$skipped" = 0 ]; then
+  rm -rf "$ROOT" && echo "deleted feature root: $ROOT"
+elif [ "$DELETE_ROOT" = 1 ]; then
+  echo "NOT deleting feature root: $skipped worktree(s) skipped (resolve them, or re-run with --force). Root kept at: $ROOT"
+else
+  echo "Feature record kept at: $ROOT/BRIEF.md"
+  echo "delete manually when done: rm -rf \"$ROOT\""
+fi
