@@ -59,6 +59,9 @@ mise use -g java@temurin-21
 mise use -g herdr
 
 sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+pi install npm:context-mode
+pi install npm:@juicesharp/rpiv-ask-user-question
+pi install npm:pi-subagents
 
 sudo dnf install cargo -y
 cargo install cargo-binstall -y

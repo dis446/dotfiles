@@ -46,6 +46,9 @@ case "$PWD" in
   "$ROOT"|"$ROOT"/*) ;;
   *) echo "refusing: teardown of '$NAME' must be run from inside its workspace ($ROOT) — run 'fstop' in the feature's herdr term tab" >&2; exit 1 ;;
 esac
+case "$NAME" in
+  plans|docs) echo "refusing: '$NAME' is a knowledge dir, not a feature workspace" >&2; exit 1 ;;
+esac
 [ -d "$ROOT" ] || { echo "feature '$NAME' not found: $ROOT" >&2; exit 1; }
 BRANCH="$(feature_branch "$NAME")"
 

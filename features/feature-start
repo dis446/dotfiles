@@ -65,7 +65,7 @@ if [ -e "$ROOT" ]; then
   done
   # backfill shared knowledge dirs for existing feature roots too
   link_knowledge_dirs "$ROOT"
-  [ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/plans/$NAME"
+  [ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/features/plans/$NAME"
   exit 0
 fi
 
@@ -95,9 +95,9 @@ done
 } > "$ROOT/BRIEF.md"
 
 # shared knowledge dirs: symlink plans/, docs/, .agents/ from the master repo,
-# and give this feature its dedicated plan folder (plans/<name>)
+# and give this feature its dedicated plan folder (features/plans/<name>)
 link_knowledge_dirs "$ROOT"
-[ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/plans/$NAME"
+[ -d "$E2E_MAIN" ] && mkdir -p "$E2E_MAIN/features/plans/$NAME"
 
 # worktrees
 for d in "${DIRS[@]}"; do
@@ -167,7 +167,7 @@ if [ ${#DIRS[@]} -gt 0 ]; then
   echo "feature '$NAME' ready:"
   echo "  root:    $ROOT"
   echo "  brief:   $ROOT/BRIEF.md  (edit line 1 = MR title)"
-  echo "  plans:   $ROOT/plans/$NAME  (shared -> $E2E_MAIN/plans/$NAME)"
+  echo "  plans:   $ROOT/plans/$NAME  (shared -> $E2E_MAIN/features/plans/$NAME)"
   echo "  worktrees:"
   for d in "${DIRS[@]}"; do echo "    $ROOT/$(basename "$d")  (branch $BRANCH)"; done
   echo "next: prompt the feature-lead pi in the feature workspace, or run: feature-mr $NAME"
