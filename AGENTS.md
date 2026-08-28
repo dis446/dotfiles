@@ -201,7 +201,7 @@ nvim (main tab), pi agent (pi tab), terminal (term tab), GitLab TUI (gitlab
 tab). Headless server via `herdr/systemd/herdr-server.service`;
 `herdr/restore.sh` (ExecStartPost, or `alt+r`) ensures every workspace has
 nvim + a term tab — the **pi agent tab is lazy** (each agent costs ~200MB RSS
-plus a tsserver pi-lens spawns, ~16GB across 40 workspaces, so agents start on
+, ~8GB across 40 workspaces, so agents start on
 first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
 `herdr/pi-toggle.sh` / `term-toggle.sh` / `gitlab-toggle.sh` back the
 `alt+k` / `alt+i` / `alt+g` keybindings. Full workflow: `nvim/WORKFLOW.md`.

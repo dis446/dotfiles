@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ensure every herdr workspace has its core set: nvim (main tab) and a
 # terminal tab. The pi agent tab is LAZY — pi agents are heavy (each ~200MB
-# RSS plus a tsserver pi-lens spawns), so they are NOT booted here; they
+# RSS), so they are NOT booted here; they
 # start on first alt+k via pi-toggle.sh. Set RESTORE_PI=1 to boot them.
 #
 # Runs automatically after the herdr server starts (systemd ExecStartPost in
@@ -182,9 +182,8 @@ print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
   fi
 
   # 3. pi tab — LAZY by default: each pi agent costs ~200MB RSS plus a
-  #    TypeScript language server (~400-700MB) that pi-lens spawns, so
   #    booting one per workspace is the dominant RAM cost after a reboot
-  #    (~16GB for 40 workspaces). pi-toggle.sh (alt+k) already creates the
+  #    (~8GB for 40 workspaces). pi-toggle.sh (alt+k) already creates the
   #    tab and starts the agent on first use, so nothing is lost — agents
   #    just start on demand. Set RESTORE_PI=1 to boot them anyway.
   if [ "${RESTORE_PI:-0}" != "1" ]; then
