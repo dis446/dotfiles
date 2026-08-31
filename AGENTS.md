@@ -11,7 +11,6 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 | Path                                      | Symlinked to         | Purpose                                                |
 | ----------------------------------------- | -------------------- | ------------------------------------------------------ |
 | `bash/`                                   | (sourced)            | Cross-platform shell aliases, split by topic           |
-| `features/`                               | (invoked)            | Alpha feature workflow: worktrees per repo + MRs to dev |
 | `fedora/`, `nobara/`, `macos/`, `ubuntu/` | (per OS)             | OS-specific aliases, bashrc, install scripts           |
 | `nvim/`                                   | `~/.config/nvim`     | Neovim config (Lua, lazy.nvim)                         |
 | `herdr/`                                  | `~/.config/herdr`    | herdr workspaces, toggles, boot restore (see WORKFLOW.md) |
@@ -80,7 +79,7 @@ done
 [ -f "$HOME/dotfiles/fedora/bash_aliases" ] && . "$HOME/dotfiles/fedora/bash_aliases"
 ```
 
-# Cross-platform aliases go in `bash/` (one file per topic): `git_aliases`, `docker_aliases`, `herdr_aliases`, `feature_aliases`, `general_aliases`, etc
+# Cross-platform aliases go in `bash/` (one file per topic): `git_aliases`, `docker_aliases`, `herdr_aliases`, `general_aliases`, etc
 
 - **OS-specific overrides** go in the OS dir (e.g., `fedora/bash_aliases`)
 - **Secrets** go in `bash/secret_aliases` (gitignored via `**/secret` pattern)
@@ -270,9 +269,28 @@ tail -30 ~/.config/herdr/restore.log
 less ~/.config/herdr/herdr-server.log
 ```
 
-## Feature Workflow (alpha master repo)
+## Feature Workflow (platform master repos)
 
-`features/` scripts orchestrate concurrent alpha features: one feature = `~/Code/and/alpha/back-end/e2e-performance-tests/features/<name>/` containing a git worktree per touched repo (branch `feat/<name>` off `origin/dev`) + `BRIEF.md` (line 1 = MR title). `feature-start` also opens a herdr workspace (nvim tab per repo, pi feature-lead tab, term tab) and spawns the feature-lead agent. Aliases: `fstart`/`fmr`/`fstop`/`flist`. In the master repo's pi session, `/feature-start <name>` (name required + unique) creates the feature and spawns the feature-lead pi with the global `feature-master` skill (`pi/agent/skills/feature-master/`) — prompt it with requirements and it discovers repos, creates worktrees, spawns sub-agents, and opens MRs to dev. Full operating pattern lives in `e2e-performance-tests/AGENTS.md`; the pi tools/commands (`feature_start`, `/feature-start`, …) are a repo-local extension in that repo's `.pi/extensions/`.
+The feature workflow lives entirely inside each platform's master repo — the
+dotfiles repo has no involvement:
+
+| Platform  | Master repo                                   | Platform root        |
+| --------- | --------------------------------------------- | -------------------- |
+| alpha     | `~/Code/and/alpha/back-end/e2e-performance-tests` | `~/Code/and/alpha` |
+| globalSim | `~/Code/gSim/globalSimConfig`                 | sibling dir of the repo |
+
+Each master repo self-contains its workflow: bash scripts in
+`scripts/feature-workflow/`, the pi `feature_start`/`feature_mr`/`feature_stop`/
+`feature_list` tools in its repo-local `.pi/extensions/feature-workflow.ts`, and
+the `feature-master` skill in its `.agents/skills/`. All paths are derived from
+file locations (no hardcoded `$HOME`), so everything works identically on both
+machines. A feature = `<master-repo>/features/<name>/` containing one git
+worktree per touched repo (branch `feat/<name>` off the platform base branch) +
+`BRIEF.md` (line 1 = MR/PR title); feature-start also opens a herdr workspace
+(label `alpha-<name>` / `gsim-<name>`, so same-named features on the two
+platforms can't collide) and spawns the feature-lead pi. Drive it from the
+master repo's pi session (`/feature-start <name>`) or the scripts directly from
+a shell. Full operating pattern lives in each repo's `AGENTS.md`.
 
 ## Additional Notes
 
