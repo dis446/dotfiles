@@ -21,6 +21,7 @@ Mermaid diagram and documentation system with specialized guides and code-to-dia
 - [Workflow Summary](#workflow-summary)
 - [When to Use What](#when-to-use-what)
 - [Best Practices](#best-practices)
+- [Compatibility Gotchas](#compatibility-gotchas)
 - [Learning Path](#learning-path)
 
 ## Decision Tree
@@ -470,6 +471,24 @@ design-doc-mermaid/
 6. **Load On-Demand**: Only read guides needed for the specific request
 7. **Token Efficiency**: Use hierarchical loading instead of reading everything
 
+## Compatibility Gotchas
+
+**Syntax that renders in latest mermaid may fail on the target renderer — always match the
+renderer's version, not latest.**
+
+- **GitLab renders mermaid 10.7.0** (as of 2026-08). When a markdown doc targets GitLab,
+  validate diagrams against `mermaid@10.7.0` before committing (recipe: Error 29 in
+  `references/guides/troubleshooting.md`).
+- **Known 10.x breaker:** unquoted dotted-edge labels (`-. text .->`) containing hyphens or
+  dots (e.g. `2026-08-24..28`) throw `Lexical error ... Unrecognized text` on 10.7.0.
+  **Always quote dotted-edge labels**: `-. "text" .->`.
+- Scripts (`extract_mermaid.py` / `mermaid_to_image.py`) validate with the locally
+  installed mermaid CLI — fine for general syntax, **not** proof the target renderer (GitLab)
+  accepts it.
+
+See `references/guides/troubleshooting.md` Error 29 for the full entry + version-pinned
+validation script.
+
 ## Learning Path
 
 **New to Mermaid?** Start here:
@@ -493,6 +512,6 @@ design-doc-mermaid/
 
 ---
 
-**Version:** 2.0 (Hierarchical Architecture)
-**Last Updated:** 2025-01-13
+**Version:** 2.1 (Hierarchical Architecture)
+**Last Updated:** 2026-08-28
 **Maintained by:** Claude Code Skills

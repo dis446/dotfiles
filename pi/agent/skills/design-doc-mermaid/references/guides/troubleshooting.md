@@ -1,7 +1,7 @@
 # Mermaid Syntax Troubleshooting Guide
 
-**Version:** 1.0
-**Last Updated:** 2025-01-13
+**Version:** 1.1
+**Last Updated:** 2026-08-28
 **Purpose:** Common syntax errors and how to fix them
 
 This guide documents the top 20+ most common Mermaid syntax errors discovered through research of GitHub issues, Stack Overflow questions, and community forums.
@@ -358,6 +358,51 @@ flowchart TD
 ```
 
 **Explanation:** Link directly to nodes inside nested subgraphs, not to the subgraph itself.
+
+---
+
+### ❌ Error 29: Unquoted Dotted-Edge Labels (mermaid 10.x / GitLab)
+
+**Severity:** 🟠 High - Renders in latest mermaid/mmdc, **fails on GitLab** (renders mermaid 10.7.0)
+
+**Problem:** Dotted edges (`-. text .->`) with an **unquoted label containing hyphens/dots**
+(e.g. a date range like `2026-08-24..28`) throw a tokenizer lexical error on mermaid 10.x.
+The `-`/`..` sequence inside the label confuses the 10.x lexer even though newer parsers accept it.
+
+**Incorrect (breaks on GitLab mermaid 10.7.0):**
+```mermaid
+flowchart LR
+    A[Debezium] -. no binding 2026-08-24..28 .-> X[event dropped]
+```
+
+**Correct (quote the label):**
+```mermaid
+flowchart LR
+    A[Debezium] -. "no binding 2026-08-24..28" .-> X[event dropped]
+```
+
+**Error Message:** `Lexical error on line N. Unrecognized text.`
+
+**Rules:**
+- **Always quote dotted-edge labels** (`-. "text" .->`), especially when they contain hyphens, dots, colons, or commas.
+- **Validate against the TARGET renderer's version, not latest.** GitLab renders mermaid 10.7.0 — syntax newer parsers accept can fail there. Version-pinned validation recipe:
+
+  ```bash
+  D=$(mktemp -d) && cd "$D" && npm init -y >/dev/null && npm install mermaid@10.7.0 jsdom --no-audit --no-fund
+  cat > t.mjs <<'EOF'
+  import { JSDOM } from 'jsdom';
+  const dom = new JSDOM('<!doctype html><html><body></body></html>');
+  globalThis.window = dom.window; globalThis.document = dom.window.document;
+  Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true });
+  const mermaid = (await import('mermaid')).default;
+  mermaid.initialize({ startOnLoad: false, securityLevel: 'loose' });
+  try { await mermaid.parse(process.argv[2]); console.log('PARSE OK'); }
+  catch (e) { console.log('FAIL:', e.message.split('\n').slice(0,3).join(' | ')); }
+  EOF
+  node t.mjs 'flowchart LR; A -. "no binding 2026-08-24..28" .-> X'
+  ```
+
+  When targeting GitLab, parse the final diagram with `mermaid@10.7.0` before committing.
 
 ---
 
