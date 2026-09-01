@@ -189,6 +189,24 @@ creates per-repo session data under
 session dir is used by the boot restore, so pi resumes the same session after a
 server restart.
 
+### Pi extensions (day-to-day)
+
+Installed as global pi packages (`~/.pi/agent/npm/`, pinned in
+`pi/agent/settings.json`) plus the herdr-managed extension; every pi session
+loads all of them.
+
+| Extension | What it does |
+| --------- | ------------ |
+| `npm:context-mode` | Context-window saver: `ctx_execute`/`ctx_search`/`ctx_index` tools so large outputs (build logs, file scans, doc fetches) run in a sandbox and only summaries enter the conversation. Auto-captures session memory (decisions, errors, blockers) searchable across sessions. |
+| `npm:@dietrichgebert/ponytail` | Minimal-code discipline: agent questions scope, reuses what exists, prefers stdlib. Active by default (`ponytail: full`). |
+| `npm:pi-subagents` | Subagent delegation: single-child handoffs, parallel fanout (`runs.all`), scripted workflows, `/council` advisor mode. |
+| `npm:@narumitw/pi-btw` | `/btw <question>` — side-question thread; doesn't pollute the main conversation. |
+| `npm:@juicesharp/rpiv-ask-user-question` | Structured questionnaire tool — typed options instead of free-form guessing when requirements are ambiguous. |
+| `herdr-agent-state.ts` (`~/.pi/agent/extensions/`) | Managed by herdr (`herdr integration install pi`): reports pi lifecycle (working/blocked/idle) + session ref so herdr's sidebar, notifications, and native session restore work. |
+
+Removed: `agent-done-notify.ts` (tmux notify-send) — replaced by herdr's
+built-in done/blocked notifications (`[ui.toast] delivery = "system"`).
+
 ### Sessions (auto-session)
 
 **auto-session.nvim** saves/restores Neovim state per directory:
