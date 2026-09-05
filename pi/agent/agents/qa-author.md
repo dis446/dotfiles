@@ -44,25 +44,38 @@ regressions.
 
 1. Read the feature's user-visible contract from the plan (UI flows,
    endpoints a browser hits, statuses, fields).
-2. Write or update deterministic Playwright journeys in the `globalSimQa`
+2. **Before exploring any DOM**, read the harness knowledge:
+   `globalSimQa/docs/sales-selectors.md` (gotchas catalog) and
+   `page-objects/sales.ts` (semantic wrappers). Compose page objects for new
+   journeys instead of re-deriving Mantine selectors, and APPEND new
+   learnings to the catalog in the same commit that uses them.
+3. **Boot the stack early** — right after reading the task, not after
+   writing specs: `qa:up` with the feature's worktrees as build contexts
+   BLOCKS until the stack is serving; never sleep-poll containers.
+4. Write or update deterministic Playwright journeys in the `globalSimQa`
    worktree on this feature's branch:
    - update existing specs whose behavior the feature changes (they must
      still pass against the OLD behavior until the feature merges — follow
      the harness's versioning convention),
    - add new journey specs for new behavior.
-3. Deterministic + zero-token: no real vendor calls, no network-dependent
+5. **Fail-fast dev loop (no quality loss):** while iterating run ONLY the
+   spec in progress with a short assertion timeout —
+   `./scripts/qa-e2e specs/<file>.spec.ts --timeout=15000` (args forwarded;
+   red feedback in seconds). NEVER run the whole suite mid-iteration — every
+   failing expect pays its full timeout. The real gate is the FULL suite at
+   configured timeouts (`./scripts/qa-e2e`) plus one fresh-stack
+   `qa-down && qa-up && qa-e2e` at the end.
+6. Deterministic + zero-token: no real vendor calls, no network-dependent
    asserts; rely on the mocked backend (seeded operator login, fixture data,
    `/mock/ledger`). Do not hardcode DB ids that the mock seeder doesn't
-   guarantee — drive the UI and read observable state.
-4. If you need the stack up to iterate (recommended for anything nontrivial),
-   boot it yourself in mocked mode: `qa:up` with the feature's worktrees as
-   build contexts, run `qa:e2e` scoped to your spec, iterate until green,
-   then `qa:down`.
-5. Never weaken an existing assertion to make a test pass. A red test on the
+   guarantee — drive the UI and read observable state. No fixed sleeps
+   either — `qa-up` blocks, `pickOption`/`expect` poll.
+7. If the stack is still needed after green, tear it down: `qa:down`.
+8. Never weaken an existing assertion to make a test pass. A red test on the
    feature branch is either a real regression (say so loudly in the report)
    or a spec that must be updated for intentional behavior change (update it
    and say so).
-6. Commit + push your spec changes to the `globalSimQa` worktree's branch
+9. Commit + push your spec changes to the `globalSimQa` worktree's branch
    (`feat/<name-lowercased>`) per chunk.
 
 ## Report back (file)
