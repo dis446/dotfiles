@@ -1,9 +1,10 @@
 # Nix Package Manager Migration Plan
 
 > Migrate dotfiles install scripts from OS-specific package managers (dnf, brew, apt) to Nix + Home Manager.
-> Date: 2026-07-15
-> Nix version: 2.35.1 (single-user, `--no-daemon`)
-> OS: Fedora/Nobara (primary) + macOS + Ubuntu
+> Date: 2026-07-15 — validated & refreshed: 2026-09-05
+> Nix version: 2.35.1 (single-user, `--no-daemon`) — verified installed
+> OS: Fedora/Nobara (primary; currently running Nobara 44 x86_64) + macOS + Ubuntu (+ `arch/` aliases-only)
+> Status: **ACTIVE**. Phase 0 complete (verified 2026-09-05); Phases 1-4 not started — no flake.nix / home-manager state exists yet.
 
 ---
 
@@ -28,9 +29,9 @@
 
 | OS | Script | Package manager | Packages installed |
 |----|--------|-----------------|-------------------|
-| Fedora | `fedora/install.sh` | dnf + flatpak + pip + cargo + mise + npm | git, vim, neovim, lazygit, tmux, podman-docker, mise, htop, ncdu, speedtest-cli, pip3, golang, kubectl, cargo, zellij + flatpaks |
+| Fedora | `fedora/install.sh` | dnf + flatpak + pip + cargo + mise + npm | git, vim, neovim, lazygit, podman-docker, mise, htop, ncdu, speedtest-cli, pip3, golang, kubectl, cargo, zellij + flatpaks |
 | Nobara | `nobara/install.sh` | dnf + nobara-sync + flatpak + pip + cargo + mise + npm | Same as Fedora |
-| macOS | `macos/install.sh` | (none in script — `macos/Brewfile` for Homebrew) | bat, fastfetch, htop, jq, lazygit, ncdu, neovim, podman, podman-compose, rsync, speedtest-cli, tmux |
+| macOS | `macos/install.sh` | (none in script — `macos/Brewfile` for Homebrew) | bat, fastfetch, htop, jq, lazygit, ncdu, neovim, podman, podman-compose, rsync, speedtest-cli |
 | Ubuntu | `ubuntu/install.sh` | (symlinks only, no package install) | None |
 
 ### 1.2 Cross-platform tools to migrate
@@ -38,11 +39,13 @@
 All of these exist in `nixpkgs` and can be installed declaratively:
 
 ```
-git, vim, neovim, lazygit, tmux, zellij,
+git, vim, neovim, lazygit, zellij,
 htop, ncdu, speedtest-cli, bat, jq, fastfetch,
 rsync, golang, kubectl, podman, podman-compose,
 node (via nodejs_24), java (via temurin-bin-21)
 ```
+
+> Note: `tmux` removed from this list — replaced by herdr in 2026-08 (see §1.4, §4.4). herdr is not in nixpkgs and stays on mise.
 
 ### 1.3 Things that stay OS-specific
 
@@ -52,13 +55,24 @@ node (via nodejs_24), java (via temurin-bin-21)
 - **dnf.conf / apt sources:** OS-level config only
 - **macOS Brewfile:** Could be replaced, but some things (podman-compose) are cleaner via Homebrew on macOS
 
----
+### 1.4 Validation status (2026-09-05)
 
-## 2. Goal
+| Item | Status |
+|------|--------|
+| Nix 2.35.1 single-user (`/nix`, `~/.nix-profile`) | ✅ verified — `nix --version` = 2.35.1 |
+| `~/.config/nix/nix.conf` → `experimental-features = nix-command flakes` | ✅ verified (file present with both) |
+| nix.sh sourced on login | ✅ verified — `~/.bash_profile` sources it. Caveat: non-login shells (agent/scripts) have no `nix` on PATH |
+| `flake.nix` / `home.nix` / `home/` in repo | ❌ absent — migration never scaffolded |
+| `~/.local/state/home-manager` (any generation) | ❌ absent — `home-manager switch` never ran |
+| Install scripts migrated | ❌ `nobara/install.sh` untouched: full dnf + COPR + mise + cargo + npm + flatpak |
+| `tmux` anywhere in install scripts / Brewfile | ✅ removed — grep = 0 hits; `tmux/` dir empty since 2026-08-23. herdr is the multiplexer |
+| Changed since plan was written | `herdr/` (config + systemd + restore.sh, binary via mise), `arch/` (bash_aliases only), `claude/`, `lazygit/`, root `mise.toml` (node 24) |
+
+**Bottom line:** Phase 0 is complete; nothing else has moved. Phases 1-4 below are refreshed to target the current stack — herdr (not tmux) as the multiplexer.
 
 ```diff
-- dnf install git neovim lazygit tmux ...
-- brew install bat neovim lazygit tmux ...
+- dnf install git neovim lazygit zellij ...
+- brew install bat neovim lazygit zellij ...
 + nix profile install nixpkgs#neovim nixpkgs#lazygit ...
 ```
 
@@ -66,7 +80,7 @@ But more ambitiously:
 
 - **Declarative machine:** A single `nix` command installs all dev tools on any OS
 - **Pin everything:** `flake.lock` pins exact versions — reproducible across machines
-- **Dotfiles integration:** Home Manager manages `~/.config/nvim`, `~/.config/tmux` symlinks declaratively
+- **Dotfiles integration:** Home Manager manages `~/.config/nvim`, `~/.config/zellij`, `~/.config/zed` symlinks declaratively
 - **mise stays for per-project version overrides:** Nix provides global defaults (Node 24, Java 21); mise overrides them per project for team compatibility
 - **Cross-platform:** Same flake works on Fedora, Nobara, macOS, Ubuntu
 
@@ -120,12 +134,12 @@ nix run home-manager/master -- switch --flake .
 
 **Pros:**
 - Declarative packages + dotfiles in one file
-- `home.nix` manages `~/.config/nvim`, `~/.config/tmux`, etc.
+- `home.nix` manages `~/.config/nvim`, `~/.config/zellij`, etc.
 - Manages shell config, environment variables, systemd user services
 - Pins exact versions via flake.lock
 - Rollback with `home-manager generations`
 - Cross-platform (Fedora, macOS, Ubuntu — all supported)
-- Home Manager already has modules for Neovim, tmux, git, zsh/bash, etc.
+- Home Manager already has modules for Neovim, git, zsh/bash, etc.
 
 **Cons:**
 - Learning curve for Nix language
@@ -151,13 +165,13 @@ dotfiles/
 │   ├── programs/             # Home Manager program modules
 │   │   ├── git.nix           # Git config
 │   │   ├── neovim.nix        # Neovim config path + runtime
-│   │   ├── tmux.nix           # Tmux config
+│   │   ├── zellij.nix        # Zellij config
 │   │   ├── zellij.nix        # Zellij config
 │   │   ├── zed.nix           # Zed config
 │   │   └── ...
 │   ├── shell.nix             # Shell (bash/zsh) config
 │   │   └── aliases.nix       # Shell aliases (migrated from bash/)
-│   ├── services.nix          # User services (tmux systemd, etc.)
+│   ├── services.nix          # User services (herdr, etc.)
 │   └── files.nix             # xdg.configFile for any non-program-managed configs
 ├── overlays/                 # (optional) custom package overrides
 │   └── default.nix
@@ -166,12 +180,17 @@ dotfiles/
 ├── fedora/dnf.conf           # KEPT
 ├── macos/Brewfile            # KEPT (until all tools migrate; some macOS-only GUI apps stay)
 ├── ubuntu/install.sh         # KEPT (system-level only)
+├── arch/bash_aliases         # KEPT (aliases only — no install script yet)
 │
 ├── bash/                     # PARTIALLY REPLACED: aliases migrate to home-manager
 ├── nvim/ → managed by home-manager xdg.configFile
-├── tmux/ → managed by home-manager xdg.configFile
 ├── zellij/ → managed by home-manager xdg.configFile
 ├── zed/ → managed by home-manager xdg.configFile
+├── lazygit/ → managed by home-manager xdg.configFile
+│
+├── herdr/                    # OUTSIDE Nix: binary via mise (not in nixpkgs);
+│                             # config symlink + own systemd service stay in install.sh
+├── claude/ + pi/             # OUTSIDE Nix: agent configs, symlinked as-is
 │
 └── install.sh                # NEW: one-shot bootstrap script
 ```
@@ -224,6 +243,7 @@ Both version sources are kept in sync where it matters:
 | `pi/` + `claude/` | Agent configs — not managed by Nix |
 | Homebrew remaining items | Convenience for macOS-specific apps |
 | `pi-coding-agent` | npm global — stay with npm |
+| `herdr` (binary + systemd service) | Not in nixpkgs — install via mise (`mise use -g herdr`); `herdr/systemd/` + `restore.sh` already handle boot persistence, keep as-is |
 
 ---
 
@@ -231,15 +251,16 @@ Both version sources are kept in sync where it matters:
 
 ### Phase 0: Enable Nix features & source Nix
 
-**Status:** ✅ Nix 2.35.1 installed | ⬜ Experimental features enabled | ⬜ Nix in PATH
+**Status (2026-09-05):** ✅ Phase 0 complete — all three verified:
+- Nix 2.35.1 single-user install (works via `~/.nix-profile/bin/nix`)
+- `~/.config/nix/nix.conf` → `experimental-features = nix-command flakes`
+- Sourced on login from `~/.bash_profile` (non-login shells won't have `nix` — source manually)
 
 ```bash
-# Already done: nix installed at /nix/
-# Enable experimental features
+# Already in place on this machine; kept as reference for fresh installs
 mkdir -p ~/.config/nix
 echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
-
-# Nix is already sourced via .bash_profile:
+# .bash_profile line added by installer:
 # [[ -e ~/.nix-profile/etc/profile.d/nix.sh ]] && source ~/.nix-profile/etc/profile.d/nix.sh
 ```
 
@@ -307,7 +328,6 @@ nix run nixpkgs#home-manager -- switch --flake .
     lazygit
     
     # Terminal
-    tmux
     zellij
     
     # System tools
@@ -372,11 +392,9 @@ Migrate configs one at a time, testing each. Home Manager can manage config file
     recursive = true;
   };
   
-  # Tmux
-  xdg.configFile."tmux" = {
-    source = ./tmux;
-    recursive = true;
-  };
+  # Herdr — defer: binary is mise-managed (not in nixpkgs); config dir can
+  # migrate to xdg.configFile later if desired
+  # xdg.configFile."herdr" = { source = ./herdr; recursive = true; };
   
   # Zed
   xdg.configFile."zed" = {
@@ -396,8 +414,7 @@ Migrate configs one at a time, testing each. Home Manager can manage config file
 1. Git config (simple, Home Manager has native module)
 2. Shell aliases (move from `bash/` to `programs.bash.shellAliases`)
 3. Neovim (keep existing `nvim/` dir, just manage the symlink via `xdg.configFile`)
-4. Tmux (keep `tmux/`, manage symlink)
-5. Zed, Zellij (same pattern)
+4. Zed, Zellij, lazygit (same pattern)
 
 ### Phase 3: Migrate OS-specific configs
 
@@ -411,28 +428,15 @@ Migrate configs one at a time, testing each. Home Manager can manage config file
 
 **Ubuntu:** No changes needed (already symlinks-only).
 
-### Phase 4: Add tmux systemd auto-start via Home Manager
+### Phase 4: herdr (was: tmux systemd auto-start) — superseded, nothing to do
 
-Replace continuum's auto-generated systemd service with Home Manager's `systemd.user.services`:
+The original Phase 4 targeted tmux + tmux-continuum boot. **tmux was replaced by herdr in 2026-08** (empty `tmux/` dir; `bash/herdr_aliases` = former `tmux_aliases`). herdr already covers persistence outside Nix:
 
-```nix
-systemd.user.services.tmux = {
-  Unit = {
-    Description = "tmux default session (detached)";
-    Documentation = "man:tmux(1)";
-  };
-  Service = {
-    Type = "forking";
-    Environment = "DISPLAY=:0";
-    ExecStart = "${pkgs.tmux}/bin/tmux start-server";
-    ExecStop = "${pkgs.tmux}/bin/tmux kill-server";
-    RestartSec = 2;
-  };
-  Install.WantedBy = [ "default.target" ];
-};
-```
+- headless server: `herdr/systemd/herdr-server.service` (installed + enabled by install.sh)
+- per-workspace restore on attach: `herdr/restore.sh`
+- binary installed via mise (`mise use -g herdr`) — not in nixpkgs
 
-This replaces `@continuum-boot 'on'` and gives cleaner control.
+So there is no continuum config to clean up and no tmux service to migrate. If we later want Home Manager to own user services, the pattern is `systemd.user.services.<name>` — herdr's unit is the natural first candidate once it leaves install.sh.
 
 ### Phase 5: Bootstrap script
 
@@ -484,7 +488,6 @@ nix run nixpkgs#home-manager -- switch --flake "$HOME/dotfiles"
 | vim | `pkgs.vim` | |
 | neovim | `pkgs.neovim` | |
 | lazygit | `pkgs.lazygit` | |
-| tmux | `pkgs.tmux` | |
 | zellij | `pkgs.zellij` | |
 | htop | `pkgs.htop` | |
 | ncdu | `pkgs.ncdu` | |
@@ -507,6 +510,7 @@ nix run nixpkgs#home-manager -- switch --flake "$HOME/dotfiles"
 | Tool | Alternative |
 |------|------------|
 | `pi-coding-agent` | Stay with `npm install -g @earendil-works/pi-coding-agent` |
+| `herdr` | Not in nixpkgs as of 2026-09-05 (re-check: `nix search nixpkgs herdr`) — `mise use -g herdr` |
 | `Extension Manager` (flatpak) | Stay with flatpak |
 | `Flatseal` (flatpak) | Stay with flatpak |
 | Ghostty | Available in nixpkgs-unstable as `pkgs.ghostty` |
@@ -523,7 +527,7 @@ Keep:
 - `fedora/bash_aliases` — `sudo dnf install` aliases (still useful for non-nix packages)
 
 Remove from install script:
-- All `sudo dnf install` lines for tools now in Nix (`neovim`, `lazygit`, `tmux`, `htop`, `ncdu`, `zellij`, etc.)
+- All `sudo dnf install` lines for tools now in Nix (`neovim`, `lazygit`, `htop`, `ncdu`, `zellij`, etc.)
 - `sudo dnf install` for `mise`, `nodejs`, `java` — replace with Nix's `nodejs_24` and `temurin-bin-21`
 - `sudo dnf copr enable` lines for tools moved to Nix
 - `sudo pip install`, `cargo install` lines (tools → nix)
@@ -565,18 +569,19 @@ dotfiles/
 │   ├── programs/
 │   │   ├── git.nix
 │   │   ├── neovim.nix
-│   │   ├── tmux.nix
 │   │   ├── zellij.nix
 │   │   ├── zed.nix
 │   │   ├── ghostty.nix      # When/if ghostty is nix-managed
 │   │   └── ...
 │   ├── shell.nix            # Bash/zsh config + aliases
-│   ├── services.nix         # systemd user services (tmux)
+│   ├── services.nix         # systemd user services (herdr)
 │   └── files.nix            # xdg.configFile for remaining configs
 ├── nvim/                    # KEPT: actual config content
-├── tmux/                    # KEPT: actual config content
 ├── zellij/                  # KEPT
 ├── zed/                     # KEPT
+├── lazygit/                 # KEPT
+├── herdr/                   # OUTSIDE: mise-managed binary + own systemd service
+├── arch/                    # KEPT: bash_aliases only (no install script)
 ├── bash/                    # KEPT for non-nix-managed systems; aliases mirrored in home-manager
 ├── fedora/install.sh        # KEPT: system-level setup only
 ├── macos/Brewfile           # KEPT: reduced
@@ -615,17 +620,17 @@ dotfiles/
 
 ### Phase 0-1 (immediate)
 ```
-⬜ Enable nix experimental features (nix-command + flakes)  [~5 min]
+✅ Enable nix experimental features (nix-command + flakes)  [done — verified 2026-09-05]
 ⬜ Create flake.nix + home.nix + home/packages.nix         [~30 min]
 ⬜ Bootstrap: nix run home-manager -- switch --flake .     [~15 min, downloads]
-⬜ Verify packages are available (neovim, tmux, lazygit...)  [~10 min]
+⬜ Verify packages are available (neovim, zellij, lazygit...)  [~10 min]
 ```
 
 ### Phase 2 (this week)
 ```
 ⬜ Migrate git config → programs.git                       [~15 min]
 ⬜ Migrate shell aliases → programs.bash.shellAliases      [~30 min]
-⬜ Migrate xdg.configFile for nvim, tmux, zellij, zed      [~30 min]
+⬜ Migrate xdg.configFile for nvim, zellij, zed, lazygit     [~30 min]
 ⬜ Update install scripts to remove nix-managed packages    [~30 min]
 ⬜ Test on Fedora (primary machine)                        [~1 hour]
 ```
@@ -635,8 +640,7 @@ dotfiles/
 ⬜ Test on Nobara                                           [~1 hour]
 ⬜ Test on macOS                                            [~1 hour]
 ⬜ Test on Ubuntu                                           [~1 hour]
-⬜ Add tmux systemd service via home-manager                [~15 min]
-⬜ Clean up continuum boot config (replaced by HM service)  [~10 min]
+⬜ herdr: confirm zero tmux/continuum leftovers remain      [~10 min] (herdr service stays as-is — §5 Phase 4)
 ```
 
 ### Phase 4 (ongoing)
@@ -661,6 +665,7 @@ dotfiles/
 | **macOS aarch64** | Different system | flake supports multiple systems natively via different pkgs imports |
 | **Learning curve** | Slower migration | Phase 1 is simple (just packages). Phase 2+ adds config management. Can stop at any phase. |
 | **Nix removal if needed** | Can't uninstall easily | Single-user install is removable: `rm -rf /nix ~/.nix-profile ~/.nix-defexpr ~/.nix-channels ~/.config/nix` |
+| **herdr / pi-coding-agent not in nixpkgs** | Split toolchain (Nix + mise + npm) | Accepted split: herdr → mise, pi-coding-agent → npm, GUI flatpaks stay flatpak. Keep §6.2 exclusions list in sync |
 
 ---
 
