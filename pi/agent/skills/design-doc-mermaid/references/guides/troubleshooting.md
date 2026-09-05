@@ -406,6 +406,46 @@ flowchart LR
 
 ---
 
+### ❌ Error 30: Unquoted Special Characters in Node/Edge Text (GitHub)
+
+**Severity:** 🟠 High - Renders in local mmdc/latest mermaid, **fails on the GitHub markdown renderer**
+
+**Problem:** GitHub's flow lexer is stricter than local mermaid: unquoted node/edge text
+containing `?` or `=` (env-var/flag names), or text starting with `@` (annotations like
+`@Requires`), throws a parse error even though local `mmdc` and latest mermaid accept it.
+
+The tokenizer failure is often reported at the `[`/`{` opening the node, e.g.
+`Expecting 'AMP', 'COLON', 'DOWN', 'DEFAULT', 'NUM', 'COMMA', 'NODE_STRING', 'BRKT', 'MINUS',
+'MULT', 'UNICODE_TEXT', got 'LINK_ID'`.
+
+**Incorrect (breaks on GitHub, fine locally):**
+```mermaid
+flowchart TD
+    E[GLOBAL_SIM_MOCK_EXTERNAL=true?] -->|yes| G{GLOBAL_SIM_ENVIRONMENT=prod?}
+    G -->|no| FAKES[@Requires property fakes activate]
+```
+
+**Correct (quote every non-plain-word label):**
+```mermaid
+flowchart TD
+    E["GLOBAL_SIM_MOCK_EXTERNAL=true?"] -->|"yes"| G["GLOBAL_SIM_ENVIRONMENT=prod?"]
+    G -->|"no"| FAKES["@Requires property fakes activate"]
+```
+
+**Error Message:** `Parse error on line N: ... Expecting 'AMP', 'COLON', ..., got 'LINK_ID'`
+
+**Rules:**
+- **Default to quoting** any label that is not a single plain word: node `["..."]`,
+  decision `{"..."}`, edge `|"..."|`, dotted edge `-. "..." .->`.
+- Risky characters inside unquoted text on GitHub: `@ = ? / : ( ) [ ] { } , . - + & < >`.
+  When in doubt, quote.
+- A green local `mermaid.parse` / `mmdc` render is **not** proof for GitHub — GitHub does not
+  expose a user-configurable mermaid version, so the quoting rules above ARE the
+  compatibility contract for any diagram destined for a GitHub repo (including
+  globalSim plans/docs).
+
+---
+
 ## Sequence Diagrams
 
 ### ❌ Error 11: Missing Colon Before Message Text

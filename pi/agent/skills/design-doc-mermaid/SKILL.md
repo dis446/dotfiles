@@ -476,6 +476,15 @@ design-doc-mermaid/
 **Syntax that renders in latest mermaid may fail on the target renderer — always match the
 renderer's version, not latest.**
 
+- **GitHub markdown** renders its own mermaid with a **stricter flow lexer** than local
+  mmdc/latest: unquoted node/edge text with special characters — especially `?`, `=`
+  (env/flag names) or a leading `@` (e.g. `@Requires`) — fails with a `LINK_ID` parse error
+  (Error 30 in `references/guides/troubleshooting.md`).
+- **Default: quote any label that is not one plain word** — node `["..."]`, decision
+  `{"..."}`, edge `|"..."|`, dotted `-. "..." .->`. Local validation passing is NOT proof
+  the GitHub renderer accepts it.
+- **Docs in a GitHub repo** (globalSim plans/docs, READMEs, PRs): validate for GitHub
+  (Error 30 rules), not just mmdc/latest.
 - **GitLab renders mermaid 10.7.0** (as of 2026-08). When a markdown doc targets GitLab,
   validate diagrams against `mermaid@10.7.0` before committing (recipe: Error 29 in
   `references/guides/troubleshooting.md`).
@@ -483,8 +492,8 @@ renderer's version, not latest.**
   dots (e.g. `2026-08-24..28`) throw `Lexical error ... Unrecognized text` on 10.7.0.
   **Always quote dotted-edge labels**: `-. "text" .->`.
 - Scripts (`extract_mermaid.py` / `mermaid_to_image.py`) validate with the locally
-  installed mermaid CLI — fine for general syntax, **not** proof the target renderer (GitLab)
-  accepts it.
+  installed mermaid CLI — fine for general syntax, **not** proof the target renderer (GitHub
+  or GitLab) accepts it.
 
 See `references/guides/troubleshooting.md` Error 29 for the full entry + version-pinned
 validation script.
@@ -512,6 +521,6 @@ validation script.
 
 ---
 
-**Version:** 2.1 (Hierarchical Architecture)
-**Last Updated:** 2026-08-28
+**Version:** 2.1.1 (GitHub renderer compatibility)
+**Last Updated:** 2026-09-05
 **Maintained by:** Claude Code Skills
