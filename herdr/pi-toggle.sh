@@ -41,6 +41,21 @@ pi_session_dir() {
   printf '%s/%s-%s' "$base" "$name" "$hash"
 }
 
+# Session root for a pane cwd: the feature root when the cwd is inside a
+# feature workspace (…/features/<name>/ or a worktree under it), else the git
+# top-level. Feature roots now live INSIDE the e2e umbrella repo, so a plain
+# `git rev-parse --show-toplevel` would resolve to the umbrella repo and hand
+# every feature workspace the same (wrong) session dir — pi would never resume
+# the per-feature conversation.
+session_root() {
+  local cwd="$1"
+  if [[ "$cwd" =~ ^(.*/features/[^/]+)(/.*)?$ ]]; then
+    printf '%s' "${BASH_REMATCH[1]}"
+  else
+    git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || printf '%s' "$cwd"
+  fi
+}
+
 tab_id_of_pane() {
   json pane get "$1" | python3 -c "
 import json, sys
@@ -68,7 +83,7 @@ except Exception:
 print(d.get('result', {}).get('pane', {}).get('cwd', ''))
 ")"
   root="$cwd"
-  [ -n "$cwd" ] && root="$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null || echo "$cwd")"
+  [ -n "$cwd" ] && root="$(session_root "$cwd")"
 
   rp=""
   tab_id=""
