@@ -73,8 +73,8 @@
 ## Comments
 - `gcc` — toggle line comment
 - `gc` — toggle comment for motion or visual selection
-- `gbc` — toggle block comment on current line
-- `gb` — toggle block comment for motion or visual selection
+
+(No `gbc`/`gb` blockwise toggles — mini.comment is per-line only.)
 
 ## Sessions and git tools
 - Sessions are automatically restored on open and saved on exit.
