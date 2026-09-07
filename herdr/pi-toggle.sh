@@ -4,7 +4,7 @@
 # Pure focus toggle, identical model to term-toggle.sh / gitlab-toggle.sh —
 # works from ANY pane (nvim, gitlab-tui, shells, anywhere):
 #   bring up:  focus the "pi" tab (creates it on first use and spawns
-#              `pi -c --session-dir <dir>` in it)
+#              `pi -c` in it, cwd = the canonical project root)
 #   dismiss:   focus the main tab
 #
 # herdr spawns custom shell commands detached with HERDR_ACTIVE_PANE_ID set to
@@ -31,22 +31,14 @@ print(next((a['pane_id'] for a in agents
             if a.get('agent') == 'pi' and a.get('workspace_id') == ws), ''))
 ")"
 
-# pi session dir, deterministic per repo root (mirrors nvim lua/dis446/pi.lua)
-pi_session_dir() {
-  local root="$1" base name hash
-  base="$HOME/.local/state/nvim/pi-sessions"
-  name="$(basename "$root" | sed 's/[^[:alnum:]_.-]/_/g')"
-  hash="$(printf '%s' "$root" | sha256sum | cut -c1-12)"
-  mkdir -p "$base"
-  printf '%s/%s-%s' "$base" "$name" "$hash"
-}
-
 # Session root for a pane cwd: the feature root when the cwd is inside a
 # feature workspace (…/features/<name>/ or a worktree under it), else the git
 # top-level. Feature roots now live INSIDE the e2e umbrella repo, so a plain
 # `git rev-parse --show-toplevel` would resolve to the umbrella repo and hand
-# every feature workspace the same (wrong) session dir — pi would never resume
-# the per-feature conversation.
+# every feature workspace the same (wrong) root. Pi keys its sessions by the
+# cwd it starts in, so pi must start with cwd = this canonical root and run
+# plain `pi -c` (no --session-dir) — the default per-cwd store
+# (~/.pi/agent/sessions/--<cwd>--) is then exactly what typing `pi` produces.
 session_root() {
   local cwd="$1"
   if [[ "$cwd" =~ ^(.*/features/[^/]+)(/.*)?$ ]]; then
@@ -127,8 +119,10 @@ print(d.get('result', {}).get('tab', {}).get('tab_id', ''))
 ")"
   fi
   [ -n "$rp" ] || exit 0
-  sdir="$(pi_session_dir "$root")"
-  json pane run "$rp" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
+  # Plain `pi -c` from the canonical root -> pi's default per-cwd store. The
+  # pane cwd is set to $root on tab create (and cd'd here for reused tabs), so
+  # the session is keyed exactly as if `pi` were typed in the project folder.
+  json pane run "$rp" "cd \"$root\" 2>/dev/null; pi -c" >/dev/null 2>&1
   focus_tab "$tab_id"
   exit 0
 fi

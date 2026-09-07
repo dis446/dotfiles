@@ -12,8 +12,9 @@
 #   1. main tab (label != pi/term) -> launch `nvim .` if the pane is at a shell prompt
 #   2. "term" tab -> create if missing (shell in the repo root)
 #   3. "pi" tab   -> only with RESTORE_PI=1: create if missing and start
-#                    `pi -c --session-dir <dir>` (otherwise left empty;
-#                    existing pi panes resume natively via herdr's integration)
+#                    `pi -c` in the workspace's canonical root (otherwise
+#                    left empty; existing pi panes resume natively via
+#                    herdr's integration)
 set -u
 
 hdr="${HERDR_BIN_PATH:-herdr}"
@@ -82,20 +83,12 @@ wait_prompt() {
   return 1
 }
 
-# pi session dir, mirroring nvim lua/dis446/pi.lua (deterministic per git root)
-pi_session_dir() {
-  local root="$1" base name hash
-  base="$HOME/.local/state/nvim/pi-sessions"
-  name="$(basename "$root" | sed 's/[^[:alnum:]_.-]/_/g')"
-  hash="$(printf '%s' "$root" | sha256sum | cut -c1-12)"
-  mkdir -p "$base"
-  printf '%s/%s-%s' "$base" "$name" "$hash"
-}
-
 # Session root for a pane cwd: the feature root when inside a feature workspace
 # (…/features/<name>/ or a worktree under it), else the git top-level. Feature
 # roots now live INSIDE the e2e umbrella repo — plain `git rev-parse` would
-# resolve to the umbrella repo and give every feature the same (wrong) session.
+# resolve to the umbrella repo and give every feature the same (wrong) root.
+# Pi keys its sessions by the cwd it starts in, so every launcher must start pi
+# with cwd = this canonical root and run plain `pi -c` (no --session-dir).
 session_root() {
   local cwd="$1"
   if [[ "$cwd" =~ ^(.*/features/[^/]+)(/.*)?$ ]]; then
@@ -123,34 +116,34 @@ for t in d.get('result', {}).get('tabs', []):
 ")"
   say "== workspace $ws ($ws_label)"
 
-  # main tab: lowest-numbered tab that is not pi/term
-  main_tab="$(printf '%s' "$tabs" | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-ws = '$ws'
-cand = [t for t in d.get('result', {}).get('tabs', [])
-        if t.get('workspace_id') == ws and t.get('label') not in ('pi', 'term')]
-cand.sort(key=lambda t: t.get('number', 99))
-print(cand[0]['tab_id'] if cand else '')
-")"
-  [ -n "$main_tab" ] || {
-    say "  skip: no main tab"
-    continue
-  }
-
+  # main pane: lowest-numbered non-pi/term tab whose first pane cwd is a real
+  # project dir (skips leftover shells parked at $HOME, e.g. some older feature
+  # workspaces whose first tab was never cd'd into the repo).
   panes="$(panes_of "$ws")"
   [ -n "$panes" ] || continue
-
-  # main pane: first pane of the main tab, prefer one with a cwd
-  main_pane="$(printf '%s' "$panes" | python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-tab = '$main_tab'
-for p in d.get('result', {}).get('panes', []):
-    if p.get('tab_id') == tab and p.get('cwd'):
-        print(p['pane_id']); break
+  main_pane="$(printf '%s\n%s' "$tabs" "$panes" | HOME_DIR="$HOME" python3 -c "
+import json, sys, os
+tabs = json.loads(sys.stdin.readline())
+panes = json.loads(sys.stdin.readline())
+ws = '$ws'
+home = os.environ['HOME_DIR']
+label_of = {t['tab_id']: t.get('label') for t in tabs.get('result', {}).get('tabs', [])}
+by_tab = {}
+for p in panes.get('result', {}).get('panes', []):
+    by_tab.setdefault(p.get('tab_id'), []).append(p)
+cand = [t for t in tabs.get('result', {}).get('tabs', [])
+        if t.get('workspace_id') == ws and label_of.get(t['tab_id']) not in ('pi', 'term')]
+cand.sort(key=lambda t: t.get('number', 99))
+for t in cand:
+    for p in by_tab.get(t['tab_id'], []):
+        cwd = p.get('cwd') or ''
+        if cwd and cwd != home:
+            print(p['pane_id']); sys.exit(0)
 ")"
-  [ -n "$main_pane" ] || continue
+  [ -n "$main_pane" ] || {
+    say "  skip: no main pane"
+    continue
+  }
 
   root="$(json pane get "$main_pane" | python3 -c "
 import json, sys
@@ -210,7 +203,9 @@ print(next((t['tab_id'] for t in d.get('result', {}).get('tabs', [])
             if t.get('workspace_id') == ws and t.get('label') == 'pi'), ''))
 ")"
     if [ -z "$pi_tab" ]; then
-      created="$(json tab create --workspace "$ws" --label pi --cwd "$git_root" --no-focus 2>/dev/null)"
+      # Canonical root: feature root for feature workspaces, git top-level else.
+      pi_cwd="$(session_root "$root")"
+      created="$(json tab create --workspace "$ws" --label pi --cwd "$pi_cwd" --no-focus 2>/dev/null)"
       pi_root="$(printf '%s' "$created" | python3 -c "
 import json, sys
 try:
@@ -221,9 +216,10 @@ rp = d.get('result', {}).get('root_pane') or {}
 print(rp.get('pane_id', '') or '')
 ")"
       if [ -n "$pi_root" ]; then
-        sdir="$(pi_session_dir "$(session_root "$root")")"
-        json pane run "$pi_root" "pi -c --session-dir '$sdir'" >/dev/null 2>&1
-        say "  started pi in $pi_root ($sdir)"
+        # Plain `pi -c`: default per-cwd store (keyed by $pi_cwd), resumes any
+        # prior session for this project.
+        json pane run "$pi_root" "pi -c" >/dev/null 2>&1
+        say "  started pi in $pi_root (cwd $pi_cwd)"
       else
         say "  WARN: failed to create pi tab"
       fi

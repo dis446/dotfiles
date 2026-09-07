@@ -4,11 +4,26 @@ local M = {}
 -- pane instead of a float. Direction the pi pane is split off: "right" or "down".
 local herdr_split_direction = "right"
 
+-- Pi keys its sessions by the cwd it starts in (default store
+-- ~/.pi/agent/sessions/--<cwd>--), so pi must start with cwd = the canonical
+-- project root and run plain `pi -c` (no --session-dir). Every launcher then
+-- behaves exactly like typing `pi` in a terminal in that folder, and `pi -c`
+-- resumes the same history.
+--
+-- Canonical root: the feature root when inside a feature workspace
+-- (…/features/<name>/ or a worktree under it), else the git top-level.
+-- Feature roots live inside the e2e umbrella repo, so a plain
+-- `git rev-parse --show-toplevel` would resolve to the umbrella repo and hand
+-- every feature worktree the same (wrong) root.
 local function detect_root()
   local start_dir = vim.fn.getcwd()
   local bufname = vim.api.nvim_buf_get_name(0)
   if bufname ~= "" and not bufname:match("^term://") then
     start_dir = vim.fn.fnamemodify(bufname, ":p:h")
+  end
+  local feature_root = start_dir:match("^(.*/features/[^/]+)")
+  if feature_root and vim.fn.isdirectory(feature_root) == 1 then
+    return feature_root
   end
   local root = vim.fn.systemlist({ "git", "-C", start_dir, "rev-parse", "--show-toplevel" })[1]
   if vim.v.shell_error == 0 and root and root ~= "" then
@@ -18,15 +33,6 @@ local function detect_root()
     end
   end
   return start_dir
-end
-
-local function pi_session_dir(root)
-  local base = vim.fn.stdpath("state") .. "/pi-sessions"
-  local name = vim.fn.fnamemodify(root, ":t"):gsub("[^%w._-]", "_")
-  local hash = vim.fn.sha256(root):sub(1, 12)
-  local dir = base .. "/" .. name .. "-" .. hash
-  vim.fn.mkdir(dir, "p")
-  return dir
 end
 
 local function in_herdr()
@@ -63,9 +69,7 @@ end
 -- M-k outside herdr (plain terminal): floating terminal, as before.
 local function pi_float()
   local root = detect_root()
-  local session_dir = pi_session_dir(root)
-
-  Snacks.terminal.focus({ "pi", "-c", "--session-dir", session_dir }, {
+  Snacks.terminal.focus({ "pi", "-c" }, {
     cwd = root,
     win = {
       position = "float",
@@ -77,10 +81,10 @@ local function pi_float()
 end
 
 -- M-k inside herdr: split the current pane and run pi there (focus it if already open).
--- Same deterministic session dir as the float, so `pi -c` resumes the same session.
+-- cwd = canonical root and plain `pi -c`, so the session lives in pi's default
+-- per-cwd store and resumes the same history as typing `pi` in the folder.
 local function pi_herdr_pane()
   local root = detect_root()
-  local session_dir = pi_session_dir(root)
 
   local existing = herdr_pi_pane()
   if existing then
@@ -102,7 +106,7 @@ local function pi_herdr_pane()
     vim.notify("pi: could not parse herdr split result", vim.log.levels.ERROR)
     return
   end
-  herdr_cmd({ "herdr", "pane", "run", pane_id, "pi -c --session-dir " .. session_dir })
+  herdr_cmd({ "herdr", "pane", "run", pane_id, "pi -c" })
 end
 
 function M.setup()
