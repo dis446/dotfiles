@@ -1,5 +1,5 @@
 /**
- * wait_for — background polling for pi.
+ * wait_for — background polling for pi (session-scoped).
  *
  * Spawn any long-running condition check (deployments, pipelines, pods, curl
  * probes) in a detached background poller. The agent keeps working; when the
@@ -12,11 +12,14 @@
  *                     description? } — command must exit 0 when the
  *                     condition is MET (non-zero / empty output keeps polling).
  *   wait_for_status — list/check/cancel pollers.
- *   wait_for_check  — force an immediate check of one/all pollers (no waiting
- *                     for the next tick).
+ *   wait_for_cancel — cancel a running poller.
  *
- * State: /tmp/pi-wait-for/state.json (survives session restarts; pollers are
- * spawn-detached shell processes writing status files next to it).
+ * Ownership: each poller belongs to the pi session that started it
+ * (ctx.sessionManager.getSessionId()). State is kept in a per-session file
+ * (/tmp/pi-wait-for/state-<sessionId>.json), so a poller finishing wakes only
+ * its owning session — never every live session on the machine. The detached
+ * reaper processes and per-session status files survive session restarts;
+ * resuming the same session id reconciles and delivers the outcome.
  *
  * Wake: when a poller finishes, the extension calls
  * pi.sendUserMessage("wait_for: <description> — <result>", {triggerTurn:true})
@@ -25,18 +28,12 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { spawn, execFile } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-  unlinkSync,
-} from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const STATE_DIR = "/tmp/pi-wait-for";
-const STATE_FILE = join(STATE_DIR, "state.json");
+/** Legacy pre-ownership state file; defused on first new-session start. */
+const LEGACY_STATE_FILE = join(STATE_DIR, "state.json");
 
 type ToolResult = { content: { type: "text"; text: string }[]; details: Record<string, unknown> };
 
@@ -47,6 +44,8 @@ type Poller = {
   intervalSec: number;
   timeoutSec: number;
   startedAt: number;
+  /** Session id that started this poller — only that session may check/wake/cancel it. */
+  owner?: string;
   pid?: number;
   status: "running" | "met" | "timeout" | "cancelled" | "error";
   result?: string;
@@ -57,19 +56,43 @@ function ensureDir(): void {
   if (!existsSync(STATE_DIR)) mkdirSync(STATE_DIR, { recursive: true });
 }
 
-function loadState(): Record<string, Poller> {
+/** Filesystem-safe encoding of a session id for the per-session state file. */
+function safeOwner(owner: string): string {
+  return owner.replace(/[^A-Za-z0-9_.-]/g, "_");
+}
+
+function stateFileFor(owner: string): string {
+  return join(STATE_DIR, `state-${safeOwner(owner)}.json`);
+}
+
+function loadFor(owner: string): Record<string, Poller> {
   ensureDir();
-  if (!existsSync(STATE_FILE)) return {};
+  const file = stateFileFor(owner);
+  if (!existsSync(file)) return {};
   try {
-    return JSON.parse(readFileSync(STATE_FILE, "utf-8"));
+    return JSON.parse(readFileSync(file, "utf-8"));
   } catch {
     return {};
   }
 }
 
-function saveState(state: Record<string, Poller>): void {
+function saveFor(owner: string, state: Record<string, Poller>): void {
   ensureDir();
-  writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  writeFileSync(stateFileFor(owner), JSON.stringify(state, null, 2));
+}
+
+function loadLegacy(): Record<string, Poller> {
+  if (!existsSync(LEGACY_STATE_FILE)) return {};
+  try {
+    return JSON.parse(readFileSync(LEGACY_STATE_FILE, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveLegacy(state: Record<string, Poller>): void {
+  ensureDir();
+  writeFileSync(LEGACY_STATE_FILE, JSON.stringify(state, null, 2));
 }
 
 function runOnce(command: string, timeoutSec: number): Promise<{ code: number; output: string }> {
@@ -79,8 +102,10 @@ function runOnce(command: string, timeoutSec: number): Promise<{ code: number; o
       ["-c", command],
       { timeout: Math.min(timeoutSec, 120) * 1000 },
       (err, stdout, stderr) => {
+        const code =
+          err && (err as any).code === undefined ? -1 : ((err as any)?.code ?? 0);
         resolve({
-          code: err && (err as any).code === undefined ? -1 : ((err as any)?.code ?? 0),
+          code,
           output: `${stdout}${stderr}`.trim().slice(0, 2000),
         });
       },
@@ -88,11 +113,12 @@ function runOnce(command: string, timeoutSec: number): Promise<{ code: number; o
   });
 }
 
-/** One check pass over all running pollers. Returns text of wakeups to send. */
-async function checkRunning(pi: ExtensionAPI): Promise<string[]> {
-  const state = loadState();
+/** One check pass over the pollers owned by {@code owner}. Returns wake text. */
+async function checkRunning(owner: string): Promise<string[]> {
+  const state = loadFor(owner);
   const now = Date.now();
   const wakes: string[] = [];
+  let changed = false;
 
   for (const p of Object.values(state)) {
     if (p.status !== "running") continue;
@@ -102,6 +128,7 @@ async function checkRunning(pi: ExtensionAPI): Promise<string[]> {
       p.finishedAt = now;
       p.result = `timed out after ${p.timeoutSec}s`;
       wakes.push(`wait_for [${p.id}] TIMEOUT: ${p.description} — condition never met within ${p.timeoutSec}s`);
+      changed = true;
       continue;
     }
 
@@ -111,43 +138,72 @@ async function checkRunning(pi: ExtensionAPI): Promise<string[]> {
       p.finishedAt = now;
       p.result = res.output || "condition met";
       wakes.push(`wait_for [${p.id}] CONDITION MET: ${p.description}\n${res.output || ""}`.trim());
-    } else if (res.code === -1 && /ETIMEDOUT|killed/i.test(res.output)) {
-      // check command itself hung; leave running, next tick retries
-      continue;
+      changed = true;
     }
+    // res.code === -1 && /ETIMEDOUT|killed/ = check command hung; leave running, next tick retries
   }
 
-  if (wakes.length) saveState(state);
+  if (changed) saveFor(owner, state);
   return wakes;
 }
 
-/** Reap anything the previous session left running; report their outcomes. */
-async function reconcileOrphans(pi: ExtensionAPI): Promise<string[]> {
-  const state = loadState();
+/** Deliver outcomes of this session's own pollers left running by an earlier incarnation. */
+async function reconcileOwn(owner: string): Promise<string[]> {
+  const state = loadFor(owner);
   const now = Date.now();
   const wakes: string[] = [];
+  let changed = false;
   for (const p of Object.values(state)) {
     if (p.status !== "running") continue;
-    // stale status file from a dead session: check once now
     const res = await runOnce(p.command, 60);
     if (res.code === 0) {
       p.status = "met";
       p.finishedAt = now;
       p.result = res.output || "condition met";
       wakes.push(`wait_for [${p.id}] CONDITION MET (reconciled): ${p.description}\n${res.output || ""}`.trim());
+      changed = true;
     } else if (now - p.startedAt > p.timeoutSec * 1000) {
       p.status = "timeout";
       p.finishedAt = now;
       p.result = "timed out (reconciled after restart)";
       wakes.push(`wait_for [${p.id}] TIMEOUT (reconciled): ${p.description}`);
+      changed = true;
     }
   }
-  if (wakes.length) saveState(state);
+  if (changed) saveFor(owner, state);
   return wakes;
+}
+
+/**
+ * Mark pre-ownership pollers cancelled so older buggy sessions (which tick the
+ * shared legacy file) stop waking every session with their completions. One
+ * write per new-session start; entries already cancelled stay cancelled.
+ */
+function defuseLegacy(): void {
+  const legacy = loadLegacy();
+  let changed = false;
+  for (const p of Object.values(legacy)) {
+    if (p.status === "running" && !p.owner) {
+      p.status = "cancelled";
+      p.finishedAt = Date.now();
+      p.result = "superseded: wait_for is now session-scoped; restart the starting session and re-run";
+      changed = true;
+    }
+  }
+  if (changed) saveLegacy(legacy);
 }
 
 export default function (pi: ExtensionAPI) {
   ensureDir();
+
+  /** This session's id, captured from ctx (stable across resume of the same session). */
+  let mySessionId: string | null = null;
+
+  const captureOwner = (ctx?: any): string => {
+    const id = ctx?.sessionManager?.getSessionId?.() ?? null;
+    if (id && typeof id === "string") mySessionId = id;
+    return mySessionId ?? "default";
+  };
 
   let widgetBound = false;
   let tickTimer: NodeJS.Timeout | undefined;
@@ -163,11 +219,11 @@ export default function (pi: ExtensionAPI) {
     tickTimer = undefined;
   };
 
-  /** Render the wait_for widget: one line per active poller, plus footer status. */
+  /** Render the wait_for widget for THIS session's own pollers. */
   const renderWidget = (ctx: any): void => {
     if (!ctx?.hasUI || widgetBound) return;
     widgetBound = true;
-    const state = loadState();
+    const state = loadFor(captureOwner(ctx));
     const running = Object.values(state).filter((p) => p.status === "running");
     if (running.length === 0) {
       ctx.ui.setWidget("wait-for", undefined);
@@ -189,7 +245,7 @@ export default function (pi: ExtensionAPI) {
       );
     });
     ctx.ui.setWidget("wait-for", (tui: unknown, th: typeof theme) => {
-      const updated = Object.values(loadState()).filter((p) => p.status === "running");
+      const updated = Object.values(loadFor(captureOwner(ctx))).filter((p) => p.status === "running");
       if (updated.length === 0) return { render: () => [], invalidate: () => {} };
       const out = updated.map((p) => {
         const elapsed = Math.max(1, Math.round((Date.now() - p.startedAt) / 1000));
@@ -212,9 +268,10 @@ export default function (pi: ExtensionAPI) {
     );
   };
 
-  const tick = async (ctx?: any) => {
+  const tick = async (ctx?: any): Promise<void> => {
     try {
-      const wakes = await checkRunning(pi);
+      const owner = captureOwner(ctx);
+      const wakes = await checkRunning(owner);
       for (const w of wakes) {
         pi.sendUserMessage(w, { deliverAs: "followUp" });
       }
@@ -225,11 +282,14 @@ export default function (pi: ExtensionAPI) {
   };
 
   pi.on("session_start", async (_event, ctx) => {
-    // a previous session's timers may still be running (reload/new/resume/fork
+    // A previous session's timers may still be running (reload/new/resume/fork
     // emits session_shutdown, but clear defensively so we never reuse a stale
     // captured ctx from the old session).
     clearTimers();
-    const wakes = await reconcileOrphans(pi);
+    const owner = captureOwner(ctx);
+    // Old shared-state pollers would otherwise wake every live session; defuse them.
+    defuseLegacy();
+    const wakes = await reconcileOwn(owner);
     for (const w of wakes) {
       pi.sendUserMessage(w, { deliverAs: "followUp" });
     }
@@ -245,25 +305,25 @@ export default function (pi: ExtensionAPI) {
     clearTimers();
   });
 
-  const stateSummary = (): string => {
-    const state = loadState();
+  const stateSummary = (owner: string): string => {
+    const state = loadFor(owner);
     const rows = Object.values(state).map(
       (p) =>
         `${p.id}\t${p.status}\t${p.description}\t(interval ${p.intervalSec}s, timeout ${p.timeoutSec}s)${p.result ? `\n  ↳ ${p.result.slice(0, 300)}` : ""}`,
     );
-    return rows.length ? rows.join("\n") : "no pollers";
+    return rows.length ? rows.join("\n") : "no pollers for this session";
   };
 
   pi.registerTool({
     name: "wait_for_start",
     label: "Wait For (start)",
     description:
-      "Spawn a background condition poller. The command is run on an interval (default 20s) until it exits 0 (condition met) or times out (default 600s). While polling, the agent keeps working normally — no sleep loops. When the condition is met (or times out), pi is woken with a real message containing the command's output. Use for: ArgoCD syncs, GitLab pipelines, kubectl rollouts, HTTP probes, CI waits.",
+      "Spawn a background condition poller scoped to the current session. The command is run on an interval (default 20s) until it exits 0 (condition met) or times out (default 600s). While polling, the agent keeps working normally — no sleep loops. When the condition is met (or times out), ONLY this session is woken with a real message containing the command's output. Use for: ArgoCD syncs, GitLab pipelines, kubectl rollouts, HTTP probes, CI waits.",
     promptGuidelines: [
-      "Use wait_for_start instead of sleep/polling loops whenever waiting on an external condition (deployments, pipelines, CI). The command must exit 0 exactly when the condition is met.",
+      "Use wait_for_start instead of sleep/polling loops whenever waiting on an external condition (deployments, pipelines, CI). The command must exit 0 exactly when the condition is met. Pollers are session-scoped: other pi sessions will not see or be woken by them.",
     ],
     parameters: Type.Object({
-      id: Type.String({ description: "Short unique id, e.g. uat-is-deploy" }),
+      id: Type.String({ description: "Short unique id within this session, e.g. uat-is-deploy" }),
       command: Type.String({
         description:
           "Shell command; exit 0 = condition met. Check only — do NOT mutate anything in the command.",
@@ -272,11 +332,12 @@ export default function (pi: ExtensionAPI) {
       intervalSec: Type.Optional(Type.Number({ description: "Poll interval seconds (default 20, min 5)" })),
       timeoutSec: Type.Optional(Type.Number({ description: "Give up after N seconds (default 600)" })),
     }),
-    async execute(_id, params) {
-      const state = loadState();
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      const owner = captureOwner(ctx);
+      const state = loadFor(owner);
       if (state[params.id] && state[params.id].status === "running") {
         return {
-          content: [{ type: "text", text: `poller ${params.id} already running` }],
+          content: [{ type: "text", text: `poller ${params.id} already running in this session` }],
           details: { ok: false, poller: state[params.id] },
         };
       }
@@ -287,19 +348,21 @@ export default function (pi: ExtensionAPI) {
         intervalSec: Math.max(params.intervalSec ?? 20, 5),
         timeoutSec: params.timeoutSec ?? 600,
         startedAt: Date.now(),
+        owner,
         status: "running",
       };
       state[params.id] = poller;
-      saveState(state);
+      saveFor(owner, state);
 
       // detached reaper process so the poller survives even if this pi session closes
+      const resultFile = `/tmp/pi-wait-for/${safeOwner(owner)}-${params.id}.result`;
       const child = spawn(
         "bash",
         [
           "-c",
           `while true; do
-  if bash -c ${JSON.stringify(params.command)} >/tmp/pi-wait-for/${params.id}.out 2>&1; then echo met > /tmp/pi-wait-for/${params.id}.result; exit 0; fi
-  if [ $(( $(date +%s) - ${Math.floor(poller.startedAt / 1000)} )) -ge ${poller.timeoutSec} ]; then echo timeout > /tmp/pi-wait-for/${params.id}.result; exit 1; fi
+  if bash -c ${JSON.stringify(params.command)} >/tmp/pi-wait-for/${safeOwner(owner)}-${params.id}.out 2>&1; then echo met > ${resultFile}; exit 0; fi
+  if [ $(( $(date +%s) - ${Math.floor(poller.startedAt / 1000)} )) -ge ${poller.timeoutSec} ]; then echo timeout > ${resultFile}; exit 1; fi
   sleep ${poller.intervalSec}
 done`,
         ],
@@ -307,13 +370,13 @@ done`,
       );
       child.unref();
       poller.pid = child.pid;
-      saveState(state);
+      saveFor(owner, state);
 
       return {
         content: [
           {
             type: "text",
-            text: `poller ${params.id} started (interval ${poller.intervalSec}s, timeout ${poller.timeoutSec}s). You will be woken automatically when it completes. Continue with other work.`,
+            text: `poller ${params.id} started for this session (interval ${poller.intervalSec}s, timeout ${poller.timeoutSec}s). You will be woken automatically when it completes; other sessions are not affected. Continue with other work.`,
           },
         ],
         details: { ok: true, poller },
@@ -329,16 +392,18 @@ done`,
   pi.registerTool({
     name: "wait_for_status",
     label: "Wait For (status)",
-    description: "List all wait_for pollers and their current status/result. Pass an id to check one (runs an immediate check for running pollers).",
+    description:
+      "List this session's wait_for pollers and their current status/result. Pass an id to check one (runs an immediate check for running pollers).",
     parameters: Type.Object({
       id: Type.Optional(Type.String({ description: "Check a specific poller now" })),
     }),
-    async execute(_id, params) {
-      const state = loadState();
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      const owner = captureOwner(ctx);
+      const state = loadFor(owner);
       if (params.id) {
         const p = state[params.id];
         if (!p) {
-          return { content: [{ type: "text", text: `no poller ${params.id}` }], details: { ok: false } };
+          return { content: [{ type: "text", text: `no poller ${params.id} in this session` }], details: { ok: false } };
         }
         if (p.status === "running") {
           const res = await runOnce(p.command, 60);
@@ -346,7 +411,7 @@ done`,
             p.status = "met";
             p.finishedAt = Date.now();
             p.result = res.output || "condition met";
-            saveState(state);
+            saveFor(owner, state);
           }
         }
         const result: ToolResult = {
@@ -355,26 +420,27 @@ done`,
         };
         return result;
       }
-      return { content: [{ type: "text", text: stateSummary() }], details: { ok: true } };
+      return { content: [{ type: "text", text: stateSummary(owner) }], details: { ok: true } };
     },
   });
 
   pi.registerTool({
     name: "wait_for_cancel",
     label: "Wait For (cancel)",
-    description: "Cancel a running poller.",
+    description: "Cancel a running poller owned by this session.",
     parameters: Type.Object({
       id: Type.String({ description: "Poller id" }),
     }),
     async execute(_id, params, _signal, _onUpdate, ctx) {
-      const state = loadState();
+      const owner = captureOwner(ctx);
+      const state = loadFor(owner);
       const p = state[params.id];
       if (!p) {
-        return { content: [{ type: "text", text: `no poller ${params.id}` }], details: { ok: false } };
+        return { content: [{ type: "text", text: `no poller ${params.id} in this session` }], details: { ok: false } };
       }
       p.status = "cancelled";
       p.finishedAt = Date.now();
-      saveState(state);
+      saveFor(owner, state);
       if (p.pid) {
         try {
           process.kill(-p.pid, "SIGTERM"); // kill the detached group
@@ -391,7 +457,7 @@ done`,
     description: "Toggle wait_for poller widget visibility",
     handler: async (args, ctx) => {
       if (!ctx.hasUI) return;
-      const state = loadState();
+      const state = loadFor(captureOwner(ctx));
       const running = Object.values(state).filter((p) => p.status === "running");
       if (running.length === 0) {
         ctx.ui.notify("no active wait_for pollers", "info");
