@@ -1,8 +1,7 @@
 ---
 name: design-doc-mermaid
-description: Create Mermaid diagrams (activity, deployment, sequence, architecture) from text descriptions or source code. Use when asked to "create a diagram", "generate mermaid", "document architecture", "code to diagram", "create design doc", or "convert code to diagram". Supports hierarchical on-demand guide loading, Unicode semantic symbols, and Python utilities for diagram extraction and image conversion.
+description: "Use to create Mermaid diagrams (activity, sequence, architecture, deployment) from text or source, or to write a design doc."
 ---
-
 # Mermaid Architect - Hierarchical Diagram and Documentation Skill
 
 Mermaid diagram and documentation system with specialized guides and code-to-diagram capabilities.

@@ -1,8 +1,7 @@
 ---
 name: lombok-patterns
-description: Lombok annotations and best practices for Java 21+ projects. Use when reducing boilerplate, configuring builders, or choosing between Lombok and Records.
+description: "Use for Lombok in Java 21+ projects: reducing boilerplate, configuring builders, Lombok vs Records."
 ---
-
 # Lombok Patterns
 
 This skill provides guidance on using Project Lombok to reduce boilerplate code in Java applications, covering annotations, best practices, and integration patterns.
