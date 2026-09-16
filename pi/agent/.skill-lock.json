@@ -79,6 +79,15 @@
       "skillFolderHash": "e13f987306d5cd7a34f541927a3228343dd90e45",
       "installedAt": "2026-08-21T07:17:27.228Z",
       "updatedAt": "2026-08-21T07:17:27.228Z"
+    },
+    "unslop": {
+      "source": "cursor/plugins",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/cursor/plugins.git",
+      "skillPath": "pstack/skills/unslop/SKILL.md",
+      "skillFolderHash": "e19dcc9c531f4609df38bc86c62cf0e8b6d8f444",
+      "installedAt": "2026-09-16T06:02:16.397Z",
+      "updatedAt": "2026-09-16T06:02:16.397Z"
     }
   },
   "dismissed": {
@@ -86,14 +95,13 @@
   },
   "lastSelectedAgents": [
     "amp",
-    "antigravity",
-    "antigravity-cli",
     "cline",
     "codex",
     "cursor",
-    "deepagents",
+    "droid",
     "gemini-cli",
     "github-copilot",
+    "kilo",
     "kimi-code-cli",
     "opencode",
     "warp",
