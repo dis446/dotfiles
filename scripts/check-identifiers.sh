@@ -14,8 +14,8 @@ patterns=(
   'zerotech\.mn'
   'alpha-''ptf'
   '\balpha-[a-z0-9-]+'
-  'af'\''s-'
-  'AF'\''S-'
+  'af''s-'
+  'AF''S-'
   'relation''Store'
   'e2e-''performance-tests'
   'state-''machine'
@@ -24,7 +24,7 @@ patterns=(
   '\bgSim'
   '\bgsim'
   'Code/''and/'
-  'Code/gSim'
+  'Code/''gSim'
   '192\.168\.1''\.233'
   # repo named "middleware": anchored to path/table contexts only — the bare
   # word is generic English (Express/Redux docs) and must not fail the check.
