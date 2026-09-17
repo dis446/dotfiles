@@ -1,28 +1,12 @@
 -- Resolve $VAR / ${VAR} placeholders from GitLab CI/CD variables via glab CLI.
 -- Shows a floating progress panel; non-blocking, dismiss with 'q'.
+-- Tenant→environment scope map lives in secret_scopes.lua (gitignored via **/secret**;
+-- see secret_scopes.example.lua). Falls back to no predefined scopes if absent.
 local M = {}
 
-local SCOPE_MAP = {
-  dev = "env-dev",
-  sit = "env-sit",
-  uat = "env-uat",
-  test = "env-test",
-  demo = "env-demo",
-  preview = "env-preview",
-  th = "env-th",
-  prod = "env-prod",
-}
-
-local SCOPE_REVERSE = {
-  ["env-dev"] = "dev",
-  ["env-sit"] = "sit",
-  ["env-uat"] = "uat",
-  ["env-test"] = "test",
-  ["env-demo"] = "demo",
-  ["env-preview"] = "preview",
-  ["env-th"] = "th",
-  ["env-prod"] = "prod",
-}
+local ok_scopes, secret_scopes = pcall(require, "dis446.secret_scopes")
+local SCOPE_MAP = ok_scopes and secret_scopes.SCOPE_MAP or {}
+local SCOPE_REVERSE = ok_scopes and secret_scopes.SCOPE_REVERSE or {}
 
 
 function M.detect_scope()

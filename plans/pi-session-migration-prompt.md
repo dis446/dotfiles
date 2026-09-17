@@ -6,8 +6,8 @@ master repo and its own copy of the feature-workflow scripts. The known platform
 
 | Platform | Master repo (this machine's layout) | Feature-workspace label | Feature roots |
 |---|---|---|---|
-| platform-1 | `~/Code/<org>/<platform-1>/back-end/repo-1` | `platform-1-<name>` | `<master>/features/<name>/` |
-| platform-2 | `~/Code/platform-2/platform-2` | `platform-2-<name>` | `<master>/features/<name>/` |
+| platform-1 | `~/Code/<org>/<platform-1>/repo-1` | `platform-1-<name>` | `<master>/features/<name>/` |
+| platform-2 | `~/Code/<org>/<platform-2>/repo-1` | `platform-2-<name>` | `<master>/features/<name>/` |
 
 Your job: make this machine behave exactly like typing `pi` / `pi -c` in a folder creates/resumes
 the same sessions that herdr, nvim, and the feature-workflow spawners use — **for every platform
@@ -92,16 +92,16 @@ Syntax-check every shell script (`bash -n`), load-check the lua. Do NOT run rest
 
 ## Phase 3 — migrate THIS host's existing sessions (one pass covers every platform)
 
-Use `scripts/feature-workflow/migrate-sessions` (from the platform-1 e2e repo, commit `527506d0`). It
+Use `scripts/feature-workflow/migrate-sessions` (from the platform-1 e2e repo). It
 moves every session file from `~/.local/state/nvim/pi-sessions/<name>-<hash>/` into the default
 store, keyed by the cwd recorded in each session header. It is platform-agnostic: platform-1 sessions
-land under their e2e feature-root keys, platform-2 sessions under their platform-2 feature-root keys — no
+land under their feature-root keys, platform-2 sessions under their feature-root keys — no
 separate run per platform.
 
 Caveats:
 
-- The script hardcodes platform-1 layout constants `OLD_FEATURES=/home/dubby/Code/<org>/<platform-1>/features`
-  and `NEW_FEATURES=/home/dubby/Code/<org>/<platform-1>/back-end/repo-1/features`
+- The script hardcodes platform-1 layout constants `OLD_FEATURES=/home/<user>/Code/<org>/<platform-1>/features`
+  and `NEW_FEATURES=/home/<user>/Code/<org>/<platform-1>/repo-1/features`
   (used only to retarget platform-1 sessions recorded before platform-1's feature roots moved inside the
   e2e repo). Adjust both to THIS host's real paths/$HOME. For platform-2 these constants never match
   (platform-2's feature roots never moved) — a cwd recorded as a platform-2 feature root or a worktree

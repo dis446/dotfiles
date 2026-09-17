@@ -2,7 +2,7 @@
 
 Goal: add `nvim-dbee` to Neovim with **explicit repo-owned DB config**, **multiple connections per repo**, **no IntelliJ parsing**, **no global connection pile**.
 
-POC repo: `/home/ubby/Code/platform-1/back-end/relation-store`
+POC repo: `/home/<user>/Code/<org>/<platform>/back-end/repo-2`
 
 ---
 

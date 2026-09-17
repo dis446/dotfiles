@@ -21,7 +21,7 @@ human's audit trail.
    authoritative for build/test/lint commands, code style, git workflow, and
    conventions.
 2. **Work only inside your assigned repo's worktree** under the feature root
-   — never the main checkouts under `~/Code/platform-2/`. Never touch other repos.
+   — never the main checkouts under `~/Code/<org>/<platform-2>/`. Never touch other repos.
 3. **Use cheap compile checkpoints while working** — `tsc --noEmit` /
    `npm run typecheck` (TS/JS) or `./mvnw -q -DskipTests compile` (Java).
    Do not run full test suites mid-work. Run the repo's full suite ONCE at

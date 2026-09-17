@@ -1,10 +1,10 @@
 {
   "mcpServers": {
-    "AND-argocd-test": {
+    "argocd-test": {
       "command": "bash",
       "args": [
         "-lc",
-        "exec env ARGOCD_BASE_URL=\"https://<internal-host>\" ARGOCD_API_TOKEN=\"$ALPHA_ARGOCD_TEST_API_KEY\" npx -y argocd-mcp@latest stdio"
+        "exec env ARGOCD_BASE_URL=\"${ARGOCD_BASE_URL:?set ARGOCD_BASE_URL (see bash/secret_aliases)}\" ARGOCD_API_TOKEN=\"$ALPHA_ARGOCD_TEST_API_KEY\" npx -y argocd-mcp@latest stdio"
       ],
       "lifecycle": "lazy"
     }

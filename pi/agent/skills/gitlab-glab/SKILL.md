@@ -117,7 +117,7 @@ glab ci get --pipeline-id 243273 -F json
 glab ci get --pipeline-id 243273 --status=failed --with-job-details
 ```
 
-### Self-Managed GitLab (e.g., <gitlab-host>)
+### Self-Managed GitLab (host via $GITLAB_HOST)
 Set host via env var before any glab command:
 ```bash
 export GITLAB_HOST=https://<gitlab-host>

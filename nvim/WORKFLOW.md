@@ -15,7 +15,7 @@ workspace terminal, and the GitLab TUI are herdr panes that nvim routes to
 
 ```
 ┌────────────────────────────────────────────────────┐
-│ herdr workspace "repo-3"                    │
+│ herdr workspace "repo-3"                           │
 │  tab 1 (main):  nvim                               │
 │  tab pi:        pi agent  (alt+k toggles)          │
 │  tab term:      shell / lazygit  (alt+i toggles)   │
@@ -41,10 +41,10 @@ TUI sessions.
 | Workspace               | Repository / context                      |
 | ----------------------- | ----------------------------------------- |
 | `dotfiles`              | `~/dotfiles` — personal dotfiles          |
-| `repo-1` | platform-1 master repo (diagnostics, planning) |
-| `repo-2`         | `back-end/repo-2`                  |
-| `repo-3`         | `back-end/repo-3`                  |
-| `repo-4`            | `front-end/formio/repo-4`             |
+| `repo-1`                | platform-1 master repo (diagnostics, planning) |
+| `repo-2`                | `back-end/repo-2`                         |
+| `repo-3`                | `back-end/repo-3`                         |
+| `repo-4`                | `front-end/formio/repo-4`                 |
 
 ### Keybindings
 

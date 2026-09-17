@@ -35,9 +35,7 @@ alias bios="sudo systemctl reboot --firmware-setup"
 alias ff="fastfetch"
 alias wtr="curl wttr.in"
 alias st="speedtest-cli"
-alias ppi="ping <lan-host>"
-#alias spi="ssh -t servy@<lan-host> \"tmux attach -t servy || tmux new -s servy\""
-alias spi="ssh -t servy herdr"
+***REMOVED*** / servy aliases live in bash/secret_aliases (untracked via **/secret**).
 alias myip="curl http://ipecho.net/plain; echo"
 alias sysbios="sudo systemctl reboot --firmware-setup"
 

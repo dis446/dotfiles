@@ -71,7 +71,7 @@ flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flats
 
 # ── GitLab TUI (gitlab-tui: vim-key GitLab browser) ─────────────────────
 # Builds from source (go.mod declares module 'gitlab-tui', so `go install
-# @latest` fails) and writes ~/.config/gitlab-tui/config.json for <gitlab-host>.
+# @latest` fails) and writes ~/.config/gitlab-tui/config.json for $GITLAB_HOST.
 # ~/.local/bin is on PATH via nobara/bashrc.
 if command -v gitlab-tui >/dev/null 2>&1; then
   echo "gitlab-tui already installed: $(command -v gitlab-tui)"
@@ -87,17 +87,17 @@ else
   echo "WARN: go/make missing — skipping gitlab-tui build (install golang+make via dnf)" >&2
 fi
 
-# config: <gitlab-host> server; token from $GITLAB_TOKEN, else placeholder
+# config: GitLab server ($GITLAB_HOST, e.g. https://<gitlab-host>); token from $GITLAB_TOKEN, else placeholder
 mkdir -p "$HOME/.config/gitlab-tui"
-python3 - "${GITLAB_TOKEN:-__PASTE_GITLAB_TOKEN_HERE__}" <<'PYEOF'
+python3 - "${GITLAB_TOKEN:-__PASTE_GITLAB_TOKEN_HERE__}" "${GITLAB_HOST:-https://<gitlab-host>}" <<'PYEOF'
 import json, os, sys
-cfg = {"servers": [{"name": "<gitlab-host>", "url": "https://<gitlab-host>", "token": sys.argv[1], "default": True}], "theme": "catppuccin"}
+cfg = {"servers": [{"name": sys.argv[2], "url": sys.argv[2], "token": sys.argv[1], "default": True}], "theme": "catppuccin"}
 os.makedirs(os.path.expanduser("~/.config/gitlab-tui"), exist_ok=True)
 with open(os.path.expanduser("~/.config/gitlab-tui/config.json"), "w") as f:
     json.dump(cfg, f, indent=2)
 PYEOF
 if [ -n "${GITLAB_TOKEN:-}" ]; then
-  echo "gitlab-tui configured for <gitlab-host> (token from GITLAB_TOKEN)"
+  echo "gitlab-tui configured for $GITLAB_HOST (token from GITLAB_TOKEN)"
 else
   echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi

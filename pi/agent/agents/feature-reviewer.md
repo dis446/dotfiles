@@ -26,7 +26,7 @@ the actual diffs and verify with your own eyes.
    `README.md` if absent) — authoritative for build/test/lint, code style,
    git workflow, conventions. Verify the work complies.
 2. **Work only inside the feature root's worktrees** — never the main
-   checkouts under `~/Code/platform-2/`.
+   checkouts under `~/Code/<org>/<platform-2>/`.
 3. **Run cheap checks yourself** — `tsc --noEmit` / `npm run typecheck`
    (TS/JS) or `./mvnw -q -DskipTests compile` (Java) per repo, plus
    `git diff`/`git log` review. Do not run full test suites unless needed to

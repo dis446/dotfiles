@@ -4,7 +4,7 @@
 #      (brace positions, spacing, blank lines – not expressible in EditorConfig).
 #
 # Spotless / Eclipse formatter reference:
-#   /home/neddy/Code/<org>/<platform-1>/back-end/common/quarkus-common/quarkus-build-config/src/main/resources/eclipse-format.xml
+#   /home/<user>/Code/<org>/<platform>/back-end/common/quarkus-common/quarkus-build-config/src/main/resources/eclipse-format.xml
 
 root = true
 

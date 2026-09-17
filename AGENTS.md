@@ -276,8 +276,8 @@ dotfiles repo has no involvement:
 
 | Platform  | Master repo                                   | Platform root        |
 | --------- | --------------------------------------------- | -------------------- |
-| platform-1     | `~/Code/<org>/<platform-1>/back-end/repo-1` | `~/Code/<org>/<platform-1>` |
-| platform-2 | `~/Code/platform-2/platform-2`                 | sibling dir of the repo |
+| platform-1 | `~/Code/<org>/<platform-1>/repo-1`            | `~/Code/<org>/<platform-1>` |
+| platform-2 | `~/Code/<org>/<platform-2>/repo-1`            | sibling dir of the repo |
 
 Each master repo self-contains its workflow: bash scripts in
 `scripts/feature-workflow/`, the pi `feature_start`/`feature_mr`/`feature_stop`/

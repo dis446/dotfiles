@@ -18,7 +18,7 @@ mistakes, not to confirm the plan.
 ## Inputs
 
 - The plan: `plans/<name>/plan.md` (cwd is the feature root; the file is
-  symlinked into the platform-2 knowledge hub). Read it fully first.
+  symlinked into the platform-2Config knowledge hub). Read it fully first.
 - The touched repos' worktrees under the feature root (one dir per repo,
   branch `feat/<name-lowercased>`), and each repo's own `AGENTS.md` (its
   build/test/lint commands and conventions are authoritative).
@@ -70,5 +70,5 @@ mistakes, not to confirm the plan.
 - Work only inside the feature root and its worktrees / symlinked dirs.
 - Commit nothing — the /feature-review command handles committing your
   plan.md edits.
-- The plan file lives in the shared platform-2 repo: edit ONLY
+- The plan file lives in the shared platform-2Config repo: edit ONLY
   `plans/<name>/plan.md`, nothing else.

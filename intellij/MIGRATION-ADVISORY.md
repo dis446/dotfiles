@@ -41,9 +41,9 @@
 
 ### 1.3 platform-2 project
 
-The `~/Code/platform-2` umbrella is an Nx monorepo workspace with 5 sub-repos
-(platform-2 Java/Maven, platform-2 React, platform-2 Next.js,
-platform-2 Next.js, platform-2 Flutter). Each is its own git repo. The
+The `~/Code/<org>/<platform-2>` umbrella is an Nx monorepo workspace with 5 sub-repos
+(repo-3 Java/Maven, repo-4 React, repo-5 Next.js,
+repo-6 Next.js, repo-7 Flutter). Each is its own git repo. The
 umbrella already has `nx.json` + `projects/*/project.json` making it
 compatible with the Nx Console IntelliJ plugin.
 
@@ -180,7 +180,7 @@ rename (the standard).
 ### 3.1 Your Zellij pattern
 
 ```
-Tab 1: platform-2        →  [neovim][pi][bash]
+Tab 1: platform-2  →  [neovim][pi][bash]
 Tab 2: path-service →  [neovim][pi][bash]
 Tab 3: mdm          →  [neovim][pi][bash]
 ...
@@ -204,8 +204,8 @@ identified this as the pain point: alt-tabbing between windows is annoying.
 
 **For the platform-2 umbrella specifically:**
 
-The umbrella already has Nx Console support. Open `~/Code/platform-2` as the IntelliJ
-project. Each sub-repo (`platform-2`, `platform-2`, etc.) shows in the
+The umbrella already has Nx Console support. Open `~/Code/<org>/<platform-2>` as the IntelliJ
+project. Each sub-repo (`repo-3`, `repo-4`, etc.) shows in the
 Project view. Because Nx Console is installed, you get:
 - Nx task runner for `nx:dev`, `nx:build`, `nx:test`
 - Multi-module navigation
@@ -221,7 +221,7 @@ Option B: **Separate windows, but use a Linux window manager shortcut.**
 Option C: **Use Recent Projects (`Ctrl+E`)** and `Ctrl+Shift+E` (Recent
   Locations) for quick navigation without closing projects.
 
-**Recommendation:** Use Option A for related repos (all in `org/<platform-1>/back-end/`)
+**Recommendation:** Use Option A for related repos (all in `<org>/<platform-1>/back-end/`)
 and Option A + B for completely separate repos.
 
 ### 3.3 Terminal replacement for Zellij panes
@@ -474,9 +474,9 @@ These Vim shortcuts are worth keeping because the IDE alternatives are accessibl
    `Space+ff`, `Space+fs`, `Space+lg`, `Space+ot`).
 3. **Unmap `Ctrl+K` from Vim** — Give it back to the IDE for VCS Commit.
    Add `iunmap <C-k>` and `nunmap <C-k>` to `.ideavimrc`.
-4. **Open platform-2 in IntelliJ** — Use `File → Open → ~/Code/platform-2`. Make sure
+4. **Open platform-2 in IntelliJ** — Use `File → Open → ~/Code/<org>/<platform-2>`. Make sure
    Nx Console plugin is installed. Check that Maven imports succeed for
-   `platform-2`.
+   `repo-3`.
 
 ### 8.2 Phase 2 — Terminal & Workflow (Day 3-5)
 

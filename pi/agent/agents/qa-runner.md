@@ -32,9 +32,9 @@ running the browsers against it.
 
 ## Inputs
 
-- Your task file: which worktree paths (code repos + `platform-2` on
+- Your task file: which worktree paths (code repos + `platform-2Qa` on
   `feat/<name-lowercased>`), which on-demand behaviors to probe, report path.
-- `platform-2/README.md` — how the stack boots/runs (read it FIRST).
+- `platform-2Qa/README.md` — how the stack boots/runs (read it FIRST).
 - `plans/<name>/plan.md`, `plans/<name>/agents/dev-*.md`,
   `plans/<name>/agents/qa-author-report.md` — what changed and what the e2e
   suite claims to cover.
@@ -50,7 +50,7 @@ running the browsers against it.
    this feature's PRs touch (from the plan contract + dev reports + your own
    hostile reading of the diffs). Keep them under
    `plans/<name>/qa/run-*/` (your evidence, versioned in the hub).
-4. **Run the ENTIRE deterministic suite** in `platform-2` (its branch) —
+4. **Run the ENTIRE deterministic suite** in `platform-2Qa` (its branch) —
    every existing e2e test must pass against the feature stack.
 5. Collect evidence: Playwright traces/screenshots on failure, `/mock/ledger`
    dumps, DB rows (created orders etc). A green claim with no artifact is a
