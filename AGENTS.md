@@ -269,6 +269,20 @@ tail -30 ~/.config/herdr/restore.log
 less ~/.config/herdr/herdr-server.log
 ```
 
+## Identifier hygiene
+
+The repo is public: employer/client identifiers (internal hosts, client/tenant
+names, internal repo names, employer emails) must never be committed. They live
+in untracked `secret*` files (gitignored via `**/secret**`) or env vars
+(`GITLAB_HOST`, `ARGOCD_BASE_URL`, …).
+
+- `scripts/check-identifiers.sh` greps everything that would be committed and
+  fails on a raw identifier (generic English "middleware" is exempt — only
+  path/table contexts are checked).
+- Wired as a pre-commit hook via `core.hooksPath .githooks` — set by
+  `git config core.hooksPath .githooks` after cloning (install scripts do this).
+- This repo pins `user.email` locally (`git config user.email`); keep it personal.
+
 ## Feature Workflow (platform master repos)
 
 The feature workflow lives entirely inside each platform's master repo — the
