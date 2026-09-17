@@ -181,4 +181,4 @@ git config --global user.email "dis446@yahoo.com"
 git config --global user.name "Tsetsen-erdene Ganbaatar"
 git config --global pull.rebase true
 # repo-local identifier pre-commit hook (see AGENTS.md "Identifier hygiene")
-git config --global core.hooksPath "$HOME/dotfiles/.githooks"
+git -C "$HOME/dotfiles" config core.hooksPath .githooks
