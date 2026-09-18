@@ -490,6 +490,10 @@ renderer's version, not latest.**
 - **Known 10.x breaker:** unquoted dotted-edge labels (`-. text .->`) containing hyphens or
   dots (e.g. `2026-08-24..28`) throw `Lexical error ... Unrecognized text` on 10.7.0.
   **Always quote dotted-edge labels**: `-. "text" .->`.
+- **`class` statement takes exactly one class name:** `class A,B,C err`.
+  `class Val,Cap,Audit E400 err` fails everywhere (`got 'SPACE'` on 10.7.0) —
+  merge all nodes into one comma-separated list (Error 31 in
+  `references/guides/troubleshooting.md`).
 - Scripts (`extract_mermaid.py` / `mermaid_to_image.py`) validate with the locally
   installed mermaid CLI — fine for general syntax, **not** proof the target renderer (GitHub
   or GitLab) accepts it.

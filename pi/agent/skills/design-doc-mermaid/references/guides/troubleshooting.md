@@ -446,6 +446,41 @@ flowchart TD
 
 ---
 
+### ❌ Error 31: Multiple Class Names in One `class` Statement (all renderers)
+
+**Severity:** 🔴 Critical - Parse failure on every renderer, including mermaid 10.7.0 (GitLab)
+
+**Problem:** A flowchart `class` statement takes **one** class name after the node list.
+Writing two (`class Val,Cap,Audit E400 err`) makes the parser read `E400` as the class
+name and choke on the stray `err` with `got 'SPACE'`.
+
+**Incorrect (fails everywhere, GitLab reports `got 'SPACE'`):**
+```mermaid
+flowchart TD
+    Val{"check"} --> E400["400"]
+    classDef err fill:#FFB6C1,stroke:#333,stroke-width:2px,color:black
+    class Val,Cap,Audit E400 err
+```
+
+**Correct (comma-separated nodes, single class):**
+```mermaid
+flowchart TD
+    Val{"check"} --> E400["400"]
+    classDef err fill:#FFB6C1,stroke:#333,stroke-width:2px,color:black
+    class Val,Cap,Audit,E400 err
+```
+
+**Error Message:** `Parse error on line N: ... Expecting 'SEMI', 'NEWLINE', ..., got 'SPACE'`
+pointing at the second class name.
+
+**Rules:**
+- One `class` statement = `class Node1,Node2,... SingleClass`. Never two class names.
+- To apply two classes to the same nodes, use two statements, one per class.
+- Node ids in the list are comma-separated with **no spaces required**; `A,B` and `A, B`
+  both parse, but `A B` (space-separated) does not.
+
+---
+
 ## Sequence Diagrams
 
 ### ❌ Error 11: Missing Colon Before Message Text
@@ -971,5 +1006,5 @@ python scripts/mermaid_to_image.py diagram.mmd output.png
 
 **Version:** 1.0
 **Last Updated:** 2025-01-13
-**Total Errors Documented:** 28
+**Total Errors Documented:** 31
 **Research Sources:** GitHub Issues (mermaid-js/mermaid), Stack Overflow, Mermaid Official Docs, Community Forums
