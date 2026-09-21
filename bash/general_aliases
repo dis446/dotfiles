@@ -35,7 +35,6 @@ alias bios="sudo systemctl reboot --firmware-setup"
 alias ff="fastfetch"
 alias wtr="curl wttr.in"
 alias st="speedtest-cli"
-***REMOVED*** / servy aliases live in bash/secret_aliases (untracked via **/secret**).
 alias myip="curl http://ipecho.net/plain; echo"
 alias sysbios="sudo systemctl reboot --firmware-setup"
 
