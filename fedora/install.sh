@@ -39,6 +39,13 @@ systemctl --user enable herdr-server.service
 
 link_target "$HOME/dotfiles/.editorconfig" "$HOME/.editorconfig"
 sudo_link_target "$HOME/dotfiles/fedora/dnf.conf" "/etc/dnf/dnf.conf"
+
+## zram swap scaling + zstd (see fedora/zram-generator.conf for the reasoning).
+## Copied, not symlinked: zram-generator runs early in boot, before a $HOME
+## symlink target is guaranteed to be readable.
+sudo cp "$HOME/dotfiles/fedora/zram-generator.conf" /etc/systemd/zram-generator.conf
+sudo systemctl daemon-reload
+sudo systemctl restart systemd-zram-setup@zram0.service
 mkdir -p "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
