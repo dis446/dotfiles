@@ -8,31 +8,26 @@ return {
 		local jdtls = require("jdtls")
 		local setup = require("jdtls.setup")
 
-		local function find_java21()
-			local candidates = {
-				"/usr/lib/jvm/java-21-openjdk",
-				"/usr/lib/jvm/java-21-openjdk-amd64",
-				"/home/neddy/.jdks/corretto-21.0.8",
-				"/home/neddy/.jdks/corretto-21.0.10",
-				"/home/neddy/.jdks/ms-21.0.8",
-				"/home/neddy/.jdks/graalvm-ce-21.0.2",
-			}
-
-			if vim.env.JAVA_HOME and vim.env.JAVA_HOME ~= "" then
-				table.insert(candidates, 1, vim.env.JAVA_HOME)
+		-- `mise where` with an explicit tool@version ignores cwd; cache it (≤1 spawn per version per session).
+		local java_homes = {}
+		local function mise_home(flavor)
+			if java_homes[flavor] == nil then
+				local out = vim.fn.systemlist("mise where java@" .. flavor)
+				java_homes[flavor] = (vim.v.shell_error == 0 and out[1] ~= nil) and out[1] or false
 			end
+			return java_homes[flavor] or nil
+		end
 
-			for _, java_home in ipairs(candidates) do
-				if java_home and java_home ~= "" and vim.fn.executable(java_home .. "/bin/java") == 1 then
-					local java_bin = java_home .. "/bin/java"
-					local version = table.concat(vim.fn.systemlist(java_bin .. " -version 2>&1"), "\n")
-					if version:match('version "21') then
-						return java_home, java_bin
-					end
+		-- Hobby projects opt into 25 via a local mise.toml pinning java 25; everything else stays on 21.
+		-- ponytail: substring match, parse maven.compiler.release if a second 25-signal ever appears.
+		local function wants_java25(root_dir)
+			for _, f in ipairs({ root_dir .. "/mise.toml", root_dir .. "/.mise.toml" }) do
+				local ok, lines = pcall(vim.fn.readfile, f, "", 30)
+				if ok and table.concat(lines, "\n"):match('java%s*=%s*"[^"]*25') then
+					return true
 				end
 			end
-
-			return nil, vim.fn.exepath("java")
+			return false
 		end
 
 		local function attach(bufnr)
@@ -45,6 +40,8 @@ return {
 					"build.gradle.kts",
 					".classpath",
 					".project",
+					"mise.toml",
+					".mise.toml",
 					"micronaut-cli.yml",
 					".git",
 				})
@@ -67,16 +64,20 @@ return {
 					table.insert(cmd, "--jvm-arg=-javaagent:" .. lombok_jar)
 				end
 
-				local java_home, java_bin = find_java21()
+				-- Launcher JVM must be >= project level; work keeps its proven 21 launcher.
+				local use25 = wants_java25(root_dir)
+				local java21 = mise_home("temurin-21")
+				local java25 = mise_home("temurin-25")
+				local default_home = (use25 and java25 or java21)
+					or vim.fn.fnamemodify(vim.fn.exepath("java"), ":h:h")
 				local runtimes = {}
-				if java_home then
-					table.insert(runtimes, {
-						name = "JavaSE-21",
-						path = java_home,
-						default = true,
-					})
+				for _, r in ipairs({ { name = "JavaSE-21", home = java21 }, { name = "JavaSE-25", home = java25 } }) do
+					if r.home then
+						table.insert(runtimes, { name = r.name, path = r.home, default = r.home == default_home })
+					end
 				end
 
+				local java_bin = default_home ~= "" and default_home .. "/bin/java" or vim.fn.exepath("java")
 				if java_bin ~= "" then
 					table.insert(cmd, "--java-executable=" .. java_bin)
 				end
