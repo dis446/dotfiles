@@ -53,7 +53,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 golang kubectl gcc-c++ make mpv-libs glab ghostty -y --skip-unavailable
+sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 fastfetch golang kubectl gcc-c++ make mpv-libs glab ghostty -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
