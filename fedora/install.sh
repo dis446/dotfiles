@@ -46,11 +46,11 @@ sudo_link_target "$HOME/dotfiles/fedora/dnf.conf" "/etc/dnf/dnf.conf"
 sudo cp "$HOME/dotfiles/fedora/zram-generator.conf" /etc/systemd/zram-generator.conf
 sudo systemctl daemon-reload
 sudo systemctl restart systemd-zram-setup@zram0.service
+
 mkdir -p "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
 link_target "$HOME/dotfiles/fedora/bashrc" "$HOME/.bashrc"
-# Cap Gradle parallelism (see gradle/gradle.properties for the reasoning).
 link_target "$HOME/dotfiles/gradle/gradle.properties" "$HOME/.gradle/gradle.properties"
 source "$HOME/.bashrc"
 
@@ -109,8 +109,6 @@ if [ -n "${GITLAB_TOKEN:-}" ]; then
 else
   echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi
-
-curl -f https://zed.dev/install.sh | sh
 
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
 
