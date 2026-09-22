@@ -60,7 +60,7 @@ sudo dnf copr enable scottames/ghostty -y
 
 sudo dnf update -y
 
-sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 fastfetch golang kubectl gcc-c++ make mpv-libs glab ghostty -y --skip-unavailable
+sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 azure-cli fastfetch golang kubectl gcc-c++ make mpv-libs glab ghostty -y --skip-unavailable
 sudo pip install pydf
 
 mise use -g node@24
@@ -110,7 +110,7 @@ else
   echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi
 
-flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
+flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno -y
 
 source "$HOME/.bashrc"
 
