@@ -43,6 +43,8 @@ mkdir -p "$HOME/.config/lazygit"
 ln -sf "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 ln -sf "$HOME/dotfiles/intellij/ideavimrc" "$HOME/.ideavimrc"
 link_target "$HOME/dotfiles/fedora/bashrc" "$HOME/.bashrc"
+# Cap Gradle parallelism (see gradle/gradle.properties for the reasoning).
+link_target "$HOME/dotfiles/gradle/gradle.properties" "$HOME/.gradle/gradle.properties"
 source "$HOME/.bashrc"
 
 sudo dnf copr enable dejan/lazygit -y

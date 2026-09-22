@@ -16,3 +16,26 @@ export PATH="$HOME/.local/share/mise/installs/node/24.17.0/bin:$PATH"
 # Added by jcode installer
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/go/bin:$PATH"
+
+# ── Runtime memory limits ───────────────────────────────────────────────────
+# Every JVM sizes its max heap to 25% of physical RAM when no -Xmx is given, and
+# every Node process keeps its own heap. With a dozen concurrent build/test
+# toolchains those defaults scale to the machine and thrash it (this box runs
+# ~80% of swap in use).
+#
+# These are DEFAULTS, not overrides: JAVA_TOOL_OPTIONS is *prepended* to the
+# command line, so an explicit -Xmx from a tool still wins.
+#
+# One variable covers Maven's driver JVM, the Surefire/Failsafe FORKED test JVM,
+# the Gradle daemon and jdtls — a forked JVM is a child process, so it inherits
+# this environment. That is why no per-pom argLine is needed, and therefore why
+# nothing clobbers a project's jacoco argLine.
+# Cost: each JVM prints one "Picked up JAVA_TOOL_OPTIONS:" line to stderr. stdout
+# stays clean, so tooling that parses output is unaffected.
+export JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=6.25"   # ~2 GiB here, ~6 GiB on a 96 GiB box
+
+# Node default heap for tsc / vite / next / nest builds.
+# NOTE: the jest repos set NODE_OPTIONS inline on their test script, which
+# REPLACES this value entirely, so it does NOT reach jest workers. Cap those
+# with --maxWorkers or a jest config (they are the things that multiply).
+export NODE_OPTIONS="--max-old-space-size=2048"

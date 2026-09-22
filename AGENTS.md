@@ -18,6 +18,7 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 | `zellij/`                                 | `~/.config/zellij`   | Zellij multiplexer config                              |
 | `zed/`                                    | `~/.config/zed`      | Zed editor config + themes                             |
 | `lazygit/`                                | `~/.config/lazygit`  | lazygit config                                         |
+| `gradle/`                                 | `~/.gradle/gradle.properties` | Gradle worker/heap limits (concurrency budget) |
 | `intellij/`                               | `~/.ideavimrc`       | IdeaVim config + keymap references                     |
 | `pi/`                                     | `~/.pi`, `~/.agents` | pi-coding-agent config                                 |
 | `claude/`                                 | `~/.claude`          | Claude Code config (settings tracked, runtime ignored) |
