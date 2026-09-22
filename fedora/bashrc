@@ -20,19 +20,27 @@ export PATH="$HOME/go/bin:$PATH"
 # ── Runtime memory limits ───────────────────────────────────────────────────
 # Every JVM sizes its max heap to 25% of physical RAM when no -Xmx is given, and
 # every Node process keeps its own heap. With a dozen concurrent build/test
-# toolchains those defaults scale to the machine and thrash it (this box runs
-# ~80% of swap in use).
+# toolchains those defaults scale to the machine and thrash it.
+#
+# The JVM cap is ABSOLUTE, not a percentage. A percentage re-derives itself on
+# every RAM upgrade, so the ceiling per JVM grows with the machine and the trap
+# returns: at 6.25% this box handed each JVM 986 MiB on 16 GiB and 4 GiB on
+# 64 GiB, for 48 GiB of nominal ceiling across twelve concurrent builds. No
+# Maven or Gradle test JVM here wants more than 2 GiB, and now none can drift
+# there on its own.
 #
 # These are DEFAULTS, not overrides: JAVA_TOOL_OPTIONS is *prepended* to the
-# command line, so an explicit -Xmx from a tool still wins.
+# command line, so an explicit -Xmx from a tool or a project argLine still wins
+# (verified: `java -Xmx4g` reports 4 GiB, not 2 GiB).
 #
 # One variable covers Maven's driver JVM, the Surefire/Failsafe FORKED test JVM,
 # the Gradle daemon and jdtls — a forked JVM is a child process, so it inherits
 # this environment. That is why no per-pom argLine is needed, and therefore why
-# nothing clobbers a project's jacoco argLine.
+# nothing clobbers a project's jacoco argLine. A suite that genuinely needs a
+# larger heap on top of the jacoco argLine: mvn -DargLine="-Xmx4g @{argLine}".
 # Cost: each JVM prints one "Picked up JAVA_TOOL_OPTIONS:" line to stderr. stdout
 # stays clean, so tooling that parses output is unaffected.
-export JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=6.25"   # ~2 GiB here, ~6 GiB on a 96 GiB box
+export JAVA_TOOL_OPTIONS="-Xmx2g"   # absolute: 2 GiB per JVM, whatever RAM is fitted
 
 # Node default heap for tsc / vite / next / nest builds.
 # NOTE: the jest repos set NODE_OPTIONS inline on their test script, which
