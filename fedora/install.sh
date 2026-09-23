@@ -66,7 +66,15 @@ mise use -g node@24
 mise use -g java@temurin-21
 mise use -g herdr
 
-sudo npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+# pi lives in ~/.local (user-owned) so `pi update` self-updates without sudo.
+# Never sudo npm here: root's prefix is /usr/local and the install comes back root-owned.
+npm config set prefix ~/.local
+npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+# Remove a stale root-owned copy from before (superseded; ~/.local/bin wins on PATH).
+if [ -L /usr/local/bin/pi ] || [ -d /usr/local/lib/node_modules/@earendil-works ]; then
+  sudo rm -f /usr/local/bin/pi
+  sudo rm -rf /usr/local/lib/node_modules/@earendil-works
+fi
 pi install npm:context-mode
 pi install npm:@juicesharp/rpiv-ask-user-question
 pi install npm:pi-subagents
