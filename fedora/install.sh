@@ -112,11 +112,7 @@ fi
 
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno -y
 
-# postgres
-sudo dnf install postgresql-server postgresql-contrib -y
-sudo systemctl enable postgresql
-sudo postgresql-setup --initdb --unit postgresql
-sudo systemctl start postgresql
+systemctl --user enable --now podman.socket
 
 source "$HOME/.bashrc"
 
