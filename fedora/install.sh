@@ -21,7 +21,6 @@ sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-releas
 
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/linux/config.ghostty" "$HOME/.config/ghostty/config"
-link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link_target "$HOME/dotfiles/zed" "$HOME/.config/zed"
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"
@@ -73,9 +72,6 @@ pi install npm:@juicesharp/rpiv-ask-user-question
 pi install npm:pi-subagents
 pi install npm:@dietrichgebert/ponytail
 
-sudo dnf install cargo -y
-cargo install cargo-binstall -y
-cargo binstall -y zellij
 
 # ── GitLab TUI (gitlab-tui: vim-key GitLab browser) ─────────────────────
 # Builds from source (go.mod declares module 'gitlab-tui', so `go install
@@ -110,6 +106,8 @@ else
   echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi
 
+sudo dnf install -y flatpak
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno -y
 
 systemctl --user enable --now podman.socket
