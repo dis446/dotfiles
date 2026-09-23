@@ -55,3 +55,18 @@ intellij/*
 pi/agent/missions/
 
 pi/agent/.skill-lock.json
+
+# CLI-managed agent skills: installed via npx skills, not versioned here.
+# Only the skills explicitly re-included below are tracked.
+pi/agent/skills/*
+!pi/agent/skills/caveman/
+!pi/agent/skills/cve-research/
+!pi/agent/skills/create-agentsmd/
+!pi/agent/skills/design-doc-mermaid/
+!pi/agent/skills/find-skills/
+!pi/agent/skills/gitlab-glab/
+!pi/agent/skills/herdr/
+!pi/agent/skills/lombok-patterns/
+!pi/agent/skills/unslop/
+claude/skills/*
+!claude/skills/find-skills
