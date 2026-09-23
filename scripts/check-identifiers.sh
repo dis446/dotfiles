@@ -32,9 +32,12 @@ patterns=(
 )
 
 # tracked + staged + untracked-not-ignored; anything living under a secret* path
-# is the sanctioned container for these identifiers and is skipped. This script
+# is the sanctioned container for these identifiers and is skipped. Agent skill
+# docs (pi/agent/skills/ — claude/skills entries are symlinks into it) are personal
+# reference material, versioned on purpose: they name the client services the agent
+# works on and hold no credentials (.env* under them stays gitignored). This script
 # is excluded too — it necessarily contains the patterns it checks for.
-files=$(git ls-files -cmo --exclude-standard | grep -Ev '(^|/)secret|check-identifiers\.sh$' || true)
+files=$(git ls-files -cmo --exclude-standard | grep -Ev '(^|/)secret|check-identifiers\.sh$|(^|/)agent/skills/|^claude/skills/' || true)
 [ -z "$files" ] && exit 0
 
 combined=$(IFS='|'; echo "${patterns[*]}")

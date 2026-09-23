@@ -56,17 +56,9 @@ pi/agent/missions/
 
 pi/agent/.skill-lock.json
 
-# CLI-managed agent skills: installed via npx skills, not versioned here.
-# Only the skills explicitly re-included below are tracked.
-pi/agent/skills/*
-!pi/agent/skills/caveman/
-!pi/agent/skills/cve-research/
-!pi/agent/skills/create-agentsmd/
-!pi/agent/skills/design-doc-mermaid/
-!pi/agent/skills/find-skills/
-!pi/agent/skills/gitlab-glab/
-!pi/agent/skills/herdr/
-!pi/agent/skills/lombok-patterns/
-!pi/agent/skills/unslop/
-claude/skills/*
-!claude/skills/find-skills
+# Agent skills — version the docs (SKILL.md + references/ + scripts) so a fresh
+# machine gets working skills. Secrets and runtime stay local: .env* under
+# pi/agent/skills/ is ignored above, .skill-lock.json below.
+# claude/skills/* are symlinks into pi/agent/skills — tracked so the links survive.
+# These docs name the client services the agent works on, so they are exempted
+# from scripts/check-identifiers.sh; they carry no credentials.
