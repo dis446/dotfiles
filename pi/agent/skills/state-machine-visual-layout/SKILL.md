@@ -1,6 +1,6 @@
 ---
 name: state-machine-visual-layout
-description: "Use when editing or generating state-machine definition JSON layout (positionX/positionY) for the admin-portal flow editor."
+description: "Use when editing, generating, or reviewing state-machine definition JSON layout (positionX/positionY) for the admin-portal flow editor."
 ---
 # State Machine Visual Layout
 
@@ -8,10 +8,16 @@ description: "Use when editing or generating state-machine definition JSON layou
 
 Any time you touch a state-machine **definition JSON** — adding/removing states or
 transitions, regenerating the flow, fixing positions, or checking why the diagram
-renders badly in the admin portal. The definition JSONs live in the e2e-performance-tests repo under
-`scripts/afsSeed/definitions/state-machine/` (e.g. `afs-los.json`) and are applied
-by the seed domains (`scripts/afsSeed/domains/60-state-machine.sh` PATCHes the
-whole flow, positions included).
+renders badly in the admin portal. Where the definition JSONs live depends on the repo:
+
+- **e2e-performance-tests**: `scripts/afsSeed/definitions/state-machine/`
+  (e.g. `afs-los.json`), applied by the seed domains
+  (`scripts/afsSeed/domains/60-state-machine.sh` PATCHes the whole flow,
+  positions included).
+- **bpm/flow-generator**: `tenants/<tenant>/flows/<flow>/definitions/state-machine/`
+  (e.g. `tenants/afs/flows/onboarding/definitions/state-machine/afs-los.json`),
+  applied by the state-machine seed domain (`seed/domains/60-state-machine.sh`,
+  which PATCHes the whole flow, positions included).
 
 ## How the admin portal renders a flow (facts, verified against the code)
 
@@ -83,6 +89,9 @@ These are deliberately general — they apply to a 10-state sub-flow and a
   notice/branch, terminal and task clusters, collision check, fail-on-unplaced).
   It is invoked automatically by `scripts/afsSeed/domains/60-state-machine.sh`
   before the PATCH. Follow its structure when laying out a new flow.
+- **The flow-generator repo's generator**: `seed/lib/layout_flow.py` implements the
+  same rules for the AFS LOS flow. It is invoked automatically by
+  `seed/domains/60-state-machine.sh` before the PATCH.
 
 ## Checklist when touching a definition JSON
 
