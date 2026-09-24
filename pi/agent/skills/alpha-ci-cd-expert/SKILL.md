@@ -208,6 +208,12 @@ These are injected as Kubernetes pod environment variables and consumed at appli
 | `FLYWAY_MIGRATE_AT_START` | Whether Flyway runs migrations on startup |
 | `DB_GENERATION` | Quarkus DB schema generation (`"none"` for production) |
 
+> **Quarkus migrate Job (`application.migrateCommand`)** — two traps: (1) never delegate to
+> `org.flywaydb.commandline.Main`; Flyway CLI 12 exits **0** on a *failed* migration, so the Job and
+> ArgoCD hook stay green while the schema freezes — use the Flyway **API** and `System.exit(1)`.
+> (2) `-schemas`/`currentSchema` must match the schema that holds the app's tables *and*
+> `flyway_schema_history`; a mismatch replays V1 into a phantom schema and fails/succeeds silently.
+
 ---
 
 ## The Critical Build-Time vs Runtime Distinction

@@ -40,3 +40,13 @@ vim.api.nvim_set_hl(0, "WinSeparator", { fg = "#7aa2f7", bold = true })
 -- mise shims: ensures nvim finds mise-managed tools even outside a login shell
 vim.env.PATH = vim.env.HOME .. "/.local/share/mise/shims:" .. vim.env.PATH
 
+-- herdr keeps ~35 pane nvims alive and each one spawns an `nvim --embed` child.
+-- All of them wrote the same unlocked shada file, so a mass exit interleaved the
+-- writes and corrupted it (E576/E136 on every later start). Nvim has no shada
+-- locking, so inside herdr the only safe option is to not write one at all.
+-- A nvim started outside herdr keeps full shada (a single writer).
+-- ponytail: no cmdline/mark history in herdr nvims; give each workspace its own
+-- shadafile if that history is ever wanted back.
+if vim.env.HERDR_ENV == "1" then
+  opt.shadafile = "NONE"
+end
