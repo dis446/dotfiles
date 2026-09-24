@@ -56,6 +56,10 @@ pi/agent/missions/
 
 pi/agent/.skill-lock.json
 
+# Nix / Home Manager build output symlinks
+/result
+/result-*
+
 # Agent skills — version the docs (SKILL.md + references/ + scripts) so a fresh
 # machine gets working skills. Secrets and runtime stay local: .env* under
 # pi/agent/skills/ is ignored above, .skill-lock.json below.
