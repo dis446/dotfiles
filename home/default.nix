@@ -32,8 +32,8 @@
   # and bare `Exec=` names don't resolve. `${VAR}` expands at session start.
   # Takes effect after a re-login (or `systemctl --user import-environment`).
   systemd.user.sessionVariables = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    PATH = "''${HOME}/.nix-profile/bin:/nix/var/nix/profiles/default/bin:''${PATH}";
-    XDG_DATA_DIRS = "''${HOME}/.nix-profile/share:/nix/var/nix/profiles/default/share:''${XDG_DATA_DIRS}";
-    TERMINFO_DIRS = "''${HOME}/.nix-profile/share/terminfo:/nix/var/nix/profiles/default/share/terminfo:/usr/share/terminfo";
+    PATH = "\${HOME}/.nix-profile/bin:/nix/var/nix/profiles/default/bin:\${PATH}";
+    XDG_DATA_DIRS = "\${HOME}/.nix-profile/share:/nix/var/nix/profiles/default/share:\${XDG_DATA_DIRS}";
+    TERMINFO_DIRS = "\${HOME}/.nix-profile/share/terminfo:/nix/var/nix/profiles/default/share/terminfo:/usr/share/terminfo";
   };
 }
