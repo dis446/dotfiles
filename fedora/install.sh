@@ -50,32 +50,21 @@ sudo systemctl restart systemd-zram-setup@zram0.service
 # $HOME/dotfiles/fedora/bashrc, so aliases stay editable without a rebuild.
 [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
 
-sudo dnf copr enable dejan/lazygit -y
-sudo dnf copr enable jdxcode/mise -y
-sudo dnf copr enable scottames/ghostty -y
-
+# CLI tools, runtimes, and git identity are managed by Home Manager (home/).
+# No copr/dnf/pip/mise/npm installs here. Only platform packages Nix does not
+# manage stay: RPM Fusion (above) and media codecs.
 sudo dnf update -y
+sudo dnf install mpv-libs -y --skip-unavailable
 
-sudo dnf install git vim neovim lazygit podman-docker mise htop ncdu speedtest-cli pip3 azure-cli fastfetch golang kubectl gcc-c++ make mpv-libs glab ghostty -y --skip-unavailable
-sudo pip install pydf
-
-mise use -g node@24
-mise use -g java@temurin-21
-mise use -g herdr
-
-# pi lives in ~/.local (user-owned) so `pi update` self-updates without sudo.
-# Never sudo npm here: root's prefix is /usr/local and the install comes back root-owned.
-npm config set prefix ~/.local
-npm install -g --ignore-scripts @earendil-works/pi-coding-agent
-# Remove a stale root-owned copy from before (superseded; ~/.local/bin wins on PATH).
-if [ -L /usr/local/bin/pi ] || [ -d /usr/local/lib/node_modules/@earendil-works ]; then
-  sudo rm -f /usr/local/bin/pi
-  sudo rm -rf /usr/local/lib/node_modules/@earendil-works
+# pi agent binary is installed by the Home Manager activation
+# (home/npm-globals.nix). pi plugins are managed by the agent itself — install
+# only when pi is present (on a fresh machine, after the first HM switch).
+if command -v pi >/dev/null 2>&1; then
+  pi install npm:context-mode
+  pi install npm:@juicesharp/rpiv-ask-user-question
+  pi install npm:pi-subagents
+  pi install npm:@dietrichgebert/ponytail
 fi
-pi install npm:context-mode
-pi install npm:@juicesharp/rpiv-ask-user-question
-pi install npm:pi-subagents
-pi install npm:@dietrichgebert/ponytail
 
 
 # ── GitLab TUI (gitlab-tui: vim-key GitLab browser) ─────────────────────
@@ -93,7 +82,7 @@ elif command -v go >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
   fi
   rm -rf /tmp/gitlab-tui-build
 else
-  echo "WARN: go/make missing — skipping gitlab-tui build (install golang+make via dnf)" >&2
+  echo "WARN: go/make missing — skipping gitlab-tui build (go+gcc+gnumake come from home/packages.nix)" >&2
 fi
 
 # config: GitLab server ($GITLAB_HOST, e.g. https://<gitlab-host>); token from $GITLAB_TOKEN, else placeholder

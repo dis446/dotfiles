@@ -59,14 +59,17 @@ Why not the alternatives:
 packages resolve from `~/.nix-profile/bin` (`nvim` 0.12.5, `herdr` 0.9.1, node
 24, temurin JDK 21).
 
-### 2.1 What the install scripts do today
+### 2.1 What the install scripts do (after Phase 6)
 
-| OS | Script | Package manager | Installs |
-| --- | --- | --- | --- |
-| Fedora | `fedora/install.sh` (130 lines) | dnf + copr + pip + mise + npm + flatpak | git, vim, neovim, lazygit, podman-docker, mise, htop, ncdu, speedtest-cli, pip3, azure-cli, fastfetch, golang, kubectl, gcc-c++, make, mpv-libs, glab, ghostty; `pydf`; mise node 24 / temurin-21 / herdr; npm pi agent; flatpak ExtensionManager, Flatseal, Bruno |
-| Nobara | `nobara/install.sh` (182 lines) | dnf + copr + cargo + mise + npm + flatpak | Fedora set minus azure-cli/glab/ghostty, plus cargo, cargo-binstall, zellij |
-| macOS | `macos/install.sh` (28 lines) | none in script — `macos/Brewfile` | bat, fastfetch, htop, jq, lazygit, ncdu, neovim, podman, podman-compose, rsync, speedtest-cli |
-| Ubuntu | `ubuntu/install.sh` (30 lines) | none | symlinks only |
+The Linux scripts are **system-only** now — CLI tools, runtimes, and config
+links all come from Home Manager.
+
+| OS | Script | Handles |
+| --- | --- | --- |
+| Fedora | `fedora/install.sh` (114 lines) | RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak (ExtensionManager, Flatseal, Bruno), herdr systemd unit, `pi`/`.ai`/`claude` symlinks, gitlab-tui build, podman socket, pi plugins |
+| Nobara | `nobara/install.sh` (162 lines) | Fedora set + `nobara-sync`, Zed app, noize (flatpak instead of Bruno) |
+| macOS | `macos/install.sh` (28 lines) | symlinks only; `macos/Brewfile` still lists brew formulae (macOS track) |
+| Ubuntu | `ubuntu/install.sh` (30 lines) | symlinks only |
 
 All four scripts symlink the same config set: `nvim`, `ghostty`, `zellij`,
 `zed`, `pi` + `.ai`, `claude`, `herdr/config.toml`, `.editorconfig`, `lazygit`,
@@ -567,7 +570,7 @@ only after the corresponding `home-manager switch` succeeds.
 - [x] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
 - [x] Phase 5 — helper scripts (`scripts/nix-{lib,update,pull,cleanup}.sh` + `bash/nix_aliases`); herdr unit `HERDR_BIN_PATH`/`PATH` fixed to nix
 - [ ] Phase 5b (deferred) — move the herdr unit to `systemd.user.services`. HM uses `sd-switch`, which **restarts changed units**; applying this while inside herdr restarts the server and kills the session. Do it from a plain terminal or accept the restart.
-- [ ] Phase 6 — shrink `fedora/install.sh` and `nobara/install.sh`; verify a clean re-run
+- [x] Phase 6 — shrunk `fedora/install.sh` (130→114) and `nobara/install.sh` (182→162): dropped copr, dnf tool installs, pip, cargo, `mise use -g`, npm. Kept RPM Fusion, `mpv-libs`, flatpak, herdr unit, `pi`/`.ai`/`claude` links. Full sudo/dnf re-run not executed (needs password, restarts zram/herdr).
 - [ ] Phase 7 — Nobara verification
 - [ ] Phase 8 — macOS track (optional)
 - [ ] Docs — update `AGENTS.md` with the nix commands and the outside-nix list
