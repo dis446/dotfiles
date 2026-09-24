@@ -1,4 +1,4 @@
-{ lib, pkgs, role, ... }:
+{ config, lib, pkgs, role, ... }:
 {
   home.packages = with pkgs; [
     # Version control / editors
@@ -38,5 +38,5 @@
     gnumake
   ]
   ++ lib.optionals (role == "work") [ azure-cli glab gh ]
-  ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ ghostty ];
+  ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ (config.lib.nixGL.wrap ghostty) ];
 }

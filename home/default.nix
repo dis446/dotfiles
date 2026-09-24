@@ -1,4 +1,4 @@
-{ lib, pkgs, username, ... }:
+{ lib, nixGL, pkgs, username, ... }:
 {
   imports = [
     ./packages.nix
@@ -26,6 +26,13 @@
   ];
 
   programs.home-manager.enable = true;
+
+  # Wrap nix GUI apps (ghostty) with nixGL so they use the host GPU stack —
+  # nix mesa cannot init EGL on non-NixOS. Applied in home/packages.nix.
+  targets.genericLinux.nixGL = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+    packages = nixGL.packages;
+    defaultWrapper = "mesa";
+  };
 
   # GUI apps launched from GNOME read the systemd user session environment, not
   # shell rc. Without these, nix GUI apps (ghostty) are absent from the app grid

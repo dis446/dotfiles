@@ -7,9 +7,12 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # GPU library wrappers so nix GUI apps (ghostty) can use the host GPU
+    # stack on non-NixOS. See home/default.nix + home/packages.nix.
+    nixGL.url = "github:nix-community/nixGL";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nixpkgs, home-manager, ... }:
     let
       # Semantic tags, not hostname string comparisons. mkHome asserts
       # membership so a new host cannot silently select an unknown role.
@@ -30,7 +33,7 @@
             inherit system;
             config.allowUnfree = true;
           };
-          extraSpecialArgs = { inherit username role platform; };
+          extraSpecialArgs = { inherit username role platform; nixGL = inputs.nixGL; };
           modules = [ ./home ];
         };
     in
