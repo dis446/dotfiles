@@ -49,8 +49,8 @@ Why not the alternatives:
 | `nix` on PATH | ✅ Determinate Nix 3.22.5 (Nix 2.35.2); `/etc/profile.d/nix.sh` covers login shells — non-login shells need explicit PATH (Phase 3) |
 | `/nix` | ✅ present |
 | `~/.config/nix/nix.conf` | ➖ not used — Determinate manages experimental features itself |
-| `flake.nix` / `home/` in repo | ✅ `flake.nix`, `flake.lock`, `home/default.nix`, `home/packages.nix` (Phase 1) |
-| `~/.local/state/home-manager` | ✅ generation 1 activated 2026-09-24 |
+| `flake.nix` / `home/` in repo | ✅ `flake.nix`, `flake.lock`, `home/{default,packages,dotfiles,bash}.nix` (Phase 1-3) |
+| `~/.local/state/home-manager` | ✅ active 2026-09-24 — packages, out-of-store config links, HM-owned `~/.bashrc` |
 | Repo checked out at | `~/dotfiles` (the flake and symlinks bake this absolute path) |
 | Git tree | Phase 1 files committed |
 
@@ -542,8 +542,8 @@ only after the corresponding `home-manager switch` succeeds.
 
 - [x] Phase 0 — install Determinate Nix; verify `nix --version`, flakes, `/nix`
 - [x] Phase 1 — `flake.nix`, `home/default.nix`, `home/packages.nix`; first switch; verify tools on PATH
-- [ ] Phase 2 — `home/dotfiles.nix` out-of-store links; remove matching install-script symlinks
-- [ ] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
+- [x] Phase 2 — `home/dotfiles.nix` out-of-store links; remove matching install-script symlinks
+- [x] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
 - [ ] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
 - [ ] Phase 5 — helper scripts; herdr unit (optional); `systemd.user.services`
 - [ ] Phase 6 — shrink `fedora/install.sh` and `nobara/install.sh`; verify a clean re-run
