@@ -1,0 +1,4 @@
+# Nix / Home Manager helpers (scripts/nix-*.sh). Sourced from the OS bashrc.
+alias nix-update="$HOME/dotfiles/scripts/nix-update.sh"
+alias nix-pull="$HOME/dotfiles/scripts/nix-pull.sh"
+alias nix-cleanup="$HOME/dotfiles/scripts/nix-cleanup.sh"

@@ -473,6 +473,8 @@ darwin-rebuild`):
 - `scripts/nix-pull.sh` — pull; rebuild only if `.nix` or `flake.lock` changed.
 - `scripts/nix-cleanup.sh` — `nix-collect-garbage --delete-older-than 14d`,
   `sudo nix-collect-garbage --delete-older-than 14d`, `nix store optimise`.
+- `bash/nix_aliases` — exposes `nix-update` / `nix-pull` / `nix-cleanup`
+  (sourced by the OS bashrc, so live without a rebuild).
 
 The reference repo already encodes the two important guards: `require_clean_tree`
 before a pull/update (a dirty tree breaks `git pull --ff-only`), and
@@ -563,7 +565,8 @@ only after the corresponding `home-manager switch` succeeds.
 - [x] Phase 2 — `home/dotfiles.nix` out-of-store links; remove matching install-script symlinks
 - [x] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
 - [x] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
-- [ ] Phase 5 — helper scripts; herdr unit (optional); `systemd.user.services`
+- [x] Phase 5 — helper scripts (`scripts/nix-{lib,update,pull,cleanup}.sh` + `bash/nix_aliases`); herdr unit `HERDR_BIN_PATH`/`PATH` fixed to nix
+- [ ] Phase 5b (deferred) — move the herdr unit to `systemd.user.services`. HM uses `sd-switch`, which **restarts changed units**; applying this while inside herdr restarts the server and kills the session. Do it from a plain terminal or accept the restart.
 - [ ] Phase 6 — shrink `fedora/install.sh` and `nobara/install.sh`; verify a clean re-run
 - [ ] Phase 7 — Nobara verification
 - [ ] Phase 8 — macOS track (optional)

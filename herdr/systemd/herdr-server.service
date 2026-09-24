@@ -4,7 +4,11 @@ After=default.target
 
 [Service]
 Type=simple
-Environment=HERDR_BIN_PATH=%h/.local/share/mise/installs/herdr/latest/herdr
+# herdr is nix-managed (was the mise path). %h expands in Environment=.
+Environment=HERDR_BIN_PATH=%h/.nix-profile/bin/herdr
+# systemd user services get a minimal PATH; add the nix profile so the server
+# and the nvim/pi panes it spawns resolve (mise shims kept for per-project).
+Environment=PATH=%h/.nix-profile/bin:%h/.local/bin:%h/.local/share/mise/shims:/usr/local/bin:/usr/bin
 # GUI session env: systemd user services get a minimal environment by default.
 # Without these, panes lack WAYLAND_DISPLAY/DISPLAY and Neovim's clipboard
 # providers (wl-copy/xsel) report "No provider" -- yy yanks silently no-op.
