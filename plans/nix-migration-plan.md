@@ -476,8 +476,12 @@ darwin-rebuild`):
 - `scripts/nix-pull.sh` — pull; rebuild only if `.nix` or `flake.lock` changed.
 - `scripts/nix-cleanup.sh` — `nix-collect-garbage --delete-older-than 14d`,
   `sudo nix-collect-garbage --delete-older-than 14d`, `nix store optimise`.
-- `bash/nix_aliases` — exposes `nix-update` / `nix-pull` / `nix-cleanup`
-  (sourced by the OS bashrc, so live without a rebuild).
+- `bash/nix_aliases` — exposes `nix-update` / `nix-pull` / `nix-cleanup` /
+  `nix-e2e` (sourced by the OS bashrc, so live without a rebuild).
+- `scripts/e2e-nix-container.sh` — boots the flake from scratch in a throwaway
+  Fedora container (single-user Nix) and asserts tools, links, git identity,
+  bashrc, aliases, plus the `@ubuntu` role test. Keeps the container on failure;
+  `E2E_KEEP=1` keeps it on success, `E2E_ROLE_TEST=0` skips the role test.
 
 The reference repo already encodes the two important guards: `require_clean_tree`
 before a pull/update (a dirty tree breaks `git pull --ff-only`), and
@@ -571,7 +575,7 @@ only after the corresponding `home-manager switch` succeeds.
 - [x] Phase 5 — helper scripts (`scripts/nix-{lib,update,pull,cleanup}.sh` + `bash/nix_aliases`); herdr unit `HERDR_BIN_PATH`/`PATH` fixed to nix
 - [ ] Phase 5b (deferred) — move the herdr unit to `systemd.user.services`. HM uses `sd-switch`, which **restarts changed units**; applying this while inside herdr restarts the server and kills the session. Do it from a plain terminal or accept the restart.
 - [x] Phase 6 — shrunk `fedora/install.sh` (130→114) and `nobara/install.sh` (182→162): dropped copr, dnf tool installs, pip, cargo, `mise use -g`, npm. Kept RPM Fusion, `mpv-libs`, flatpak, herdr unit, `pi`/`.ai`/`claude` links. Full sudo/dnf re-run not executed (needs password, restarts zram/herdr).
-- [x] E2E (2026-09-24) — fresh Fedora 44 podman container (rootless, single-user Nix 2.35.2): clone → `home-manager switch --flake .#guddy@fedora` produced the **byte-identical generation** `/nix/store/d200m55sw67x6k91lynq5p8xidanw5s2-home-manager-generation` as the host. `nix flake check` passed; all 23 tools resolved from `~/.nix-profile/bin`; out-of-store links resolved into `~/dotfiles`; pi installed via the npm activation; role gating verified (`guddy@ubuntu` → no azure-cli/glab/gh) and the Ubuntu bashrc fallback worked; `~/.bashrc`/`~/.bash_profile` skel conflicts backed up; systemd absent → skipped cleanly. Container `/nix` = 5.5 GB. Container removed after the run. (install.sh's system steps are not container-testable: no systemd/sudo/zram.)
+- [x] E2E (2026-09-24) — automated as `scripts/e2e-nix-container.sh`, which passes end to end: fresh Fedora 44 podman container (rootless, single-user Nix 2.35.2): clone → `home-manager switch --flake .#guddy@fedora` produced the **byte-identical generation** `/nix/store/d200m55sw67x6k91lynq5p8xidanw5s2-home-manager-generation` as the host. `nix flake check` passed; all 23 tools resolved from `~/.nix-profile/bin`; out-of-store links resolved into `~/dotfiles`; pi installed via the npm activation; role gating verified (`guddy@ubuntu` → no azure-cli/glab/gh) and the Ubuntu bashrc fallback worked; `~/.bashrc`/`~/.bash_profile` skel conflicts backed up; systemd absent → skipped cleanly. Container `/nix` = 5.5 GB. Container removed after the run. (install.sh's system steps are not container-testable: no systemd/sudo/zram.)
 - [ ] Phase 7 — Nobara verification (still pending: run on the actual personal machine)
 - [ ] Phase 8 — macOS track (optional)
 - [ ] Docs — update `AGENTS.md` with the nix commands and the outside-nix list
