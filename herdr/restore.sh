@@ -5,7 +5,7 @@
 # start on first alt+k via pi-toggle.sh. Set RESTORE_PI=1 to boot them.
 #
 # Runs automatically after the herdr server starts (systemd ExecStartPost in
-# herdr/systemd/herdr-server.service), or manually at any time:
+# home/herdr.nix), or manually at any time:
 #   ~/dotfiles/herdr/restore.sh
 #
 # Per workspace, idempotently:

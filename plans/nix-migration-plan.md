@@ -294,7 +294,7 @@ Left imperative (not HM-managed), with the reason:
 | `~/.claude` | same — runtime state alongside config. |
 | `bash/secret_aliases`, any `secret*` | gitignored; HM must not manage secrets. Sourced imperatively. |
 | `/etc/dnf/dnf.conf`, `zram-generator.conf` | system-level, sudo. |
-| `herdr/systemd/herdr-server.service` | systemd user unit — moves to `systemd.user.services` only in Phase 5. |
+| (moved to `home/herdr.nix`) | systemd user unit is now `systemd.user.services.herdr-server` (Phase 5b). |
 
 ### 6.2 `home/bash.nix` (HM owns `~/.bashrc`)
 
@@ -451,7 +451,7 @@ installs once in `install.sh` (or let the agent own them).
 | flatpak apps (ExtensionManager, Flatseal, Bruno) | GUI desktop apps; HM has no flatpak module | `fedora/install.sh` |
 | `mpv-libs` | media codec lib | dnf |
 | System systemd units, kernel, drivers | not user-level | `fedora/install.sh` |
-| `herdr` user unit | could move to HM (`systemd.user.services`), deferred | `herdr/systemd/` |
+| `herdr` user unit | moved to HM (Phase 5b) — no longer outside nix | `home/herdr.nix` |
 | pi plugins, herdr plugins | tool-managed plugin installs | tool CLIs |
 | nvim mason LSP servers | nvim owns `~/.local/share/nvim/mason` | nvim |
 | `bash/secret_aliases`, `secret*` | secrets, gitignored | sourced imperatively |
@@ -575,7 +575,7 @@ only after the corresponding `home-manager switch` succeeds.
 - [x] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
 - [x] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
 - [x] Phase 5 — helper scripts (`scripts/nix-{lib,update,pull,cleanup}.sh` + `bash/nix_aliases`); herdr unit `HERDR_BIN_PATH`/`PATH` fixed to nix
-- [ ] Phase 5b (deferred) — move the herdr unit to `systemd.user.services`. HM uses `sd-switch`, which **restarts changed units**; applying this while inside herdr restarts the server and kills the session. Do it from a plain terminal or accept the restart.
+- [x] Phase 5b — herdr unit moved to `home/herdr.nix` (`systemd.user.services.herdr-server`, nix binary). Apply with `home-manager switch` from a plain terminal — HM's `sd-switch` **restarts changed units**, so switching while inside herdr restarts the server and ends that session.
 - [x] Phase 6 — shrunk `fedora/install.sh` (130→114) and `nobara/install.sh` (182→162): dropped copr, dnf tool installs, pip, cargo, `mise use -g`, npm. Kept RPM Fusion, `mpv-libs`, flatpak, herdr unit, `pi`/`.ai`/`claude` links. Full sudo/dnf re-run not executed (needs password, restarts zram/herdr).
 - [x] E2E (2026-09-24) — automated as `scripts/e2e-nix-container.sh`, which passes end to end: fresh Fedora 44 podman container (rootless, single-user Nix 2.35.2): clone → `home-manager switch --flake .#guddy@fedora` produced the **byte-identical generation** `/nix/store/d200m55sw67x6k91lynq5p8xidanw5s2-home-manager-generation` as the host. `nix flake check` passed; all 23 tools resolved from `~/.nix-profile/bin`; out-of-store links resolved into `~/dotfiles`; pi installed via the npm activation; role gating verified (`guddy@ubuntu` → no azure-cli/glab/gh) and the Ubuntu bashrc fallback worked; `~/.bashrc`/`~/.bash_profile` skel conflicts backed up; systemd absent → skipped cleanly. Container `/nix` = 5.5 GB. Container removed after the run. (install.sh's system steps are not container-testable: no systemd/sudo/zram.)
 - [x] E2E Ubuntu (2026-09-24) — `E2E_DISTRO=ubuntu` on a fresh Ubuntu 24.04 container: `home-manager switch --flake .#guddy@ubuntu` passed; role=personal (no azure-cli/glab/gh) and the ubuntu bashrc fallback (`bash/*` + `ubuntu/bash_aliases`) verified; the role test switched to `@fedora` and confirmed work tools present. Container removed.

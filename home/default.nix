@@ -6,6 +6,7 @@
     ./bash.nix
     ./git.nix
     ./npm-globals.nix
+    ./herdr.nix
   ];
 
   home.username = username;

@@ -25,15 +25,13 @@ link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"
 link_target "$HOME/dotfiles/.ai" "$HOME/.ai"
 link_target "$HOME/dotfiles/claude" "$HOME/.claude"
-# herdr config.toml is managed by Home Manager (home/dotfiles.nix).
+# herdr config.toml and the systemd unit are managed by Home Manager
+# (home/dotfiles.nix, home/herdr.nix).
 # Apply the keybinding to a running herdr server immediately (no-op on fresh installs).
 herdr server reload-config >/dev/null 2>&1 || true
 
-# herdr headless server + boot restore (nvim/pi/terminal per workspace)
-mkdir -p "$HOME/.config/systemd/user"
-cp "$HOME/dotfiles/herdr/systemd/herdr-server.service" "$HOME/.config/systemd/user/herdr-server.service"
-systemctl --user daemon-reload
-systemctl --user enable herdr-server.service
+# herdr headless server + boot restore is managed by Home Manager
+# (systemd.user.services.herdr-server in home/herdr.nix) — nothing to do here.
 
 sudo_link_target "$HOME/dotfiles/nobara/dnf.conf" "/etc/dnf/dnf.conf"
 

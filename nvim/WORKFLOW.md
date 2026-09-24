@@ -257,11 +257,29 @@ No need to manually start Neovim, reopen files, or restart language servers
 when coming back to a project. `prefix+q` detaches (leaves everything running);
 the Agent sidebar shows pi agents across all workspaces at a glance.
 
+## System / Environment (Nix)
+
+Tools, runtimes, the shell rc, and every config under `~/dotfiles` are managed
+by Nix + Home Manager (`flake.nix` / `home/`). The herdr binary and its
+`herdr-server.service` unit come from Nix too (`home/herdr.nix`).
+
+| Task | Command |
+| ---- | ------- |
+| Apply `.nix` changes | `home-manager switch --flake ~/dotfiles#guddy@<platform>` |
+| Update Nix inputs + rebuild | `nix-update` |
+| Pull, rebuild if `.nix`/`flake.lock` changed | `nix-pull` |
+| GC old generations | `nix-cleanup` |
+| Edit nvim/herdr/zed/… config | live (out-of-store links) — no rebuild |
+
+Per-repo tool versions are the only thing mise manages now (a `.mise.toml` in a
+project); Nix owns the globals.
+
 ## Boot Flow (after system reboot)
 
 ```
 systemd (user login)
-  ├─ herdr-server.service (headless server)
+  ├─ herdr-server.service (headless server; declared in home/herdr.nix,
+  │    binary from Nix)
   │    └─ ExecStartPost: restore.sh — waits for the server to restore its
   │         session workspaces (headless server does this once a client
   │         attaches, so restore.sh polls up to 180s; if no client attached
