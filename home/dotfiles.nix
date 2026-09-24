@@ -28,4 +28,29 @@ in
     ".ideavimrc".source = link "intellij/ideavimrc";
     ".gradle/gradle.properties".source = link "gradle/gradle.properties";
   };
+
+  # Ghostty's nix .desktop sets DBusActivatable=true, so GNOME activates it over
+  # D-Bus -> SystemdService=app-com.mitchellh.ghostty.service, a unit that does
+  # not exist on Fedora — the app-grid/dock icon silently does nothing. Override
+  # with a user entry that execs the nixGL-wrapped binary directly (no D-Bus).
+  xdg.dataFile."applications/com.mitchellh.ghostty.desktop".text = ''
+    [Desktop Entry]
+    Version=1.0
+    Name=Ghostty
+    Type=Application
+    Comment=A terminal emulator
+    Exec=${config.home.homeDirectory}/.nix-profile/bin/ghostty --gtk-single-instance=true
+    Icon=com.mitchellh.ghostty
+    Categories=System;TerminalEmulator;
+    Keywords=terminal;tty;pty;
+    StartupNotify=true
+    StartupWMClass=com.mitchellh.ghostty
+    Terminal=false
+    Actions=new-window;
+    X-GNOME-UsesNotifications=true
+
+    [Desktop Action new-window]
+    Name=New Window
+    Exec=${config.home.homeDirectory}/.nix-profile/bin/ghostty --gtk-single-instance=true
+  '';
 }
