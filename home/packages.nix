@@ -38,5 +38,5 @@
     gnumake
   ]
   ++ lib.optionals (role == "work") [ azure-cli glab gh ]
-  ++ lib.optionals pkgs.stdenv.isLinux [ ghostty ];
+  ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ ghostty ];
 }

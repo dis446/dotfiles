@@ -2,7 +2,7 @@
 # herdr headless server: persistent workspaces + boot restore. Declarative now
 # (was an install.sh `cp` of herdr/systemd/herdr-server.service). The binary
 # comes from nix (home/packages.nix), not mise.
-lib.mkIf pkgs.stdenv.isLinux {
+lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
   systemd.user.services.herdr-server = {
     Unit = {
       Description = "Herdr headless server (persistent workspaces, agents, and terminals)";
