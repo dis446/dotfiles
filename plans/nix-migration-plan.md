@@ -49,7 +49,7 @@ Why not the alternatives:
 | `nix` on PATH | ✅ Determinate Nix 3.22.5 (Nix 2.35.2); `/etc/profile.d/nix.sh` covers login shells — non-login shells need explicit PATH (Phase 3) |
 | `/nix` | ✅ present |
 | `~/.config/nix/nix.conf` | ➖ not used — Determinate manages experimental features itself |
-| `flake.nix` / `home/` in repo | ✅ `flake.nix`, `flake.lock`, `home/{default,packages,dotfiles,bash}.nix` (Phase 1-3) |
+| `flake.nix` / `home/` in repo | ✅ `flake.nix`, `flake.lock`, `home/{default,packages,dotfiles,bash,git,npm-globals}.nix` (Phase 1-4) |
 | `~/.local/state/home-manager` | ✅ active 2026-09-24 — packages, out-of-store config links, HM-owned `~/.bashrc` |
 | Repo checked out at | `~/dotfiles` (the flake and symlinks bake this absolute path) |
 | Git tree | Phase 1 files committed |
@@ -319,20 +319,33 @@ Left imperative (not HM-managed), with the reason:
 ### 6.3 `home/git.nix`
 
 ```nix
-{ ... }:
+{ config, ... }:
 {
   programs.git = {
     enable = true;
-    userName = "Tsetsen-erdene Ganbaatar";
-    userEmail = "dis446@yahoo.com";
-    extraConfig.pull.rebase = true;
+    settings = {
+      user.name = "Tsetsen-erdene Ganbaatar";
+      user.email = "dis446@yahoo.com";
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      diff.tool = "nvimdiff";
+      difftool.nvimdiff.cmd = "nvim -d \"$LOCAL\" \"$REMOTE\"";
+      merge.tool = "nvimdiff";
+      mergetool.nvimdiff.cmd = "nvim -d \"$LOCAL\" \"$BASE\" \"$REMOTE\" \"$MERGED\"";
+    };
+    # Machine-local work identity (untracked); a missing file is ignored by git.
+    includes = [ { path = "${config.home.homeDirectory}/.gitconfig-local"; } ];
   };
 }
 ```
 
-Keep employer/client identifiers out. If a work identity is ever needed, gate it
-behind `role == "work"` and keep hostnames/emails in an untracked `secret*`
-module or env var — never inline, per the repo identifier-hygiene rule.
+Home Manager writes `~/.config/git/config` (XDG), **not** `~/.gitconfig`.
+Git later-reads `~/.gitconfig`, so a stale one shadows XDG — the install
+scripts must stop writing it (`git config --global …` lines removed).
+
+The work `includeIf` (which names an employer path) never enters the repo. It
+lives in `~/.gitconfig-local`, included by HM. A missing include path is
+silently ignored, so a fresh machine without it still works.
 
 ---
 
@@ -405,14 +418,19 @@ global, drop it entirely, as the reference config did. If kept:
 { lib, pkgs, ... }:
 {
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    export PATH="${pkgs.nodejs_24}/bin:$HOME/.npm-global/bin:$PATH"
-    export npm_config_prefix="$HOME/.npm-global"
-    mkdir -p "$HOME/.npm-global"
+    export PATH="${pkgs.nodejs_24}/bin:$HOME/.local/bin:$PATH"
+    export npm_config_prefix="$HOME/.local"
     npm ls -g @earendil-works/pi-coding-agent 2>/dev/null 1>&2 \
-      || npm install -g @earendil-works/pi-coding-agent
+      || npm install -g --ignore-scripts @earendil-works/pi-coding-agent
   '';
 }
 ```
+
+Prefix is `~/.local` (not `~/.npm-global`) to match the existing install at
+`~/.local/bin/pi`; a different prefix would leave two pi binaries on PATH.
+`npm_config_prefix` is an env var, not `npm config set`, so activation never
+rewrites `~/.npmrc` (which holds a registry auth token). Idempotent: only
+installs when missing; `update.sh` bumps to `@latest`.
 
 pi **plugins** (`context-mode`, `pi-subagents`, `ponytail`,
 `@juicesharp/rpiv-ask-user-question`) stay agent-managed via `pi install npm:...`
@@ -544,7 +562,7 @@ only after the corresponding `home-manager switch` succeeds.
 - [x] Phase 1 — `flake.nix`, `home/default.nix`, `home/packages.nix`; first switch; verify tools on PATH
 - [x] Phase 2 — `home/dotfiles.nix` out-of-store links; remove matching install-script symlinks
 - [x] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
-- [ ] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
+- [x] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
 - [ ] Phase 5 — helper scripts; herdr unit (optional); `systemd.user.services`
 - [ ] Phase 6 — shrink `fedora/install.sh` and `nobara/install.sh`; verify a clean re-run
 - [ ] Phase 7 — Nobara verification

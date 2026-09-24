@@ -119,8 +119,7 @@ systemctl --user enable --now podman.socket
 
 source "$HOME/.bashrc"
 
-git config --global user.email "dis446@yahoo.com"
-git config --global user.name "Tsetsen-erdene Ganbaatar"
-git config --global pull.rebase true
+# Git identity is managed by Home Manager (home/git.nix). Do not set it here —
+# a ~/.gitconfig would shadow the HM-managed ~/.config/git/config.
 # repo-local identifier pre-commit hook (see AGENTS.md "Identifier hygiene")
 git -C "$HOME/dotfiles" config core.hooksPath .githooks

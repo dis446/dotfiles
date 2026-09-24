@@ -1,12 +1,11 @@
 { username, ... }:
 {
-  # Phase 4 adds:
-  #   ./git.nix         (git identity)
-  #   ./npm-globals.nix (pi agent via activation)
   imports = [
     ./packages.nix
     ./dotfiles.nix
     ./bash.nix
+    ./git.nix
+    ./npm-globals.nix
   ];
 
   home.username = username;
