@@ -86,6 +86,11 @@ ERROR: Ci view requires an interactive terminal (TTY).
 
 Use these alternatives instead:
 
+### `glab mr merge --auto-merge` does NOT wait for the MR pipeline
+It checks the **source branch**, but an MR pipeline runs on `refs/merge-requests/<iid>/head` — so it
+prints "No pipeline running on <branch>" and merges immediately, bypassing CI. Check
+`glab api projects/:id/merge_requests/<iid> | jq -r .head_pipeline.status` first (or merge in the UI).
+
 ### Get pipeline details by ID
 ```bash
 glab ci get --pipeline-id <id> --output json
