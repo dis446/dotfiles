@@ -46,17 +46,18 @@ Why not the alternatives:
 | Item | Status |
 | --- | --- |
 | Host | Fedora Linux 44 (Workstation Edition), `x86_64` |
-| `nix` on PATH | ❌ absent |
-| `/nix` | ❌ absent |
-| `~/.config/nix/nix.conf` | ❌ absent |
-| `flake.nix` / `home/` in repo | ❌ absent |
-| `~/.local/state/home-manager` | ❌ absent — `home-manager switch` has never run |
+| `nix` on PATH | ✅ Determinate Nix 3.22.5 (Nix 2.35.2); `/etc/profile.d/nix.sh` covers login shells — non-login shells need explicit PATH (Phase 3) |
+| `/nix` | ✅ present |
+| `~/.config/nix/nix.conf` | ➖ not used — Determinate manages experimental features itself |
+| `flake.nix` / `home/` in repo | ✅ `flake.nix`, `flake.lock`, `home/default.nix`, `home/packages.nix` (Phase 1) |
+| `~/.local/state/home-manager` | ✅ generation 1 activated 2026-09-24 |
 | Repo checked out at | `~/dotfiles` (the flake and symlinks bake this absolute path) |
-| Git tree | clean |
+| Git tree | Phase 1 files committed |
 
-**Treat Phase 0 as not started.** The previous draft's "Phase 0 complete, Nix
-2.35.1 single-user verified" was recorded on a Nobara machine and does not hold
-here.
+**Phase 0 complete** (Determinate multi-user install, verified 2026-09-24).
+**Phase 1 complete** — first `home-manager switch` activated generation 1; all
+packages resolve from `~/.nix-profile/bin` (`nvim` 0.12.5, `herdr` 0.9.1, node
+24, temurin JDK 21).
 
 ### 2.1 What the install scripts do today
 
@@ -539,8 +540,8 @@ only after the corresponding `home-manager switch` succeeds.
 
 ## 13. Rollout checklist
 
-- [ ] Phase 0 — install Determinate Nix; verify `nix --version`, flakes, `/nix`
-- [ ] Phase 1 — `flake.nix`, `home/default.nix`, `home/packages.nix`; first switch; verify tools on PATH
+- [x] Phase 0 — install Determinate Nix; verify `nix --version`, flakes, `/nix`
+- [x] Phase 1 — `flake.nix`, `home/default.nix`, `home/packages.nix`; first switch; verify tools on PATH
 - [ ] Phase 2 — `home/dotfiles.nix` out-of-store links; remove matching install-script symlinks
 - [ ] Phase 3 — `home/bash.nix`; delete the `~/.bashrc` symlink; verify aliases + env still load
 - [ ] Phase 4 — `home/git.nix`, `home/npm-globals.nix`; verify git identity and pi on PATH
