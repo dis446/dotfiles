@@ -25,7 +25,9 @@ nix_platform() {
   fi
 }
 
-nix_attr() { echo "${NIX_USER:-guddy}@$(nix_platform)"; }
+# Username is per host — guddy on the work fedora, neddy on the personal
+# nobara/ubuntu hosts. Derive it from the running user unless NIX_USER overrides.
+nix_attr() { echo "${NIX_USER:-$(id -un)}@$(nix_platform)"; }
 
 # Scripts run without a login shell, so the nix profile is not on PATH.
 nix_path() {

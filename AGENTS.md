@@ -44,7 +44,7 @@ git clone git@github.com:dis446/dotfiles.git ~/dotfiles
 ./fedora/install.sh          # or nobara/install.sh / ubuntu/install.sh
 
 # 4. Apply the Nix environment (tools + config + shell + herdr unit)
-home-manager switch --flake ~/dotfiles#guddy@fedora   # or guddy@nobara / guddy@ubuntu
+home-manager switch --flake ~/dotfiles#$(id -un)@nobara   # platform: fedora | nobara | ubuntu
 ```
 
 `macos/install.sh` + `macos/Brewfile` are the macOS track (see `plans/nix-migration-plan.md` §10).
@@ -53,7 +53,7 @@ home-manager switch --flake ~/dotfiles#guddy@fedora   # or guddy@nobara / guddy@
 
 | Command | Does |
 | ------- | ---- |
-| `home-manager switch --flake ~/dotfiles#guddy@<platform>` | apply `.nix` changes |
+| `home-manager switch --flake ~/dotfiles#$(id -un)@<platform>` | apply `.nix` changes |
 | `nix-update` | `nix flake update` → `flake check` → switch → bump pi → commit `flake.lock` |
 | `nix-pull` | pull; tells you to rebuild if `.nix`/`flake.lock` changed |
 | `nix-cleanup` | GC old generations + `nix store optimise` |
@@ -81,7 +81,7 @@ herdr
 
 ## Nix / Home Manager
 
-- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`) and a `hosts` map (fedora/nobara/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."guddy@<platform>"`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
+- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`) and a `hosts` map (fedora/nobara/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
 - `home/` — one concern per file:
   - `packages.nix` — CLI tools + runtimes; role-gated extras (`azure-cli`, `glab`, `gh` for `work`).
   - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, zellij, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
@@ -128,7 +128,7 @@ done
 ```bash
 dtf
 v home/packages.nix                                    # add a tool / edit a module
-home-manager switch --flake ~/dotfiles#guddy@fedora    # apply
+home-manager switch --flake ~/dotfiles#$(id -un)@nobara    # apply
 # or: nix-update (also bumps flake inputs)
 ```
 
@@ -295,7 +295,7 @@ See `.gitignore` for full details. Key patterns:
 ### Cross-machine sync
 
 - **Canonical source:** This repo (`~/dotfiles`)
-- **Mechanism:** clone to `~/dotfiles`, install Nix, run the OS install script, then `home-manager switch --flake .#guddy@<platform>` — `flake.lock` reproduces the toolchain
+- **Mechanism:** clone to `~/dotfiles`, install Nix, run the OS install script, then `home-manager switch --flake .#$(id -un)@<platform>` — `flake.lock` reproduces the toolchain
 - **IntelliJ:** JetBrains Settings Sync for keymaps/codestyles
 - **Claude Code:** Tracked settings + hook/command/agent/skill config; runtime ignored
 - **pi/context-mode:** Agent runtime state ignored; config tracked
@@ -320,7 +320,7 @@ less ~/.config/herdr/herdr-server.log
 ```
 
 If the unit is missing, it comes from `home/herdr.nix` — run
-`home-manager switch --flake ~/dotfiles#guddy@<platform>`.
+`home-manager switch --flake ~/dotfiles#$(id -un)@<platform>`.
 
 ## Identifier hygiene
 

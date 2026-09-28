@@ -22,7 +22,7 @@
       # hostname matters only for darwinConfigurations, added on the macOS track.
       hosts = {
         "fedora" = { username = "guddy"; role = "work";     platform = "fedora"; system = "x86_64-linux"; };
-        "nobara" = { username = "guddy"; role = "personal"; platform = "nobara"; system = "x86_64-linux"; };
+        "nobara" = { username = "neddy"; role = "personal"; platform = "nobara"; system = "x86_64-linux"; };
         "ubuntu" = { username = "guddy"; role = "personal"; platform = "ubuntu"; system = "x86_64-linux"; };
       };
 
