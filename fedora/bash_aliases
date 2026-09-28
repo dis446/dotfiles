@@ -7,6 +7,9 @@ alias r="sudo dnf remove"
 #   3. flatpak apps
 #   4. pi plugins/extensions
 # Stops at the first failure (|| return); fix and re-run `up`.
+# unalias first: re-sourcing in a shell that still has the old `up` alias makes
+# bash expand it at parse time and choke on `up() {`.
+unalias up 2>/dev/null || true
 up() {
   printf '\n=== Nix / Home Manager ===\n'
   "$HOME/dotfiles/scripts/nix-update.sh" || return
