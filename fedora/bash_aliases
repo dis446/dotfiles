@@ -1,6 +1,23 @@
 alias i="sudo dnf install"
 alias r="sudo dnf remove"
-alias up="sudo dnf up && flatpak update -y && pi update && pi update --extensions"
+# One-shot update of everything on this machine:
+#   1. Nix / Home Manager — tools, runtimes, config, pi binary (scripts/nix-update.sh:
+#      git pull, nix flake update, flake check, home-manager switch, npm pi @latest, push flake.lock)
+#   2. dnf packages
+#   3. flatpak apps
+#   4. pi plugins/extensions
+# Stops at the first failure (|| return); fix and re-run `up`.
+up() {
+  printf '\n=== Nix / Home Manager ===\n'
+  "$HOME/dotfiles/scripts/nix-update.sh" || return
+  printf '\n=== dnf ===\n'
+  sudo dnf upgrade --refresh -y || return
+  printf '\n=== flatpak ===\n'
+  flatpak update -y || return
+  printf '\n=== pi plugins ===\n'
+  pi update --extensions || return
+  printf '\nAll updates complete.\n'
+}
 alias is="dnf search"
 alias il="dnf list"
 
