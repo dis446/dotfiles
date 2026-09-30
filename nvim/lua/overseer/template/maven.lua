@@ -25,16 +25,19 @@ local function get_mvn_cmd(project_dir)
 end
 
 local commands = {
-  { name = "Maven Compile",       goals = { "compile" },                    tags = { TAG.BUILD }, priority = 50 },
-  { name = "Maven Test",          goals = { "test" },                       tags = { TAG.TEST },  priority = 50 },
-  { name = "Maven Package",       goals = { "package" },                    tags = { TAG.BUILD }, priority = 50 },
-  { name = "Maven Clean",         goals = { "clean" },                      tags = { TAG.CLEAN }, priority = 50 },
-  { name = "Maven Clean Package", goals = { "clean", "package" },           tags = { TAG.BUILD }, priority = 50 },
-  { name = "Maven Install",       goals = { "install" },                    tags = { TAG.BUILD }, priority = 40 },
-  { name = "Maven Verify",        goals = { "verify" },                     tags = { TAG.BUILD }, priority = 40 },
-  { name = "Maven Quarkus Dev",   goals = { "quarkus:dev" },                tags = { TAG.RUN },   priority = 50 },
-  { name = "Maven Skip Tests",    goals = { "clean", "package", "-DskipTests" }, tags = { TAG.BUILD }, priority = 50 },
-  { name = "Maven Dev Mode",      goals = { "-DskipTests", "clean", "package", "quarkus:dev" }, tags = { TAG.RUN }, priority = 60 },
+  { name = "Maven Compile", goals = { "compile" }, tags = { TAG.BUILD }, priority = 50 },
+  { name = "Maven Test", goals = { "test" }, tags = { TAG.TEST }, priority = 50 },
+  { name = "Maven Package", goals = { "package" }, tags = { TAG.BUILD }, priority = 50 },
+  { name = "Maven Clean", goals = { "clean" }, tags = { TAG.CLEAN }, priority = 50 },
+  { name = "Maven Clean Package", goals = { "clean", "package" }, tags = { TAG.BUILD }, priority = 50 },
+  { name = "Maven Install", goals = { "install" }, tags = { TAG.BUILD }, priority = 40 },
+  { name = "Maven Skip Tests", goals = { "clean", "package", "-DskipTests" }, tags = { TAG.BUILD }, priority = 50 },
+  {
+    name = "Maven Dev Mode",
+    goals = { "-DskipTests", "clean", "package", "quarkus:run" },
+    tags = { TAG.RUN },
+    priority = 20,
+  },
 }
 
 ---@type overseer.TemplateFileProvider
