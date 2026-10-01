@@ -1,4 +1,4 @@
-{ config, lib, pkgs, role, ... }:
+{ config, lib, pkgs, role, isWsl ? false, ... }:
 {
   home.packages = with pkgs; [
     # Version control / editors
@@ -38,5 +38,6 @@
     gnumake
   ]
   ++ lib.optionals (role == "work") [ azure-cli glab gh ]
-  ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ (config.lib.nixGL.wrap ghostty) ];
+  # ghostty needs a real GPU/display; WSL has neither, so skip it there.
+  ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWsl) [ (config.lib.nixGL.wrap ghostty) ];
 }

@@ -27,7 +27,9 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 | `intellij/` | HM link → `~/.ideavimrc` | IdeaVim config + keymap references |
 | `pi/` | install.sh → `~/.pi`, `~/.agents` | pi-coding-agent config (runtime state ignored) |
 | `claude/` | install.sh → `~/.claude` | Claude Code config (settings tracked, runtime ignored) |
-| `hyprland/`, `k8s/`, `WindowsPowerShell/` | (not linked) | WM config, k8s cheatsheet, PowerShell aliases |
+| `WindowsPowerShell/` | `windows/install.ps1` links `$PROFILE` | Native PowerShell shell layer (`profile.ps1` + topic files) |
+| `windows/` | `install.ps1` (run manually) | Native-Windows layer: Scoop + winget manifests, `$PROFILE` link |
+| `hyprland/`, `k8s/` | (not linked) | WM config, k8s cheatsheet |
 
 ## Setup Commands
 
@@ -48,6 +50,10 @@ home-manager switch --flake ~/dotfiles#$(id -un)@nobara   # platform: fedora | n
 ```
 
 `macos/install.sh` + `macos/Brewfile` are the macOS track (see `plans/nix-migration-plan.md` §10).
+
+**Windows 11 (work):** WSL2 (Ubuntu) runs the Nix environment; `windows/install.ps1`
+bootstraps the native layer. Host `winny@wsl`, role `work`. Full walkthrough:
+[Windows / WSL](#windows--wsl).
 
 **Daily commands** (also the `nix-update` / `nix-pull` / `nix-cleanup` / `nix-e2e` aliases):
 
@@ -88,12 +94,76 @@ herdr
   - `bash.nix` — HM owns `~/.bashrc`; sources `$HOME/dotfiles/<platform>/bashrc` (or `bash/*` + `<platform>/bash_aliases` on Ubuntu). Do **not** also symlink `~/.bashrc` in install scripts.
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `npm-globals.nix` — the pi agent binary (npm global, prefix `~/.local`; env var, never `npm config set`).
-  - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only).
+  - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only, **including WSL**).
 - **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu`).
+- **Hosts:** the `hosts` map is keyed `fedora`/`nobara`/`ubuntu`/**`wsl`** and carries `{ username, role, platform, system, isWsl? }`. Username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `winny` on the WSL work host). `nix-lib.sh` maps the running OS to the key (`nix_platform` detects WSL first). `isWsl` gates host-only packages (`ghostty`/nixGL) — see [Windows / WSL](#windows--wsl).
 - **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
   - **Exception: JDK baselines.** `mise/config.toml` (linked to `~/.config/mise/config.toml`) declares `java = ["temurin-21", "temurin-25"]` so both Temurin JDKs exist on every machine, 21 default. Nix's `temurin-bin-21` alone left nvim-jdtls without the exact launcher/runtime paths it derives from `mise where java@...`. `home.activation.miseInstall` re-runs `mise install` on every switch, so a pruned JDK heals on the next `home-manager switch`.
 - **GUI apps on Linux are wrapped with nixGL** (`nixGL` flake input; `targets.genericLinux.nixGL` in `home/default.nix`, `config.lib.nixGL.wrap` in `home/packages.nix`). Nix mesa can't init EGL on non-NixOS, so nix GL apps (ghostty) fail with `Failed to create EGL display` without the wrapper.
 - **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), the pi agent binary (npm), `pi`/`claude` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
+
+## Windows / WSL
+
+Windows 11 is the **work** machine. Nix has no native Windows support, so the
+dev environment runs inside **WSL2 (Ubuntu)** and the repo exposes only a thin
+native bootstrap layer on top.
+
+- **WSL2 host** — `winny@wsl` (`flake.nix` `hosts."wsl"`: `platform = "ubuntu"`,
+  `role = "work"`, `isWsl = true`). Inherits the `ubuntu` shell/aliases. `isWsl`
+  gates host-only bits: **no ghostty/nixGL** (no GPU/display of its own), while
+  herdr's `systemd.user.services.herdr-server` still applies because Ubuntu WSL
+  boots systemd. `scripts/nix-lib.sh` detects WSL (`WSL_DISTRO_NAME` or
+  `/proc/version` containing `microsoft`) and maps it to the `wsl` flake key, so
+  `nix-update` / `nix-pull` resolve `winny@wsl` automatically.
+- **Native Windows layer** — `windows/install.ps1` (Scoop + winget + `$PROFILE`
+  link). `WindowsPowerShell/profile.ps1` is linked to `$PROFILE`; the topic files
+  (`general_functions.ps1`, `git_functions.ps1`, `work_functions.ps1`) mirror the
+  bash aliases. Tooling is *curated* in `windows/{scoop,winget}.json` — not a
+  full export; drivers, Steam games and vendor utilities are deliberately
+  excluded even though the box has them.
+- **The repo lives at `~\dotfiles`** on Windows too, matching the baked path.
+
+### Bring-up
+
+```powershell
+# --- Windows (admin PowerShell) ---
+wsl --install -d Ubuntu             # reboot when prompted
+# after reboot: set the user to "winny" and enable systemd in /etc/wsl.conf
+wsl --shutdown
+
+# --- Windows native layer ---
+pwsh -File .\windows\install.ps1    # scoop/winget + $PROFILE link
+```
+
+```bash
+# --- inside Ubuntu (WSL) ---
+sudo apt update && sudo apt install -y curl git
+git clone git@github.com:dis446/dotfiles.git ~/dotfiles
+curl -fsSL https://install.determinate.systems/nix | sh -s -- install
+~/dotfiles/ubuntu/install.sh
+home-manager switch --flake ~/dotfiles#winny@wsl
+```
+
+`/etc/wsl.conf` (then `wsl --shutdown` from Windows):
+
+```ini
+[boot]
+systemd=true
+[user]
+default=winny
+```
+
+Gotchas:
+- Keep the checkout **inside WSL** (`~/dotfiles`), never on `/mnt/c` — the
+  out-of-store symlinks bake `$HOME/dotfiles`, and `/mnt/c` is slow and
+  case-insensitive.
+- `systemd=true` is required for herdr; `loginctl enable-linger winny` keeps the
+  user unit alive without an open shell.
+- GUI apps (ghostty, Zed, IntelliJ, browsers) are **Windows-native**, not WSL.
+  WSLg can run X apps but is not the Fedora desktop.
+- `e2e-nix-container.sh` is Linux/container-oriented and is not run on Windows.
+- Windows-native git uses `Git.Git` from winget; the repo's git identity is
+  HM-managed only inside WSL.
 
 ## Shell Alias Architecture
 
@@ -380,7 +450,7 @@ a shell. Full operating pattern lives in each repo's `AGENTS.md`.
 | pi-coding-agent    | `~/.pi/`, `~/.agents/` (`pi/`)         | Binary via HM activation; plugins agent-managed |
 | .editorconfig      | `~/.editorconfig`                      |                                          |
 | Bash aliases       | `~/dotfiles/bash/*` (sourced by HM `~/.bashrc`) | See Shell Alias Architecture      |
-| Windows PowerShell | `WindowsPowerShell/*.ps1`              | Mirrors bash alias structure for Windows |
+| Windows (native)   | `WindowsPowerShell/*.ps1`, `windows/`   | `$PROFILE` linked by `windows/install.ps1`; Scoop + winget manifests |
 
 ### Git config (Home Manager)
 

@@ -1,0 +1,21 @@
+{
+  "buckets": [
+    { "Name": "main", "Source": "https://github.com/ScoopInstaller/Main" },
+    { "Name": "extras", "Source": "https://github.com/ScoopInstaller/Extras" },
+    { "Name": "nerd-fonts", "Source": "https://github.com/matthewjberger/scoop-nerd-fonts" }
+  ],
+  "apps": [
+    { "Name": "7zip", "Source": "main", "Info": "" },
+    { "Name": "mise", "Source": "main", "Info": "" },
+    { "Name": "neovim", "Source": "main", "Info": "" },
+    { "Name": "ripgrep", "Source": "main", "Info": "" },
+    { "Name": "fd", "Source": "main", "Info": "" },
+    { "Name": "fzf", "Source": "main", "Info": "" },
+    { "Name": "bat", "Source": "main", "Info": "" },
+    { "Name": "jq", "Source": "main", "Info": "" },
+    { "Name": "delta", "Source": "main", "Info": "" },
+    { "Name": "lazygit", "Source": "extras", "Info": "" },
+    { "Name": "gh", "Source": "main", "Info": "" },
+    { "Name": "make", "Source": "main", "Info": "" }
+  ]
+}

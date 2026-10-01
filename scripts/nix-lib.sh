@@ -12,9 +12,13 @@ ok() { printf "%b%s%b\n" "$SUCCESS_COLOR" "$1" "$RESET_COLOR"; }
 alert() { printf "%b%s%b\n" "$ALERT_COLOR" "$1" "$RESET_COLOR"; }
 
 # The flake keys homeConfigurations by "<user>@<platform>" where platform is the
-# hosts-map key (fedora/nobara/ubuntu), not the real hostname.
+# hosts-map key (fedora/nobara/ubuntu/wsl), not the real hostname.
 nix_platform() {
-  if [ -f /etc/nobara-release ] || [ -f /etc/Nobara-release ]; then
+  # WSL2 reports its distro's os-release (Ubuntu here), so detect WSL first and
+  # map it to the hosts-map key "wsl" (flake attr winny@wsl).
+  if [ -n "${WSL_DISTRO_NAME:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; then
+    echo wsl
+  elif [ -f /etc/nobara-release ] || [ -f /etc/Nobara-release ]; then
     echo nobara
   elif [ -f /etc/fedora-release ]; then
     echo fedora

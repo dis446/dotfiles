@@ -24,16 +24,21 @@
         "fedora" = { username = "guddy"; role = "work";     platform = "fedora"; system = "x86_64-linux"; };
         "nobara" = { username = "neddy"; role = "personal"; platform = "nobara"; system = "x86_64-linux"; };
         "ubuntu" = { username = "guddy"; role = "personal"; platform = "ubuntu"; system = "x86_64-linux"; };
+        # Ubuntu under WSL2 on the Windows 11 work machine. Shares the `ubuntu`
+        # platform label (same shell/aliases) but `isWsl` gates host-only bits:
+        # no ghostty/nixGL (no GPU/display server of its own), while herdr still
+        # applies because Ubuntu WSL boots systemd.
+        "wsl" = { username = "winny"; role = "work"; platform = "ubuntu"; system = "x86_64-linux"; isWsl = true; };
       };
 
-      mkHome = hostname: { username, role, platform, system }:
+      mkHome = hostname: { username, role, platform, system, isWsl ? false }:
         assert nixpkgs.lib.assertOneOf "role (host ${hostname})" role roles;
         home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
           };
-          extraSpecialArgs = { inherit username role platform; nixGL = inputs.nixGL; };
+          extraSpecialArgs = { inherit username role platform isWsl; nixGL = inputs.nixGL; };
           modules = [ ./home ];
         };
     in

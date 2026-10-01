@@ -1,4 +1,4 @@
-{ lib, nixGL, pkgs, username, ... }:
+{ lib, nixGL, pkgs, username, isWsl ? false, ... }:
 {
   imports = [
     ./packages.nix
@@ -29,7 +29,8 @@
 
   # Wrap nix GUI apps (ghostty) with nixGL so they use the host GPU stack —
   # nix mesa cannot init EGL on non-NixOS. Applied in home/packages.nix.
-  targets.genericLinux.nixGL = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
+  # Skipped on WSL: there is no host GPU/display to wrap for.
+  targets.genericLinux.nixGL = lib.mkIf (pkgs.stdenv.hostPlatform.isLinux && !isWsl) {
     packages = nixGL.packages;
     defaultWrapper = "mesa";
   };
