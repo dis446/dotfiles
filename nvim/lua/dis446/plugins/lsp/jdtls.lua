@@ -78,7 +78,8 @@ return {
 				end
 
 				local java_bin = default_home ~= "" and default_home .. "/bin/java" or vim.fn.exepath("java")
-				if java_bin ~= "" then
+				-- ponytail: mise shims break the <home>/bin/java assumption; omit flag and jdtls uses PATH java.
+				if java_bin ~= "" and vim.fn.executable(java_bin) == 1 then
 					table.insert(cmd, "--java-executable=" .. java_bin)
 				end
 

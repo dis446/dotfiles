@@ -6,7 +6,7 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 
 **The environment is Nix + Home Manager.** `flake.nix` pins nixpkgs + home-manager and declares the CLI tools, runtimes, shell, git config, and config links; `flake.lock` makes machines reproducible. The OS install scripts are **system-only** (RPM Fusion, `dnf.conf`, zram, flatpak, systemd). See "Nix / Home Manager" below and `plans/nix-migration-plan.md`.
 
-**Key technologies:** Nix flakes, Home Manager, Bash, Neovim (Lua/lazy.nvim), herdr, zellij, ghostty, zed, IntelliJ IdeaVim, lazygit, mise (per-repo version overrides only), pi-coding-agent.
+**Key technologies:** Nix flakes, Home Manager, Bash, Neovim (Lua/lazy.nvim), herdr, zellij, ghostty, zed, IntelliJ IdeaVim, lazygit, mise (JDK baseline + per-repo version overrides), pi-coding-agent.
 
 ## Directory Layout
 
@@ -90,7 +90,8 @@ herdr
   - `npm-globals.nix` — the pi agent binary (npm global, prefix `~/.local`; env var, never `npm config set`).
   - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only).
 - **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu`).
-- **mise is for per-repo overrides only** (a `.mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
+- **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
+  - **Exception: JDK baselines.** `mise/config.toml` (linked to `~/.config/mise/config.toml`) declares `java = ["temurin-21", "temurin-25"]` so both Temurin JDKs exist on every machine, 21 default. Nix's `temurin-bin-21` alone left nvim-jdtls without the exact launcher/runtime paths it derives from `mise where java@...`. `home.activation.miseInstall` re-runs `mise install` on every switch, so a pruned JDK heals on the next `home-manager switch`.
 - **GUI apps on Linux are wrapped with nixGL** (`nixGL` flake input; `targets.genericLinux.nixGL` in `home/default.nix`, `config.lib.nixGL.wrap` in `home/packages.nix`). Nix mesa can't init EGL on non-NixOS, so nix GL apps (ghostty) fail with `Failed to create EGL display` without the wrapper.
 - **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), the pi agent binary (npm), `pi`/`claude` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
 

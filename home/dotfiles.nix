@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
   # Absolute repo path — these links bake it; the repo must stay at ~/dotfiles.
   repo = "${config.home.homeDirectory}/dotfiles";
@@ -17,11 +17,28 @@ in
     "lazygit/config.yml".source = link "lazygit/config.yml";
     # File-level: herdr writes sockets/logs/session state beside config.toml.
     "herdr/config.toml".source = link "herdr/config.toml";
+    # Global mise baseline (both JDKs, 21 default). Live link; `mise install`
+    # on HM switch keeps them on disk. Per-repo mise.toml pins still override.
+    "mise/config.toml".source = link "mise/config.toml";
     # File-level: Zed writes mutable state next to its config.
     "zed/settings.json".source = link "zed/settings.json";
     "zed/keymap.json".source = link "zed/keymap.json";
     "zed/themes".source = link "zed/themes";
   };
+
+  # Both JDKs must exist on every machine (nvim-jdtls needs 21 as launcher and a
+  # 25 runtime for pinned side projects). Re-runs cheap: `mise install` skips what
+  # is already present. See mise/config.toml for the version list.
+  home.activation.miseInstall = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    mise="${config.home.homeDirectory}/.nix-profile/bin/mise"
+    if [ -x "$mise" ]; then
+      if ! ( cd "${config.home.homeDirectory}" && "$mise" install ); then
+        echo "WARN: mise install failed — run 'mise install' manually; JDKs may be missing" >&2
+      fi
+    else
+      echo "WARN: mise not found at $mise — skipping JDK install" >&2
+    fi
+  '';
 
   home.file = {
     ".editorconfig".source = link ".editorconfig";

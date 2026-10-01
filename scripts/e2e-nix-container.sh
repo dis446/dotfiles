@@ -125,12 +125,22 @@ for t in nvim herdr zellij mise node java kubectl podman go gcc bat jq fd rg fzf
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done
 for l in .config/nvim .config/zed/settings.json .config/ghostty/config \
-         .config/lazygit/config.yml .config/herdr/config.toml .editorconfig .ideavimrc; do
+         .config/lazygit/config.yml .config/herdr/config.toml .config/mise/config.toml \
+         .editorconfig .ideavimrc; do
   case "$(readlink -f "$HOME/$l")" in
     "$HOME/dotfiles/"*) ;;
     *) echo "NOT LINKED into repo: $l"; rc=1 ;;
   esac
 done
+# Both Temurin JDKs must be installed by mise, with 21 as the default (nvim-jdtls
+# derives its launcher + JavaSE-21 runtime paths from these).
+for v in 21 25; do
+  mise ls java | grep -q "temurin-$v\." || { echo "mise java $v missing"; rc=1; }
+done
+case "$(mise which java 2>/dev/null)" in
+  */installs/java/temurin-21*/*) ;;
+  *) echo "mise default java is not temurin-21"; rc=1 ;;
+esac
 [ "$(git config --global user.email)" = "$E2E_EMAIL" ] || { echo "git email wrong"; rc=1; }
 grep -q "dotfiles/$E2E_PLATFORM/" "$HOME/.bashrc" || { echo "bashrc does not source repo rc"; rc=1; }
 bash -lic 'alias dtf >/dev/null 2>&1' 2>/dev/null || { echo "aliases missing"; rc=1; }
