@@ -7,15 +7,8 @@ done
 PS1='\u@\h \W\$ '
 command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"
 
-# Cargo binaries
-export PATH="$HOME/.cargo/bin:$PATH"
-
-# Pi
-export PATH="$HOME/.local/share/mise/installs/node/24.17.0/bin:$PATH"
-
-# Added by jcode installer
-export PATH="$HOME/.local/bin:$PATH"
-export PATH="$HOME/go/bin:$PATH"
+# ~/.local/bin (pi, gitlab-tui), ~/go/bin (go install), ~/.cargo/bin.
+export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/.cargo/bin:$PATH"
 
 # ── Runtime memory limits ───────────────────────────────────────────────────
 # Every JVM sizes its max heap to 25% of physical RAM when no -Xmx is given, and

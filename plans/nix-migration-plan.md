@@ -69,11 +69,15 @@ links all come from Home Manager.
 | Fedora | `fedora/install.sh` (114 lines) | RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak (ExtensionManager, Flatseal, Bruno), herdr systemd unit, `pi`/`.ai`/`claude` symlinks, gitlab-tui build, podman socket, pi plugins |
 | Nobara | `nobara/install.sh` (162 lines) | Fedora set + `nobara-sync`, Zed app, noize (flatpak instead of Bruno) |
 | macOS | `macos/install.sh` (28 lines) | symlinks only; `macos/Brewfile` still lists brew formulae (macOS track) |
-| Ubuntu | `ubuntu/install.sh` | `pi`/`.ai`/`claude` symlinks only (CLI tools + config via Home Manager) |
+| Ubuntu | `ubuntu/install.sh` | symlinks + apt/podman/flatpak + shared agent tail (pi plugins, gitlab-tui, hooks); also runs on Ubuntu WSL (`winny@wsl`) |
 
-All four scripts symlink the same config set: `nvim`, `ghostty`, `zellij`,
-`zed`, `pi` + `.ai`, `claude`, `herdr/config.toml`, `.editorconfig`, `lazygit`,
-`ideavimrc`, `gradle.properties`, and the OS shell rc.
+All four install scripts symlink the agent configs (`pi` + `.ai`, `claude`) and
+run a shared tail (herdr reload, pi plugins, gitlab-tui, git hooks); the macOS
+script additionally symlinks the full pre-HM config set because that track is not
+on Home Manager yet (§10). Everything else — `nvim`,
+ghostty, `zellij`, `zed`, `herdr/config.toml`, `.editorconfig`, `lazygit`,
+`ideavimrc`, `gradle.properties`, the OS shell rc — is a Home Manager out-of-store
+link, not part of the install scripts.
 
 ### 2.2 Reference architecture (friend's macOS config)
 

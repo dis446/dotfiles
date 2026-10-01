@@ -17,7 +17,8 @@
         && source "${config.home.profileDirectory}/etc/profile.d/hm-session-vars.sh"
 
       # OS rc sources ~/dotfiles/bash/* plus the OS-specific aliases and env.
-      # Ubuntu has no <os>/bashrc — source the shared aliases directly there.
+      # Platforms without an <os>/bashrc fall back to the shared aliases +
+      # <os>/bash_aliases directly (fedora/nobara/ubuntu all have one).
       if [ -f "$HOME/dotfiles/${platform}/bashrc" ]; then
         source "$HOME/dotfiles/${platform}/bashrc"
       else

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 link_target() {
   local src="$1"
@@ -103,7 +104,7 @@ flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flats
 
 systemctl --user enable --now podman.socket
 
-source "$HOME/.bashrc"
+[ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
 
 # Git identity is managed by Home Manager (home/git.nix). Do not set it here —
 # a ~/.gitconfig would shadow the HM-managed ~/.config/git/config.

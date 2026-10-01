@@ -6,7 +6,21 @@ alias i="brew install"
 alias r="brew uninstall"
 alias is="brew search"
 alias il="brew list"
-alias up="brew update && brew upgrade && brew cleanup"
+
+# One-shot update (mirrors the Linux scripts' `up`, minus the Nix step — this
+# track is pre-Home-Manager, see plans/nix-migration-plan.md §10). Stops at the
+# first failure; fix and re-run `up`.
+# unalias first: re-sourcing with the old `up` alias still set makes bash
+# expand it at parse time and choke on `up() {`.
+unalias up 2>/dev/null || true
+up() {
+  printf '\n=== Homebrew ===\n'
+  brew update && brew upgrade && brew cleanup || return
+  if command -v pi >/dev/null 2>&1; then
+    printf '\n=== pi plugins ===\n'
+    pi update --extensions
+  fi
+}
 
 alias sys="brew services"
 alias syss="brew services list"

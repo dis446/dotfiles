@@ -1,0 +1,26 @@
+# Ubuntu / WSL shell layer. Sourced by the Home Manager-generated ~/.bashrc
+# (home/bash.nix) instead of the shared fallback — mirrors fedora/bashrc and
+# nobara/bashrc so the Ubuntu track owns its PATH and runtime env.
+#
+# Without this file the Ubuntu/WSL hosts never get ~/.local/bin on PATH, so the
+# pi binary (home/npm-globals.nix installs to ~/.local/bin/pi) and gitlab-tui
+# are installed but not runnable.
+
+for alias_file in "$HOME/dotfiles/bash/"*; do
+  [ -f "$alias_file" ] && . "$alias_file"
+done
+
+[ -f "$HOME/dotfiles/ubuntu/bash_aliases" ] && . "$HOME/dotfiles/ubuntu/bash_aliases"
+
+PS1='\u@\h \W\$ '
+command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"
+
+# ~/.local/bin (pi, gitlab-tui), ~/go/bin (go install), ~/.cargo/bin.
+export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/.cargo/bin:$PATH"
+
+# Runtime memory ceilings — same reasoning as fedora/bashrc: every JVM defaults
+# to 25% of RAM and every Node process keeps its own heap, so a dozen
+# concurrent build/test toolchains can thrash the machine. Absolute values, so
+# an explicit -Xmx / NODE_OPTIONS from a tool or project still wins.
+export JAVA_TOOL_OPTIONS="-Xmx2g"
+export NODE_OPTIONS="--max-old-space-size=2048"

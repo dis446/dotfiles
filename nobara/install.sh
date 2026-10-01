@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 mkdir -p "$HOME/.config" "$HOME/.config/ghostty"
 link_target() {
   local src="$1"
@@ -47,7 +48,19 @@ sudo dnf install mpv-libs -y --skip-unavailable
 # Zed app (its config is symlinked by Home Manager).
 curl -f https://zed.dev/install.sh | sh
 
+sudo dnf install -y flatpak
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
+
+# pi agent binary is installed by the Home Manager activation
+# (home/npm-globals.nix). pi plugins are managed by the agent itself — install
+# only when pi is present (on a fresh machine, after the first HM switch).
+if command -v pi >/dev/null 2>&1; then
+  pi install npm:context-mode
+  pi install npm:@juicesharp/rpiv-ask-user-question
+  pi install npm:pi-subagents
+  pi install npm:@dietrichgebert/ponytail
+fi
 
 # ── GitLab TUI (gitlab-tui: vim-key GitLab browser) ─────────────────────
 # Builds from source (go.mod declares module 'gitlab-tui', so `go install
@@ -81,6 +94,10 @@ if [ -n "${GITLAB_TOKEN:-}" ]; then
 else
   echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
 fi
+
+# podman socket backs $XDG_RUNTIME_DIR/podman/podman.sock (DOCKER_HOST in
+# nobara/bash_aliases).
+systemctl --user enable --now podman.socket
 
 [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
 

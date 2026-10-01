@@ -1,0 +1,22 @@
+# Normalize line endings repo-wide, independent of the host's core.autocrlf.
+# .editorconfig declares end_of_line = lf; this makes it authoritative and keeps
+# shebangs working when the repo is checked out on Windows (CRLF + shebang =
+# `bad interpreter`).
+* text=auto
+
+# Linux/macOS shell, Nix, and config files: LF.
+*.sh    text eol=lf
+*.bash  text eol=lf
+*.nix   text eol=lf
+.githooks/* text eol=lf
+
+# Extensionless shell rc / alias files are sourced by bash/zsh — keep them LF.
+bashrc        text eol=lf
+zshrc         text eol=lf
+bash_aliases  text eol=lf
+bash/*        text eol=lf
+
+# Windows-native files: CRLF.
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf

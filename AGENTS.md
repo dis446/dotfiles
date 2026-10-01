@@ -69,11 +69,11 @@ Install scripts are **idempotent** — `rm -rf "$dest"` before `ln -s "$src"`.
 
 ### What the install scripts do (system-only)
 
-1. RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak GUI apps (Fedora/Nobara)
-2. Symlink the imperative agent configs (`pi`, `.ai`, `claude`)
-3. `git config core.hooksPath .githooks` (identifier pre-commit hook)
+1. OS system layer — Fedora/Nobara: RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak GUI apps. Ubuntu: `apt` update, podman (user socket), flatpak GUI apps (skipped on WSL).
+2. Symlink the imperative agent configs (`pi`, `.ai`, `claude`) and reload herdr.
+3. Shared agent/tooling tail (**all four tracks**): pi plugins, gitlab-tui build + config, and `git config core.hooksPath .githooks` (identifier pre-commit hook).
 
-Everything else — CLI tools, runtimes, shell rc, git identity, and the editor/multiplexer configs — is Home Manager.
+Everything else on the Linux tracks — CLI tools, runtimes, shell rc, git identity, and the editor/multiplexer configs — is Home Manager. The macOS track still symlinks its own config set because it is not on Home Manager yet (`plans/nix-migration-plan.md` §10).
 
 ### Manual steps after first setup
 
@@ -91,7 +91,7 @@ herdr
 - `home/` — one concern per file:
   - `packages.nix` — CLI tools + runtimes; role-gated extras (`azure-cli`, `glab`, `gh` for `work`).
   - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, zellij, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
-  - `bash.nix` — HM owns `~/.bashrc`; sources `$HOME/dotfiles/<platform>/bashrc` (or `bash/*` + `<platform>/bash_aliases` on Ubuntu). Do **not** also symlink `~/.bashrc` in install scripts.
+  - `bash.nix` — HM owns `~/.bashrc`; sources `$HOME/dotfiles/<platform>/bashrc` (which in turn sources `bash/*` + `<platform>/bash_aliases`), falling back to those two directly when no OS rc exists. Fedora/Nobara/Ubuntu all have a `bashrc`. Do **not** also symlink `~/.bashrc` in install scripts.
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `npm-globals.nix` — the pi agent binary (npm global, prefix `~/.local`; env var, never `npm config set`).
   - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only, **including WSL**).
@@ -325,6 +325,9 @@ first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
 - No `set -e` in install scripts (intentional)
 - `rm -rf "$dest"` before `ln -s "$src"` for idempotency
 - Use `link_target()` helper from install scripts
+- Every `*/install.sh` starts with `#!/usr/bin/env bash` and is executable (`100755`)
+- Every OS track has a shell rc (`{fedora,nobara,ubuntu}/bashrc`, `macos/{zshrc,bashrc}`) that sources `bash/*` + its own `bash_aliases`, and every install script ends with the same shared tail (herdr reload, pi plugins, gitlab-tui, `core.hooksPath`)
+- Line endings are LF, enforced by `.gitattributes` so shell shebangs survive a Windows checkout
 
 ### Nix
 
