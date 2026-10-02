@@ -470,11 +470,10 @@ Key Dockerfile practices:
 Repo-pattern Helm values file (not chart defaults — chart `values.yaml` ships `apisix.enabled: false`, no `className`, liveness path `/`; repos override per env) with health probes, registry pull secrets, and full env configuration:
 
 > **`workers:` chart traps** (`auto-deploy-app`): `topologySpreadConstraints` renders on the main
-> Deployment only — the top-level `affinity` block is the only spread knob applied to worker pods too.
-> `terminationGracePeriodSeconds` has **no default** in `worker-deployment.yaml` (silent 30 s API fallback).
-> Workers consume only `application.env` (chart-created Secret + `envFrom`) or their own `extraEnv` —
-> top-level `extraEnv` never reaches them, so a values file with `application.secretName: null` renders
-> workers with none of the main pod's config.
+> Deployment only — top-level `affinity` is the only spread knob worker pods get; and
+> `terminationGracePeriodSeconds` has **no default** in `worker-deployment.yaml` (silent 30 s fallback).
+> Workers read only `application.env` (chart-created Secret + `envFrom`) or their own `extraEnv`, so with
+> `application.secretName: null` they get **no config at all** and crash-loop — set `application.secretName`.
 
 ```yaml
 application:
