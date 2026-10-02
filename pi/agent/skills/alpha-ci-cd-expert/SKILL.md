@@ -469,6 +469,10 @@ Key Dockerfile practices:
 
 Repo-pattern Helm values file (not chart defaults — chart `values.yaml` ships `apisix.enabled: false`, no `className`, liveness path `/`; repos override per env) with health probes, registry pull secrets, and full env configuration:
 
+> **`workers:` chart traps** (`auto-deploy-app`): `topologySpreadConstraints` renders on the main
+> Deployment only — the top-level `affinity` block is the one spread knob applied to worker pods too.
+> `terminationGracePeriodSeconds` has **no default** in `worker-deployment.yaml` (silent 30 s API fallback).
+
 ```yaml
 application:
   secretName: "my-service-secret"
