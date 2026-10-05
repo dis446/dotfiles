@@ -24,8 +24,11 @@ say "Rebuilding and switching the Home Manager generation..."
 home-manager switch --flake "$REPO#$ATTR"
 
 say "Updating the pi agent binary (npm global, outside the nix store)..."
+# PINNED with home/npm-globals.nix: pi >= 1.0.0 no longer exports
+# @earendil-works/pi-agent-core/node, which pi-subagents needs to spawn child
+# agents. Bump this and npm-globals.nix together, never to @latest.
 npm_config_prefix="$HOME/.local" npm install -g --ignore-scripts \
-  @earendil-works/pi-coding-agent@latest
+  @earendil-works/pi-coding-agent@0.99.2
 
 if ! git diff --quiet flake.lock; then
   say "Committing and pushing updated flake.lock..."
