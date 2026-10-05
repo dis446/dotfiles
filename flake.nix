@@ -24,6 +24,8 @@
         "fedora" = { username = "guddy"; role = "work";     platform = "fedora"; system = "x86_64-linux"; };
         "nobara" = { username = "neddy"; role = "personal"; platform = "nobara"; system = "x86_64-linux"; };
         "ubuntu" = { username = "guddy"; role = "personal"; platform = "ubuntu"; system = "x86_64-linux"; };
+        # Fedora 44 Server (personal home desktop). No display server, no nixGL.
+        "servy" = { username = "servy"; role = "personal"; platform = "fedora"; system = "x86_64-linux"; };
         # Ubuntu under WSL2 on the Windows 11 work machine. Shares the `ubuntu`
         # platform label (same shell/aliases) but `isWsl` gates host-only bits:
         # no ghostty/nixGL (no GPU/display server of its own), while herdr still

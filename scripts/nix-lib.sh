@@ -12,8 +12,16 @@ ok() { printf "%b%s%b\n" "$SUCCESS_COLOR" "$1" "$RESET_COLOR"; }
 alert() { printf "%b%s%b\n" "$ALERT_COLOR" "$1" "$RESET_COLOR"; }
 
 # The flake keys homeConfigurations by "<user>@<platform>" where platform is the
-# hosts-map key (fedora/nobara/ubuntu/wsl), not the real hostname.
+# hosts-map key (fedora/nobara/ubuntu/wsl/servy), not the real hostname.
+# When multiple machines share the same distro (e.g. two Fedora boxes), a
+# hostname-based match at the top overrides the distro detection below.
 nix_platform() {
+  # Machine-specific hostname match — goes before distro-based detection so a
+  # machine with the same OS as another host gets its own flake key.
+  case "$(hostname)" in
+    servy) echo servy; return ;;
+  esac
+
   # WSL2 reports its distro's os-release (Ubuntu here), so detect WSL first and
   # map it to the hosts-map key "wsl" (flake attr winny@wsl).
   if [ -n "${WSL_DISTRO_NAME:-}" ] || grep -qi microsoft /proc/version 2>/dev/null; then
