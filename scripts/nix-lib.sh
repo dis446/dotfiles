@@ -12,7 +12,7 @@ ok() { printf "%b%s%b\n" "$SUCCESS_COLOR" "$1" "$RESET_COLOR"; }
 alert() { printf "%b%s%b\n" "$ALERT_COLOR" "$1" "$RESET_COLOR"; }
 
 # The flake keys homeConfigurations by "<user>@<platform>" where platform is the
-# hosts-map key (fedora/nobara/ubuntu/wsl/servy), not the real hostname.
+# hosts-map key (fedora/nobara/arch/ubuntu/wsl/servy), not the real hostname.
 # When multiple machines share the same distro (e.g. two Fedora boxes), a
 # hostname-based match at the top overrides the distro detection below.
 nix_platform() {
@@ -28,6 +28,8 @@ nix_platform() {
     echo wsl
   elif [ -f /etc/nobara-release ] || [ -f /etc/Nobara-release ]; then
     echo nobara
+  elif [ -f /etc/arch-release ]; then
+    echo arch
   elif [ -f /etc/fedora-release ]; then
     echo fedora
   elif grep -qi ubuntu /etc/os-release 2>/dev/null; then

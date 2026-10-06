@@ -4,6 +4,7 @@
 #
 #   scripts/e2e-nix-container.sh                     # fedora 44, guddy@fedora
 #   E2E_DISTRO=ubuntu scripts/e2e-nix-container.sh   # ubuntu 24.04, guddy@ubuntu
+#   E2E_DISTRO=arch scripts/e2e-nix-container.sh     # archlinux, archy@arch
 #   E2E_KEEP=1        ...                            # keep the container on success
 #   E2E_ROLE_TEST=0   ...                            # skip the opposite-role switch
 #   E2E_IMAGE=registry.fedoraproject.org/fedora:44 ...
@@ -37,8 +38,25 @@ case "$DISTRO" in
     ROLE_ATTR="${E2E_ROLE_ATTR:-$U@fedora}"
     ROLE_WORK=present # the opposite host (fedora) is role=work
     ;;
+  arch)
+    # User differs here: the flake host is archy@arch (role=work).
+    U="${E2E_USER:-archy}"
+    DEF_IMAGE="docker.io/library/archlinux:latest"
+    DEF_ATTR="$U@arch"
+    # The opposite-role hosts use other usernames (guddy@ubuntu, neddy@nobara), so
+    # `$U@<other>` does not exist — and switching to a config whose
+    # home.homeDirectory differs from this container user's $HOME would be
+    # vacuous anyway (nothing lands in $HOME to assert against). Role gating is
+    # username-independent (home/packages.nix: role == "work") and already
+    # covered by the fedora + ubuntu runs, so skip it here. Force with
+    # E2E_ROLE_ATTR=<attr> (e.g. guddy@ubuntu) + E2E_ROLE_TEST=1.
+    ROLE_ATTR="${E2E_ROLE_ATTR:-}"
+    ROLE_WORK=absent
+    ROLE_TEST="${E2E_ROLE_TEST:-0}"
+    [ -n "$ROLE_ATTR" ] || ROLE_TEST=0
+    ;;
   *)
-    echo "unknown E2E_DISTRO: $DISTRO (want: fedora|ubuntu)" >&2
+    echo "unknown E2E_DISTRO: $DISTRO (want: fedora|ubuntu|arch)" >&2
     exit 2
     ;;
 esac
@@ -82,6 +100,10 @@ install_prereqs() {
       ;;
     ubuntu)
       exec_root bash -c 'apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ca-certificates curl tar xz-utils git passwd'
+      ;;
+    arch)
+      # shadow -> useradd, findutils/procps-ng mirror the fedora prereq set.
+      exec_root pacman -Sy --noconfirm --needed curl tar xz git shadow findutils procps-ng
       ;;
   esac
 }
@@ -151,7 +173,7 @@ then
 fi
 ok "tools, links, git identity, bashrc, aliases all OK"
 
-if [ "$ROLE_TEST" = "1" ]; then
+if [ "$ROLE_TEST" = "1" ] && [ -n "$ROLE_ATTR" ]; then
   say "Role test: switching to $ROLE_ATTR (work-only tools should be $ROLE_WORK)..."
   if ! switch_to "$ROLE_ATTR" >"$LOG" 2>&1; then
     tail -40 "$LOG"

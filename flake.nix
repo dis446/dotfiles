@@ -28,6 +28,9 @@
         "fedora" = { username = "guddy"; role = "work";     platform = "fedora"; system = "x86_64-linux"; };
         "nobara" = { username = "neddy"; role = "personal"; platform = "nobara"; system = "x86_64-linux"; };
         "ubuntu" = { username = "guddy"; role = "personal"; platform = "ubuntu"; system = "x86_64-linux"; };
+        # Arch rolling release (work box). No RPM Fusion equivalent — the OS
+        # layer is pacman + zram-generator + flatpak (see arch/install.sh).
+        "arch" = { username = "archy"; role = "work"; platform = "arch"; system = "x86_64-linux"; };
         # Fedora 44 Server (personal home desktop). No display server, no nixGL.
         "servy" = { username = "servy"; role = "personal"; platform = "fedora"; system = "x86_64-linux"; };
         # Ubuntu under WSL2 on the Windows 11 work machine. Shares the `ubuntu`
