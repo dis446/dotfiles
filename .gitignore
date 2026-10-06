@@ -53,6 +53,8 @@ intellij/*
 /pi/agent/models-store.json
 /pi/agent/run-history.jsonl
 pi/agent/missions/
+# pi-subagents extension runtime state (last-seen-version.json etc.)
+pi/agent/pi-subagents/
 
 pi/agent/.skill-lock.json
 
