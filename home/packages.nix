@@ -34,6 +34,7 @@ in
 
     # Cloud / k8s / containers (CLIs only; daemon is system-managed)
     kubectl
+    k9s
     podman
     podman-compose
     lazydocker
