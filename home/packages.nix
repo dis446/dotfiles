@@ -1,11 +1,19 @@
-{ config, lib, pkgs, role, isWsl ? false, llmAgents, ... }:
+{ config, lib, pkgs, role, isWsl ? false, llmAgents, piAgent, ... }:
 let
   # llm-agents.nix ships its own pinned nixpkgs; reference its per-system set
   # directly (Option A) rather than overlaying ours.
   llm = llmAgents.packages.${pkgs.stdenv.hostPlatform.system};
+  # Same for pi: its own flake builds the agent from the upstream npm tree (real
+  # node_modules + dist/bundle/cli.js, not a bun-compiled binary), which is the
+  # host layout pi-subagents resolves when spawning child agents.
+  piPkg = piAgent.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   home.packages = with pkgs; [
+    # AI coding agent. The binary moves with the flake input (no npm global);
+    # plugins stay agent-managed under ~/.pi/agent/npm.
+    piPkg
+
     # Version control / editors
     git
     vim

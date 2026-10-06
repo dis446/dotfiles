@@ -14,6 +14,11 @@
     # per-system packages directly — its own pinned nixpkgs, best binary-cache
     # hits. No `follows` so we don't have to track unstable in lockstep.
     llm-agents.url = "github:numtide/llm-agents.nix";
+    # The pi coding agent's own flake — upstream's supported install, and what
+    # its `pi update` recommends over the npm-global one. Consumed per-system
+    # like llm-agents; `stable` is a branch, so flake.lock pins the revision and
+    # `nix flake update` is what moves the agent.
+    pi.url = "github:earendil-works/pi/stable";
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
@@ -51,6 +56,7 @@
             inherit username role platform isWsl;
             nixGL = inputs.nixGL;
             llmAgents = inputs.llm-agents;
+            piAgent = inputs.pi;
           };
           modules = [ ./home ];
         };

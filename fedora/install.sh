@@ -54,9 +54,9 @@ sudo systemctl restart systemd-zram-setup@zram0.service
 sudo dnf update -y
 sudo dnf install mpv-libs -y --skip-unavailable
 
-# pi agent binary is installed by the Home Manager activation
-# (home/npm-globals.nix). pi plugins are managed by the agent itself — install
-# only when pi is present (on a fresh machine, after the first HM switch).
+# The pi agent binary comes from the flake (home/packages.nix -> the upstream pi
+# flake input). pi plugins are managed by the agent itself — install only when
+# pi is present (on a fresh machine, after the first HM switch).
 if command -v pi >/dev/null 2>&1; then
   pi install npm:context-mode
   pi install npm:@juicesharp/rpiv-ask-user-question

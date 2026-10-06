@@ -23,12 +23,10 @@ nix flake check "$REPO"
 say "Rebuilding and switching the Home Manager generation..."
 home-manager switch --flake "$REPO#$ATTR"
 
-say "Updating the pi agent binary (npm global, outside the nix store)..."
-# Not pinned: this is the update path, so it moves to the newest release. If
-# subagents start failing after this, re-run pi-subagents' resolveHostPeerAliases
-# probe against the new host before blaming anything else — see npm-globals.nix.
-npm_config_prefix="$HOME/.local" npm install -g --ignore-scripts \
-  @earendil-works/pi-coding-agent@latest
+# The pi agent binary is no longer an npm global: it comes from its own flake
+# input (flake.nix), so the `nix flake update` + switch above is what moves it.
+# If subagents ever break after a bump, run pi-subagents' resolveHostPeerAliases
+# probe against the new host before blaming anything else (see home/packages.nix).
 
 if ! git diff --quiet flake.lock; then
   say "Committing and pushing updated flake.lock..."
