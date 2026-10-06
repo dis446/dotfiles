@@ -43,5 +43,15 @@
     PATH = "\${HOME}/.nix-profile/bin:/nix/var/nix/profiles/default/bin:\${PATH}";
     XDG_DATA_DIRS = "\${HOME}/.nix-profile/share:/nix/var/nix/profiles/default/share:\${XDG_DATA_DIRS}";
     TERMINFO_DIRS = "\${HOME}/.nix-profile/share/terminfo:/nix/var/nix/profiles/default/share/terminfo:/usr/share/terminfo";
+
+    # podman is the only container runtime on these machines, so point every
+    # docker-API client (docker CLI, lazydocker, podman-compose) at the podman
+    # user socket. Deliberately set at SESSION scope, not just in the shell rc:
+    # a GUI-launched lazydocker inherits the systemd user environment, never a
+    # sourced bashrc. The per-OS <os>/bash_aliases keep their own export for
+    # plain shells (same value) — both are needed, neither replaces the other.
+    # `${XDG_RUNTIME_DIR}` expands at session start; re-login to pick it up.
+    DOCKER_HOST = "unix://\${XDG_RUNTIME_DIR}/podman/podman.sock";
+    DOCKER_SOCK = "\${XDG_RUNTIME_DIR}/podman/podman.sock";
   };
 }

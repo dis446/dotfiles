@@ -36,6 +36,7 @@ in
     kubectl
     podman
     podman-compose
+    lazydocker
 
     # Build tools
     go
