@@ -1,5 +1,30 @@
-alias i="sudo pacman -Sy"
+# pacman: -S install, -Rns remove (with now-unneeded deps), -Ss search, -Q installed.
+alias i="sudo pacman -S"
+alias r="sudo pacman -Rns"
 alias is="pacman -Ss"
 alias il="pacman -Q"
-alias r="sudo pacman -Rd"
-alias up="sudo pacman -Syu"
+
+export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+export DOCKER_SOCK="$XDG_RUNTIME_DIR/podman/podman.sock"
+
+# One-shot update of everything on this machine (mirrors fedora/bash_aliases):
+#   1. Nix / Home Manager — tools, runtimes, config, pi binary (scripts/nix-update.sh:
+#      git pull, nix flake update, flake check, home-manager switch, npm pi @latest, push flake.lock)
+#   2. pacman packages (full sync + upgrade — never a partial upgrade)
+#   3. flatpak apps
+#   4. pi plugins/extensions
+# Stops at the first failure (|| return); fix and re-run `up`.
+# unalias first: re-sourcing in a shell that still has the old `up` alias makes
+# bash expand it at parse time and choke on `up() {`.
+unalias up 2>/dev/null || true
+up() {
+  printf '\n=== Nix / Home Manager ===\n'
+  "$HOME/dotfiles/scripts/nix-update.sh" || return
+  printf '\n=== pacman ===\n'
+  sudo pacman -Syu --noconfirm || return
+  printf '\n=== flatpak ===\n'
+  flatpak update -y || return
+  printf '\n=== pi plugins ===\n'
+  pi update --extensions || return
+  printf '\nAll updates complete.\n'
+}

@@ -1,0 +1,22 @@
+# Arch shell layer — sourced by the Home Manager-generated ~/.bashrc
+# (home/bash.nix) instead of the shared fallback, so this track owns its PATH
+# and runtime env exactly like fedora/nobara/ubuntu.
+
+for alias_file in "$HOME/dotfiles/bash/"*; do
+  [ -f "$alias_file" ] && . "$alias_file"
+done
+
+[ -f "$HOME/dotfiles/arch/bash_aliases" ] && . "$HOME/dotfiles/arch/bash_aliases"
+
+PS1='\u@\h \W\$ '
+command -v mise >/dev/null 2>&1 && eval "$(mise activate bash)"
+
+# ~/.local/bin (pi, gitlab-tui), ~/go/bin (go install), ~/.cargo/bin.
+export PATH="$HOME/.local/bin:$HOME/go/bin:$HOME/.cargo/bin:$PATH"
+
+# Runtime memory ceilings — same reasoning as fedora/bashrc: every JVM defaults
+# to 25% of RAM and every Node process keeps its own heap, so concurrent
+# build/test toolchains can thrash the machine. Absolute values, so an explicit
+# -Xmx / NODE_OPTIONS from a tool or project still wins.
+export JAVA_TOOL_OPTIONS="-Xmx2g"
+export NODE_OPTIONS="--max-old-space-size=2048"
