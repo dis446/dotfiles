@@ -8,25 +8,27 @@
 # env var, not `npm config set`, so activation never rewrites ~/.npmrc (which
 # holds a registry auth token).
 #
-# Version is PINNED, never @latest: an upstream pi that drops an export
-# pi-subagents resolves while spawning child agents silently breaks every
-# subagent launch. That is what 1.0.0 did — it removed
-# `@earendil-works/pi-agent-core/node`, so the host was held at 0.99.2 until
-# pi-subagents made that alias optional (runs/background/runner-aliases.js).
+# NOT version-pinned: npm installs whatever is latest at install time, and
+# scripts/nix-update.sh (`nix-update` / `up`) moves it forward from there. The
+# switch itself stays idempotent — the guard below installs only when pi is
+# missing — so a `home-manager switch` neither hits the registry nor swaps the
+# host out from under a running session.
 #
-# 1.0.4 is verified good, not assumed: pi-subagents' own resolveHostPeerAliases
-# returns missing: [] against it, and 1.0.x still ships @earendil-works/chord,
-# which that resolver requires from any host that is not a stable 0.<85.
-# Bump this and scripts/nix-update.sh together, and re-run that resolver probe
-# before moving the pin — never to @latest.
+# Tradeoff, taken deliberately: an upstream release that drops something an
+# extension needs lands here untested. It has happened twice — pi 1.0.0 removed
+# `@earendil-works/pi-agent-core/node`, which pi-subagents resolves while
+# spawning child agents (it now marks that alias optional in
+# runs/background/runner-aliases.js), and pi-subagents 0.76.0 called a
+# completionNotifier method its own notify.js did not define. Because only the
+# update path pulls a new host, that is where to re-run pi-subagents'
+# resolveHostPeerAliases probe when subagents break.
 { lib, pkgs, ... }:
 {
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${pkgs.nodejs_24}/bin:$HOME/.local/bin:$PATH"
     export npm_config_prefix="$HOME/.local"
-    # Version-aware guard: reinstalls when a different version is present, so the
-    # pin self-enforces instead of silently keeping whatever `@latest` installed.
-    npm ls -g "@earendil-works/pi-coding-agent@1.0.4" 2>/dev/null 1>&2 \
-      || npm install -g --ignore-scripts "@earendil-works/pi-coding-agent@1.0.4"
+    # Idempotent: only install when missing (avoids npm resolution every switch).
+    npm ls -g @earendil-works/pi-coding-agent 2>/dev/null 1>&2 \
+      || npm install -g --ignore-scripts @earendil-works/pi-coding-agent
   '';
 }
