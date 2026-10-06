@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Ubuntu: system-level setup only. CLI tools, runtimes, and config links (nvim,
-# ghostty, zellij, zed, lazygit, .editorconfig, …) come from Home Manager — the
+# ghostty, zed, lazygit, .editorconfig, …) come from Home Manager — the
 # nix flake. See plans/nix-migration-plan.md.
 #
 # Runs on a plain Ubuntu host and on Ubuntu under WSL2 (flake host "wsl"). The
@@ -23,7 +23,7 @@ link_target() {
   ln -s "$src" "$dest"
 }
 
-# nvim, ghostty, zellij, zed, herdr config, .editorconfig, lazygit, ideavimrc,
+# nvim, ghostty, zed, herdr config, .editorconfig, lazygit, ideavimrc,
 # gradle.properties and ~/.bashrc are managed by Home Manager (home/).
 # pi / claude agent configs stay imperative (they carry runtime state).
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"

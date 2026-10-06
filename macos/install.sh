@@ -16,7 +16,6 @@ link_target() {
 # unlike the Linux scripts it symlinks the whole config set itself.
 link_target "$HOME/dotfiles/nvim" "$HOME/.config/nvim"
 link_target "$HOME/dotfiles/ghostty/macos/config" "$HOME/.config/ghostty/config"
-link_target "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 # File-level (not a dir link): Zed writes mutable state next to its config.
 link_target "$HOME/dotfiles/zed/settings.json" "$HOME/.config/zed/settings.json"
 link_target "$HOME/dotfiles/zed/keymap.json" "$HOME/.config/zed/keymap.json"

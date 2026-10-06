@@ -11,24 +11,24 @@ In Neovim, set `vim.g.mapleader = " "` in `keymaps.lua`.
 
 ## General
 
-| Key        | Action              | IntelliJ backend            | Neovim backend                        |
-| ---------- | ------------------- | --------------------------- | ------------------------------------- |
-| `Space+si` | Reload config        | `:source ~/.ideavimrc`      | `:source $MYVIMRC`                    |
-| `Space+nh` | Clear search hilite | `:noh`                      | `:nohl`                               |
+| Key        | Action              | IntelliJ backend       | Neovim backend     |
+| ---------- | ------------------- | ---------------------- | ------------------ |
+| `Space+si` | Reload config       | `:source ~/.ideavimrc` | `:source $MYVIMRC` |
+| `Space+nh` | Clear search hilite | `:noh`                 | `:nohl`            |
 
 ## File & project navigation
 
-| Key          | Action                              | IntelliJ backend            | Neovim backend                  |
-| ------------ | ----------------------------------- | --------------------------- | ------------------------------- |
-| `Space+ee`   | Toggle file explorer / project tree | `ActivateProjectToolWindow` | `Snacks.explorer()`             |
-| `Space+ef`   | Reveal current file in tree         | `SelectInProjectView`       | `Snacks.explorer.reveal()`      |
-| `Space+ff`   | Find file by name                   | `GotoFile`                  | `Snacks.picker.files()`         |
-| `Ctrl+N`     | Find file by name (alt)             | `GotoFile`                  | `Snacks.picker.files()`         |
-| `Space+fr`   | Recent files                        | `RecentFiles`               | `Snacks.picker.recent()`        |
-| `Ctrl+E`     | Recent files (alt)                  | `RecentFiles`               | `Snacks.picker.recent()`        |
-| `Space+fs`   | Search text in project (grep)       | `FindInPath`                | `Snacks.picker.grep()`          |
-| `Space+fc`   | Search word under cursor            | `FindInPath` (pre-filled)   | `Snacks.picker.grep_word()`     |
-| `Space+ft`   | Find TODOs                          | `ActivateTODOToolWindow`    | `Snacks.picker.todo_comments()` |
+| Key        | Action                              | IntelliJ backend            | Neovim backend                  |
+| ---------- | ----------------------------------- | --------------------------- | ------------------------------- |
+| `Space+ee` | Toggle file explorer / project tree | `ActivateProjectToolWindow` | `Snacks.explorer()`             |
+| `Space+ef` | Reveal current file in tree         | `SelectInProjectView`       | `Snacks.explorer.reveal()`      |
+| `Space+ff` | Find file by name                   | `GotoFile`                  | `Snacks.picker.files()`         |
+| `Ctrl+N`   | Find file by name (alt)             | `GotoFile`                  | `Snacks.picker.files()`         |
+| `Space+fr` | Recent files                        | `RecentFiles`               | `Snacks.picker.recent()`        |
+| `Ctrl+E`   | Recent files (alt)                  | `RecentFiles`               | `Snacks.picker.recent()`        |
+| `Space+fs` | Search text in project (grep)       | `FindInPath`                | `Snacks.picker.grep()`          |
+| `Space+fc` | Search word under cursor            | `FindInPath` (pre-filled)   | `Snacks.picker.grep_word()`     |
+| `Space+ft` | Find TODOs                          | `ActivateTODOToolWindow`    | `Snacks.picker.todo_comments()` |
 
 **Note:** `Ctrl+N` and `Ctrl+E` are alternate bindings for `Space+ff` and `Space+fr`
 respectively. They work the same in both environments.
@@ -39,18 +39,18 @@ Buffer tabs show open buffers as a tabline at the top of the editor. In IntelliJ
 tabs are built-in (open editor files). In Neovim, `akinsho/bufferline.nvim` adds
 the same experience.
 
-| Key        | Action              | IntelliJ backend    | Neovim backend                        |
-| ---------- | ------------------- | ------------------- | ------------------------------------- |
-| `Space+tw` | Close current tab   | `CloseContent`      | `:bdelete!`                           |
-| `Alt+L`    | Next tab            | `NextTab`           | `BufferLineCycleNext`                 |
-| `Alt+H`    | Previous tab        | `PreviousTab`       | `BufferLineCyclePrev`                 |
-| `Space+tt` | New tab page         | —                   | `:tabnew`                              |
-| `Space+tl` | Move tab right      | —                   | `BufferLineMoveNext`                   |
-| `Space+th` | Move tab left       | —                   | `BufferLineMovePrev`                   |
-| `Space+t1`-`9` | Go to tab 1-9  | —                   | `BufferLineGoToBuffer 1-9`             |
-| `Space+tp` | Previous tab page   | —                   | `BufferLineCyclePrev`                  |
-| `Space+tn` | Next tab page       | —                   | `BufferLineCycleNext`                  |
-| `Space+to` | Close other tabs    | `CloseAllEditorsButActive` | Close all buffers except current |
+| Key            | Action            | IntelliJ backend           | Neovim backend                   |
+| -------------- | ----------------- | -------------------------- | -------------------------------- |
+| `Space+tw`     | Close current tab | `CloseContent`             | `:bdelete!`                      |
+| `Alt+L`        | Next tab          | `NextTab`                  | `BufferLineCycleNext`            |
+| `Alt+H`        | Previous tab      | `PreviousTab`              | `BufferLineCyclePrev`            |
+| `Space+tt`     | New tab page      | —                          | `:tabnew`                        |
+| `Space+tl`     | Move tab right    | —                          | `BufferLineMoveNext`             |
+| `Space+th`     | Move tab left     | —                          | `BufferLineMovePrev`             |
+| `Space+t1`-`9` | Go to tab 1-9     | —                          | `BufferLineGoToBuffer 1-9`       |
+| `Space+tp`     | Previous tab page | —                          | `BufferLineCyclePrev`            |
+| `Space+tn`     | Next tab page     | —                          | `BufferLineCycleNext`            |
+| `Space+to`     | Close other tabs  | `CloseAllEditorsButActive` | Close all buffers except current |
 
 **Note:** `Ctrl+W` is reserved in Neovim for window management and is not
 remapped. Use `Space+tw` to close buffers.
@@ -69,55 +69,55 @@ Neovim, perform commit/push/pull inside lazygit.
 
 ## Window management
 
-| Key        | Action                       | IntelliJ backend               | Neovim backend                |
-| ---------- | ---------------------------- | ------------------------------ | ----------------------------- |
-| `Space+sv` | Vertical split               | `SplitVertically`              | `<C-w>v`                      |
-| `Space+sh` | Horizontal split             | `SplitHorizontally`            | `<C-w>s`                      |
-| `Space+se` | Equalize split sizes         | —                              | `<C-w>=`                      |
-| `Space+sx` | Close current split          | `CloseContent`                 | `:close`                      |
-| `Space+sm` | Maximize / minimize split    | —                              | `Snacks.zen.zoom()`           |
+| Key        | Action                    | IntelliJ backend    | Neovim backend      |
+| ---------- | ------------------------- | ------------------- | ------------------- |
+| `Space+sv` | Vertical split            | `SplitVertically`   | `<C-w>v`            |
+| `Space+sh` | Horizontal split          | `SplitHorizontally` | `<C-w>s`            |
+| `Space+se` | Equalize split sizes      | —                   | `<C-w>=`            |
+| `Space+sx` | Close current split       | `CloseContent`      | `:close`            |
+| `Space+sm` | Maximize / minimize split | —                   | `Snacks.zen.zoom()` |
 
 ## Formatting & linting
 
-| Key        | Action              | IntelliJ backend     | Neovim backend                 |
-| ---------- | ------------------- | -------------------- | ------------------------------ |
-| `Space+mp` | Format code         | `ReformatCode`       | `conform.format()`             |
-| `Space+l`  | Lint current file   | `InspectCode`        | `lint.try_lint()`              |
+| Key        | Action            | IntelliJ backend | Neovim backend     |
+| ---------- | ----------------- | ---------------- | ------------------ |
+| `Space+mp` | Format code       | `ReformatCode`   | `conform.format()` |
+| `Space+l`  | Lint current file | `InspectCode`    | `lint.try_lint()`  |
 
 ## Sessions
 
-| Key        | Action                                 | IntelliJ backend     | Neovim backend                 |
-| ---------- | -------------------------------------- | -------------------- | ------------------------------ |
-| `Space+wr` | Restore session for current directory  | — (automatic)        | `:SessionRestore`              |
-| `Space+ws` | Save session for current directory     | — (automatic)        | `:SessionSave`                 |
+| Key        | Action                                | IntelliJ backend | Neovim backend    |
+| ---------- | ------------------------------------- | ---------------- | ----------------- |
+| `Space+wr` | Restore session for current directory | — (automatic)    | `:SessionRestore` |
+| `Space+ws` | Save session for current directory    | — (automatic)    | `:SessionSave`    |
 
 ## LSP / code intelligence
 
-| Key         | Action                     | Both environments                                      |
-| ----------- | -------------------------- | ------------------------------------------------------ |
-| `gd`        | Go to definition           | Works in both                                          |
-| `gD`        | Go to declaration          | Works in both                                          |
-| `gi`        | Go to implementation       | Works in both                                          |
-| `gt`        | Go to type definition      | Works in both                                          |
-| `gR`        | Find references            | Works in both                                          |
-| `K`         | Hover / documentation      | Works in both                                          |
-| `Space+th`  | Toggle inlay hints         | Works in both                                          |
-| `Space+ca`  | Code actions / intentions  | `ShowIntentionActions` / `vim.lsp.buf.code_action`     |
-| `Space+rn`  | Rename                     | `RenameElement` / `vim.lsp.buf.rename`                 |
-| `[d` / `]d` | Previous / next diagnostic | Works in both                                          |
-| `Space+xx`  | Toggle diagnostics list    | `ActivateProblemsViewToolWindow`                       | `Snacks.picker.diagnostics()` |
-| `Space+xw`  | Workspace diagnostics      | —                                                      | `Snacks.picker.diagnostics()` |
-| `Space+xl`  | Location list              | —                                                      | `Snacks.picker.loclist()` |
-| `Space+xq`  | Quickfix list              | —                                                      | `Snacks.picker.qflist()` |
-| `Space+xt`  | TODO list                  | `ActivateTODOToolWindow`                               | `Snacks.picker.todo_comments()` |
-| `Space+xd`  | Document diagnostics       | `GotoNextError`                                        | `Snacks.picker.diagnostics_buffer()` |
+| Key         | Action                     | Both environments                                  |
+| ----------- | -------------------------- | -------------------------------------------------- |
+| `gd`        | Go to definition           | Works in both                                      |
+| `gD`        | Go to declaration          | Works in both                                      |
+| `gi`        | Go to implementation       | Works in both                                      |
+| `gt`        | Go to type definition      | Works in both                                      |
+| `gR`        | Find references            | Works in both                                      |
+| `K`         | Hover / documentation      | Works in both                                      |
+| `Space+th`  | Toggle inlay hints         | Works in both                                      |
+| `Space+ca`  | Code actions / intentions  | `ShowIntentionActions` / `vim.lsp.buf.code_action` |
+| `Space+rn`  | Rename                     | `RenameElement` / `vim.lsp.buf.rename`             |
+| `[d` / `]d` | Previous / next diagnostic | Works in both                                      |
+| `Space+xx`  | Toggle diagnostics list    | `ActivateProblemsViewToolWindow`                   | `Snacks.picker.diagnostics()`        |
+| `Space+xw`  | Workspace diagnostics      | —                                                  | `Snacks.picker.diagnostics()`        |
+| `Space+xl`  | Location list              | —                                                  | `Snacks.picker.loclist()`            |
+| `Space+xq`  | Quickfix list              | —                                                  | `Snacks.picker.qflist()`             |
+| `Space+xt`  | TODO list                  | `ActivateTODOToolWindow`                           | `Snacks.picker.todo_comments()`      |
+| `Space+xd`  | Document diagnostics       | `GotoNextError`                                    | `Snacks.picker.diagnostics_buffer()` |
 
 ## Terminal
 
-| Key        | Action                    | IntelliJ backend             | Neovim backend                 |
-| ---------- | ------------------------- | ---------------------------- | ------------------------------ |
-| `Space+ot` | Toggle terminal           | `ActivateTerminalToolWindow` | `Snacks.terminal()`            |
-| `Space+oT` | Floating terminal         | — (no mapping)               | `Snacks.terminal()` (floating) |
+| Key        | Action            | IntelliJ backend             | Neovim backend                 |
+| ---------- | ----------------- | ---------------------------- | ------------------------------ |
+| `Space+ot` | Toggle terminal   | `ActivateTerminalToolWindow` | `Snacks.terminal()`            |
+| `Space+oT` | Floating terminal | — (no mapping)               | `Snacks.terminal()` (floating) |
 
 **Note on Neovim + herdr:** When running Neovim inside a herdr workspace, you
 still have a bash shell available in the workspace's `term` tab (`alt+i`), and
@@ -125,20 +125,21 @@ still have a bash shell available in the workspace's `term` tab (`alt+i`), and
 term tab when `HERDR_ENV=1`).
 
 **User commands:**
+
 - `:SnacksTerminal` — toggle terminal
 - `:SnacksTerminalFloat` — open floating terminal
 
 ## Build & run
 
-| Key        | Action                    | IntelliJ backend                     | Neovim backend           |
-| ---------- | ------------------------- | ------------------------------------ | ------------------------ |
-| `Space+mm` | Run                       | `Run`                                | `:OverseerRun`                |
-| `Space+mr` | Re-run last               | —                                    | `:OverseerQuickAction`        |
-| `Space+mk` | Stop / task actions       | `Stop`                               | `:OverseerTaskAction`         |
-| `Space+mb` | Build                     | —                                    | `:OverseerBuild`              |
-| `Space+mc` | Cancel task               | —                                    | `:OverseerQuickAction run.cancel` |
-| `Space+m,` | Toggle task list sidebar  | `RedesignedRunConfigurationSelector` | `:OverseerToggle`             |
-| `Space+mn` | Debug / Continue          | `Debug`                              | `dap.continue()`              |
+| Key        | Action                   | IntelliJ backend                     | Neovim backend                    |
+| ---------- | ------------------------ | ------------------------------------ | --------------------------------- |
+| `Space+mm` | Run                      | `Run`                                | `:OverseerRun`                    |
+| `Space+mr` | Re-run last              | —                                    | `:OverseerQuickAction`            |
+| `Space+mk` | Stop / task actions      | `Stop`                               | `:OverseerTaskAction`             |
+| `Space+mb` | Build                    | —                                    | `:OverseerBuild`                  |
+| `Space+mc` | Cancel task              | —                                    | `:OverseerQuickAction run.cancel` |
+| `Space+m,` | Toggle task list sidebar | `RedesignedRunConfigurationSelector` | `:OverseerToggle`                 |
+| `Space+mn` | Debug / Continue         | `Debug`                              | `dap.continue()`                  |
 
 ## Debug (DAP)
 
@@ -156,11 +157,6 @@ term tab when `HERDR_ENV=1`).
 | `Space+dR` | Restart session        | `Rerun`                | `dap.restart()`           |
 | `Space+dq` | Terminate session      | `Stop`                 | `dap.terminate()`         |
 
-**Note:** F-keys (F5, F10, F11) work when Neovim runs outside zellij, or when
-zellij is configured to pass F-keys through (`pane.focus` unbound from those keys,
-or using `F5` passthrough in the layout). Within zellij, use the `Space+d*`
-alternatives.
-
 ## Pi AI (herdr)
 
 Inside herdr, Pi runs in the workspace's `pi` tab (`alt+k` toggles it, or
@@ -169,18 +165,18 @@ Inside herdr, Pi runs in the workspace's `pi` tab (`alt+k` toggles it, or
 hides/shows.
 New session opens a fresh terminal alongside existing ones.
 
-| Key          | Action                   | IntelliJ backend                | Neovim backend              |
-| ------------ | ------------------------ | ------------------------------- | --------------------------- |
-| `Space+ai`   | Toggle Pi                | `ActivateAIAssistantToolWindow` | `Snacks.terminal()` pi float  |
-| `Alt+K`      | Toggle Pi (alt)          | —                               | `Snacks.terminal()` pi float  |
-| `Space+pI`   | New Pi session           | —                               | `Snacks.terminal.open()` pi   |
+| Key        | Action          | IntelliJ backend                | Neovim backend               |
+| ---------- | --------------- | ------------------------------- | ---------------------------- |
+| `Space+ai` | Toggle Pi       | `ActivateAIAssistantToolWindow` | `Snacks.terminal()` pi float |
+| `Alt+K`    | Toggle Pi (alt) | —                               | `Snacks.terminal()` pi float |
+| `Space+pI` | New Pi session  | —                               | `Snacks.terminal.open()` pi  |
 
 ## Tools
 
-| Key        | Action              | IntelliJ backend                | Neovim backend                 |
-| ---------- | ------------------- | ------------------------------- | ------------------------------ |
-| `Space+db` | Toggle database     | `ActivateDatabaseToolWindow`    | — (use DataGrip)               |
-| `Space+mv` | Maven projects      | `ActivateMavenToolWindow`    | `:Maven`                       |
+| Key        | Action          | IntelliJ backend             | Neovim backend   |
+| ---------- | --------------- | ---------------------------- | ---------------- |
+| `Space+db` | Toggle database | `ActivateDatabaseToolWindow` | — (use DataGrip) |
+| `Space+mv` | Maven projects  | `ActivateMavenToolWindow`    | `:Maven`         |
 
 ## Vim editing
 
@@ -247,15 +243,15 @@ vim.opt.clipboard:append("unnamedplus")
 
 These differences are environment-specific and don't affect muscle memory:
 
-| Area                  | IntelliJ                                  | Neovim                                |
-| --------------------- | ----------------------------------------- | ------------------------------------- |
-| **Project switching** | `Alt+H` → RecentFiles, `Alt+L` → Switcher | `Ctrl+b w` — workspace picker (text-filterable) |
-| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Ctrl+b` prefix; one herdr workspace per project |
-| **Session mode**      | — (no session manager)                     | `Ctrl+b w` for workspace picker         |
-| **Editing surface**   | IntelliJ editor + IdeaVim                 | Neovim editor                         |
-| **File tree**         | NERDTree (`h`/`l`/`q`/`r`/`d`)           | Snacks Explorer                       |
-| **Theme**             | Default IntelliJ theme                    | `tokyonight.nvim` (style: night)      |
-| **Session restore**   | Automatic (IDE remembers state)           | herdr server + `restore.sh` (nvim/pi/term/gitlab per workspace) |
+| Area                   | IntelliJ                                    | Neovim                                                          |
+| ---------------------- | ------------------------------------------- | --------------------------------------------------------------- |
+| **Project switching**  | `Alt+H` → RecentFiles, `Alt+L` → Switcher   | `Ctrl+b w` — workspace picker (text-filterable)                 |
+| **Window / tab focus** | IDE tool windows + `Alt+L`/`Alt+H` for tabs | `Ctrl+b` prefix; one herdr workspace per project                |
+| **Session mode**       | — (no session manager)                      | `Ctrl+b w` for workspace picker                                 |
+| **Editing surface**    | IntelliJ editor + IdeaVim                   | Neovim editor                                                   |
+| **File tree**          | NERDTree (`h`/`l`/`q`/`r`/`d`)              | Snacks Explorer                                                 |
+| **Theme**              | Default IntelliJ theme                      | `tokyonight.nvim` (style: night)                                |
+| **Session restore**    | Automatic (IDE remembers state)             | herdr server + `restore.sh` (nvim/pi/term/gitlab per workspace) |
 
 ---
 
@@ -276,7 +272,7 @@ Neovim config should reference this file as the source of truth.
 | `x`    | Diagnostics      | Used (`xx`, `xd`)                                         |
 | `o`    | Open / toggle    | Used (`ot`, `oT`)                                         |
 | `d`    | Debug / database | Used (`db`, `dt`, `du`, `de`, `dr`, `dR`, `dq`)           |
-| `m`    | Build / run      | Used (`mm`, `mr`, `mk`, `mb`, `mc`, `m,`, `mn`, `mv`)    |
+| `m`    | Build / run      | Used (`mm`, `mr`, `mk`, `mb`, `mc`, `m,`, `mn`, `mv`)     |
 | `p`    | Pi / AI          | Used (`pI`)                                               |
 | `t`    | Tabs             | Used (`tw`, `tt`, `tl`, `th`, `to`, `tp`, `tn`, `t1`-`9`) |
 | `s`    | Splits / zoom    | Used (`sv`, `sh`, `se`, `sx`, `sm`)                       |

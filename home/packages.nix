@@ -24,7 +24,6 @@ in
     ripgrep
     fd
     fzf
-    zellij
     herdr
 
     # Version managers / runtimes

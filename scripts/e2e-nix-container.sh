@@ -142,7 +142,7 @@ if ! podman exec -i -u "$U" -e E2E_EMAIL="$EXPECT_EMAIL" -e E2E_PLATFORM="$PLATF
   -e USER="$U" -e LOGNAME="$U" "$NAME" bash -s <<'EOS'
 export PATH=$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH
 rc=0
-for t in nvim herdr zellij mise node java kubectl k9s podman lazydocker go gcc bat jq fd rg fzf \
+for t in nvim herdr mise node java kubectl k9s podman lazydocker go gcc bat jq fd rg fzf \
          ghostty lazygit speedtest-cli pydf; do
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done

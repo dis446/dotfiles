@@ -26,7 +26,6 @@ alias cpv='rsync -ah --info=progress2'
 alias top="htop"
 alias du="ncdu"
 alias df="pydf"
-alias z="zellij"
 alias count="find . -type f | wc -l"
 alias srn="sudo systemctl soft-reboot -i"
 alias srnn="sudo systemctl reboot"

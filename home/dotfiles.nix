@@ -12,7 +12,6 @@ in
   xdg.configFile = {
     # Live dir link — lazy.nvim rewrites lazy-lock.json here.
     "nvim".source = link "nvim";
-    "zellij".source = link "zellij";
     "ghostty/config".source = link "ghostty/linux/config.ghostty";
     "lazygit/config.yml".source = link "lazygit/config.yml";
     # File-level: herdr writes sockets/logs/session state beside config.toml.

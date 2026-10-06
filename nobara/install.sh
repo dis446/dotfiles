@@ -20,7 +20,7 @@ sudo_link_target() {
 
 sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm -y
 
-# nvim, ghostty, zellij, zed, herdr config, .editorconfig, lazygit, ideavimrc,
+# nvim, ghostty , zed, herdr config, .editorconfig, lazygit, ideavimrc,
 # gradle.properties and ~/.bashrc are managed by Home Manager (home/).
 link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"

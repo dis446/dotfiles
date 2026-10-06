@@ -6,7 +6,7 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 
 **The environment is Nix + Home Manager.** `flake.nix` pins nixpkgs + home-manager and declares the CLI tools, runtimes, shell, git config, and config links; `flake.lock` makes machines reproducible. The OS install scripts are **system-only** (RPM Fusion, `dnf.conf`, zram, flatpak, systemd). See "Nix / Home Manager" below and `plans/nix-migration-plan.md`.
 
-**Key technologies:** Nix flakes, Home Manager, Bash, Neovim (Lua/lazy.nvim), herdr, zellij, ghostty, zed, IntelliJ IdeaVim, lazygit, mise (JDK baseline + per-repo version overrides), pi-coding-agent.
+**Key technologies:** Nix flakes, Home Manager, Bash, Neovim (Lua/lazy.nvim), herdr, ghostty, zed, IntelliJ IdeaVim, lazygit, mise (JDK baseline + per-repo version overrides), pi-coding-agent.
 
 ## OS track parity — read before every change
 
@@ -15,14 +15,14 @@ finished until the same change exists in every track it applies to. Never leave
 a track behind because you are not running that OS, and never let two tracks
 drift into different shapes.
 
-| Track | Kind | Files beyond the common set |
-| ----- | ---- | --------------------------- |
-| `arch/` | Nix + Home Manager | `zram-generator.conf` |
-| `fedora/` | Nix + Home Manager | `dnf.conf`, `zram-generator.conf` |
-| `nobara/` | Nix + Home Manager | `dnf.conf` |
-| `ubuntu/` | Nix + Home Manager | — (also the platform for the WSL2 host `wsl`) |
-| `macos/` | **pre-HM** (Homebrew) | `Brewfile`, `zshrc` — no flake attr |
-| `windows/` + `WindowsPowerShell/` | native Windows | `install.ps1`, `scoop.json`, `winget.json`, `profile.ps1` + `*_functions.ps1` |
+| Track                             | Kind                  | Files beyond the common set                                                   |
+| --------------------------------- | --------------------- | ----------------------------------------------------------------------------- |
+| `arch/`                           | Nix + Home Manager    | `zram-generator.conf`                                                         |
+| `fedora/`                         | Nix + Home Manager    | `dnf.conf`, `zram-generator.conf`                                             |
+| `nobara/`                         | Nix + Home Manager    | `dnf.conf`                                                                    |
+| `ubuntu/`                         | Nix + Home Manager    | — (also the platform for the WSL2 host `wsl`)                                 |
+| `macos/`                          | **pre-HM** (Homebrew) | `Brewfile`, `zshrc` — no flake attr                                           |
+| `windows/` + `WindowsPowerShell/` | native Windows        | `install.ps1`, `scoop.json`, `winget.json`, `profile.ps1` + `*_functions.ps1` |
 
 Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
 `install.sh`, `README.md`.
@@ -50,26 +50,25 @@ Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
 
 ## Directory Layout
 
-| Path | Managed by | Purpose |
-| ---- | ---------- | ------- |
-| `flake.nix`, `flake.lock` | — | Nix inputs + pinned versions (`flake.lock` is committed) |
-| `home/` | Home Manager | `home/*.nix` modules: packages, dotfile links, bash, git, npm global, herdr unit |
-| `scripts/` | — | `nix-*` helpers + `e2e-nix-container.sh`; `check-identifiers.sh` |
-| `bash/` | Home Manager (sourced) | Cross-platform shell aliases, split by topic |
-| `arch/`, `fedora/`, `nobara/`, `macos/`, `ubuntu/` | system-only | OS-specific aliases, bashrc, system install scripts |
-| `nvim/` | HM link → `~/.config/nvim` | Neovim config (Lua, lazy.nvim) |
-| `herdr/` | HM link + `home/herdr.nix` | herdr config + systemd unit, toggles, boot restore (see WORKFLOW.md) |
-| `ghostty/` | HM link → `~/.config/ghostty` | Ghostty terminal config (linux/ + macos/ variants) |
-| `zellij/` | HM link → `~/.config/zellij` | Zellij multiplexer config |
-| `zed/` | HM file links → `~/.config/zed` | Zed editor config + themes |
-| `lazygit/` | HM link → `~/.config/lazygit` | lazygit config |
-| `gradle/` | HM link → `~/.gradle/gradle.properties` | Gradle worker/heap limits (concurrency budget) |
-| `intellij/` | HM link → `~/.ideavimrc` | IdeaVim config + keymap references |
-| `pi/` | install.sh → `~/.pi`, `~/.agents` | pi-coding-agent config (runtime state ignored) |
-| `claude/` | install.sh → `~/.claude` | Claude Code config (settings tracked, runtime ignored) |
-| `WindowsPowerShell/` | `windows/install.ps1` links `$PROFILE` | Native PowerShell shell layer (`profile.ps1` + topic files) |
-| `windows/` | `install.ps1` (run manually) | Native-Windows layer: Scoop + winget manifests, `$PROFILE` link |
-| `hyprland/`, `k8s/` | (not linked) | WM config, k8s cheatsheet |
+| Path                                               | Managed by                              | Purpose                                                                          |
+| -------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| `flake.nix`, `flake.lock`                          | —                                       | Nix inputs + pinned versions (`flake.lock` is committed)                         |
+| `home/`                                            | Home Manager                            | `home/*.nix` modules: packages, dotfile links, bash, git, npm global, herdr unit |
+| `scripts/`                                         | —                                       | `nix-*` helpers + `e2e-nix-container.sh`; `check-identifiers.sh`                 |
+| `bash/`                                            | Home Manager (sourced)                  | Cross-platform shell aliases, split by topic                                     |
+| `arch/`, `fedora/`, `nobara/`, `macos/`, `ubuntu/` | system-only                             | OS-specific aliases, bashrc, system install scripts                              |
+| `nvim/`                                            | HM link → `~/.config/nvim`              | Neovim config (Lua, lazy.nvim)                                                   |
+| `herdr/`                                           | HM link + `home/herdr.nix`              | herdr config + systemd unit, toggles, boot restore (see WORKFLOW.md)             |
+| `ghostty/`                                         | HM link → `~/.config/ghostty`           | Ghostty terminal config (linux/ + macos/ variants)                               |
+| `zed/`                                             | HM file links → `~/.config/zed`         | Zed editor config + themes                                                       |
+| `lazygit/`                                         | HM link → `~/.config/lazygit`           | lazygit config                                                                   |
+| `gradle/`                                          | HM link → `~/.gradle/gradle.properties` | Gradle worker/heap limits (concurrency budget)                                   |
+| `intellij/`                                        | HM link → `~/.ideavimrc`                | IdeaVim config + keymap references                                               |
+| `pi/`                                              | install.sh → `~/.pi`, `~/.agents`       | pi-coding-agent config (runtime state ignored)                                   |
+| `claude/`                                          | install.sh → `~/.claude`                | Claude Code config (settings tracked, runtime ignored)                           |
+| `WindowsPowerShell/`                               | `windows/install.ps1` links `$PROFILE`  | Native PowerShell shell layer (`profile.ps1` + topic files)                      |
+| `windows/`                                         | `install.ps1` (run manually)            | Native-Windows layer: Scoop + winget manifests, `$PROFILE` link                  |
+| `hyprland/`, `k8s/`                                | (not linked)                            | WM config, k8s cheatsheet                                                        |
 
 ## Setup Commands
 
@@ -97,13 +96,13 @@ bootstraps the native layer. Host `winny@wsl`, role `work`. Full walkthrough:
 
 **Daily commands** (also the `nix-update` / `nix-pull` / `nix-cleanup` / `nix-e2e` aliases):
 
-| Command | Does |
-| ------- | ---- |
-| `home-manager switch --flake ~/dotfiles#$(id -un)@<platform>` | apply `.nix` changes |
-| `nix-update` | `nix flake update` → `flake check` → switch → bump pi → commit `flake.lock` |
-| `nix-pull` | pull; tells you to rebuild if `.nix`/`flake.lock` changed |
-| `nix-cleanup` | GC old generations + `nix store optimise` |
-| `nix-e2e` | boot the flake from scratch in a throwaway Fedora container |
+| Command                                                       | Does                                                                        |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `home-manager switch --flake ~/dotfiles#$(id -un)@<platform>` | apply `.nix` changes                                                        |
+| `nix-update`                                                  | `nix flake update` → `flake check` → switch → bump pi → commit `flake.lock` |
+| `nix-pull`                                                    | pull; tells you to rebuild if `.nix`/`flake.lock` changed                   |
+| `nix-cleanup`                                                 | GC old generations + `nix store optimise`                                   |
+| `nix-e2e`                                                     | boot the flake from scratch in a throwaway Fedora container                 |
 
 Install scripts are **idempotent** — `rm -rf "$dest"` before `ln -s "$src"`.
 
@@ -130,7 +129,7 @@ herdr
 - `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`) and a `hosts` map (fedora/nobara/arch/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
 - `home/` — one concern per file:
   - `packages.nix` — CLI tools + runtimes; role-gated extras (`azure-cli`, `glab`, `gh` for `work`).
-  - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, zellij, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
+  - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
   - `bash.nix` — HM owns `~/.bashrc`; sources `$HOME/dotfiles/<platform>/bashrc` (which in turn sources `bash/*` + `<platform>/bash_aliases`), falling back to those two directly when no OS rc exists. Fedora/Nobara/Ubuntu all have a `bashrc`. Do **not** also symlink `~/.bashrc` in install scripts.
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `npm-globals.nix` — the pi agent binary (npm global, prefix `~/.local`; env var, never `npm config set`).
@@ -158,7 +157,7 @@ native bootstrap layer on top.
 - **Native Windows layer** — `windows/install.ps1` (Scoop + winget + `$PROFILE`
   link). `WindowsPowerShell/profile.ps1` is linked to `$PROFILE`; the topic files
   (`general_functions.ps1`, `git_functions.ps1`, `work_functions.ps1`) mirror the
-  bash aliases. Tooling is *curated* in `windows/{scoop,winget}.json` — not a
+  bash aliases. Tooling is _curated_ in `windows/{scoop,winget}.json` — not a
   full export; drivers, Steam games and vendor utilities are deliberately
   excluded even though the box has them.
 - **The repo lives at `~\dotfiles`** on Windows too, matching the baked path.
@@ -194,6 +193,7 @@ default=winny
 ```
 
 Gotchas:
+
 - Keep the checkout **inside WSL** (`~/dotfiles`), never on `/mnt/c` — the
   out-of-store symlinks bake `$HOME/dotfiles`, and `/mnt/c` is slow and
   case-insensitive.
@@ -457,10 +457,10 @@ in untracked `secret*` files (gitignored via `**/secret**`) or env vars
 The feature workflow lives entirely inside each platform's master repo — the
 dotfiles repo has no involvement:
 
-| Platform  | Master repo                                   | Platform root        |
-| --------- | --------------------------------------------- | -------------------- |
-| platform-1 | `~/Code/<org>/<platform-1>/repo-1`            | `~/Code/<org>/<platform-1>` |
-| platform-2 | `~/Code/<org>/<platform-2>/repo-1`            | sibling dir of the repo |
+| Platform   | Master repo                        | Platform root               |
+| ---------- | ---------------------------------- | --------------------------- |
+| platform-1 | `~/Code/<org>/<platform-1>/repo-1` | `~/Code/<org>/<platform-1>` |
+| platform-2 | `~/Code/<org>/<platform-2>/repo-1` | sibling dir of the repo     |
 
 Each master repo self-contains its workflow: bash scripts in
 `scripts/feature-workflow/`, the pi `feature_start`/`feature_mr`/`feature_stop`/
@@ -479,21 +479,20 @@ a shell. Full operating pattern lives in each repo's `AGENTS.md`.
 
 ### Important paths reference
 
-| Tool               | Config location                        | Notes                                    |
-| ------------------ | -------------------------------------- | ---------------------------------------- |
-| Nix / Home Manager | `~/dotfiles/{flake.nix,flake.lock,home/}` | `home-manager switch` applies; `flake.lock` pins |
-| Neovim             | `~/.config/nvim/` (`nvim/`)            | lazy.nvim manages plugins                |
-| herdr             | `~/.config/herdr/` (`herdr/`)          | Workspaces, toggles, boot restore; unit in `home/herdr.nix` |
-| Zellij             | `~/.config/zellij/` (`zellij/`)        |                                          |
-| Ghostty            | `~/.config/ghostty/` (`ghostty/`)      | Linux/macOS variant files                |
-| Zed                | `~/.config/zed/` (`zed/`)              |                                          |
-| lazygit            | `~/.config/lazygit/config.yml`         |                                          |
-| IntelliJ IdeaVim   | `~/.ideavimrc` (`intellij/ideavimrc`)  |                                          |
-| Claude Code        | `~/.claude/` (`claude/`)               | Runtime state ignored                    |
-| pi-coding-agent    | `~/.pi/`, `~/.agents/` (`pi/`)         | Binary via HM activation; plugins agent-managed |
-| .editorconfig      | `~/.editorconfig`                      |                                          |
-| Bash aliases       | `~/dotfiles/bash/*` (sourced by HM `~/.bashrc`) | See Shell Alias Architecture      |
-| Windows (native)   | `WindowsPowerShell/*.ps1`, `windows/`   | `$PROFILE` linked by `windows/install.ps1`; Scoop + winget manifests |
+| Tool               | Config location                                 | Notes                                                                |
+| ------------------ | ----------------------------------------------- | -------------------------------------------------------------------- |
+| Nix / Home Manager | `~/dotfiles/{flake.nix,flake.lock,home/}`       | `home-manager switch` applies; `flake.lock` pins                     |
+| Neovim             | `~/.config/nvim/` (`nvim/`)                     | lazy.nvim manages plugins                                            |
+| herdr              | `~/.config/herdr/` (`herdr/`)                   | Workspaces, toggles, boot restore; unit in `home/herdr.nix`          |
+| Ghostty            | `~/.config/ghostty/` (`ghostty/`)               | Linux/macOS variant files                                            |
+| Zed                | `~/.config/zed/` (`zed/`)                       |                                                                      |
+| lazygit            | `~/.config/lazygit/config.yml`                  |                                                                      |
+| IntelliJ IdeaVim   | `~/.ideavimrc` (`intellij/ideavimrc`)           |                                                                      |
+| Claude Code        | `~/.claude/` (`claude/`)                        | Runtime state ignored                                                |
+| pi-coding-agent    | `~/.pi/`, `~/.agents/` (`pi/`)                  | Binary via HM activation; plugins agent-managed                      |
+| .editorconfig      | `~/.editorconfig`                               |                                                                      |
+| Bash aliases       | `~/dotfiles/bash/*` (sourced by HM `~/.bashrc`) | See Shell Alias Architecture                                         |
+| Windows (native)   | `WindowsPowerShell/*.ps1`, `windows/`           | `$PROFILE` linked by `windows/install.ps1`; Scoop + winget manifests |
 
 ### Git config (Home Manager)
 

@@ -1,3 +1,0 @@
-alias zw="zellij attach work || zellij --session work"
-alias zh="zellij attach home || zellij --session home"
-# client-session aliases live in bash/secret_aliases (untracked via **/secret**).
