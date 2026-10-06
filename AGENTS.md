@@ -8,6 +8,46 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 
 **Key technologies:** Nix flakes, Home Manager, Bash, Neovim (Lua/lazy.nvim), herdr, zellij, ghostty, zed, IntelliJ IdeaVim, lazygit, mise (JDK baseline + per-repo version overrides), pi-coding-agent.
 
+## OS track parity — read before every change
+
+Every OS track is held to the **same standard**. A change to one track is not
+finished until the same change exists in every track it applies to. Never leave
+a track behind because you are not running that OS, and never let two tracks
+drift into different shapes.
+
+| Track | Kind | Files beyond the common set |
+| ----- | ---- | --------------------------- |
+| `arch/` | Nix + Home Manager | `zram-generator.conf` |
+| `fedora/` | Nix + Home Manager | `dnf.conf`, `zram-generator.conf` |
+| `nobara/` | Nix + Home Manager | `dnf.conf` |
+| `ubuntu/` | Nix + Home Manager | — (also the platform for the WSL2 host `wsl`) |
+| `macos/` | **pre-HM** (Homebrew) | `Brewfile`, `zshrc` — no flake attr |
+| `windows/` + `WindowsPowerShell/` | native Windows | `install.ps1`, `scoop.json`, `winget.json`, `profile.ps1` + `*_functions.ps1` |
+
+Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
+`install.sh`, `README.md`.
+
+### Per-file contract
+
+- **`<os>/bashrc`** — sources `bash/*`, then `<os>/bash_aliases`; sets `PS1`, activates `mise`, puts `~/.local/bin`/`~/go/bin`/`~/.cargo/bin` on `PATH`, and exports the `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` ceilings. `home/bash.nix` sources `<os>/bashrc` only when the file exists — a missing one silently drops PATH, aliases, and `pi`/`gitlab-tui` resolution.
+- **`<os>/bash_aliases`** — the `i` / `r` / `is` / `il` package aliases, `DOCKER_HOST` + `DOCKER_SOCK` (also set at session scope in `home/default.nix` so GUI-launched apps inherit them — keep both, neither replaces the other), and **`up()` as a function, never an alias**: `scripts/nix-update.sh` → OS package upgrade → flatpak → `pi update --extensions`, chained with `|| return`, preceded by `unalias up 2>/dev/null || true`. Keep the explanatory comments — `fedora/bash_aliases` is the reference; a shorter comment is fine only where it says "same reasoning as fedora/bashrc".
+- **`<os>/install.sh`** — `#!/usr/bin/env bash`, mode `100755`, the `link_target()` helper, then the same shared tail in the same order: `pi`/`.ai`/`claude` links → herdr reload → OS packages → pi plugins → gitlab-tui build + `scripts/gitlab-tui-config.sh` → flatpak → podman socket (guarded) → `git config core.hooksPath .githooks`. **System-only** — never install anything `home/packages.nix` owns.
+- **`<os>/README.md`** — the four-command fresh-install block (Nix installer → clone to `~/dotfiles` → `./<os>/install.sh` → `nix run …home-manager… -- switch -b backup --flake ~/dotfiles#<user>@<host>`), then the rebuild command, then the same three closing notes. `fedora/README.md` is the template.
+
+### Checklist for any cross-platform change
+
+1. Apply it to **every** track in the table — arch, fedora, nobara, ubuntu, macos, windows — not just the one you happen to be running.
+2. Registering a new machine or distro is four edits, not one: the `hosts` map in `flake.nix`, `nix_platform` in `scripts/nix-lib.sh`, the `case "$DISTRO"` + `install_prereqs` branches in `scripts/e2e-nix-container.sh`, and this table.
+3. Update every doc surface that enumerates tracks: this section, **Directory Layout**, **Setup Commands**, the `hosts` key lists under **Nix / Home Manager**, and the "every OS track has a shell rc" bullet under **Code Style Guidelines**.
+4. Gate before committing: `bash -n` on every touched script, `bash scripts/check-identifiers.sh`, `nix build --no-link .#homeConfigurations."<user>@<host>".activationPackage`, and a real `E2E_DISTRO=<fedora|ubuntu|arch> scripts/e2e-nix-container.sh` run. Report the e2e result.
+
+### Deliberate exceptions — do not "fix" these
+
+- `macos/` is the pre-Home-Manager track (`plans/nix-migration-plan.md` §10): Homebrew + `install.sh` symlinks only, no Nix, no flake attr.
+- `windows/` is a **curated** layer, not a full `scoop export` / `winget export` — drivers, games and vendor utilities are excluded on purpose.
+- GUI apps stay outside Nix where the OS already ships them (flatpak/system); only ghostty and orca are nix-wrapped (nixGL, Linux non-WSL).
+- `nobara/` has no zram step while `arch/` and `fedora/` do. Known, unresolved difference — do not silently copy one into the other; decide it and record the outcome here.
+
 ## Directory Layout
 
 | Path | Managed by | Purpose |
@@ -16,7 +56,7 @@ Personal dotfiles repo for Tsetsen-erdene Ganbaatar (dis446). Manages cross-plat
 | `home/` | Home Manager | `home/*.nix` modules: packages, dotfile links, bash, git, npm global, herdr unit |
 | `scripts/` | — | `nix-*` helpers + `e2e-nix-container.sh`; `check-identifiers.sh` |
 | `bash/` | Home Manager (sourced) | Cross-platform shell aliases, split by topic |
-| `fedora/`, `nobara/`, `macos/`, `ubuntu/` | system-only | OS-specific aliases, bashrc, system install scripts |
+| `arch/`, `fedora/`, `nobara/`, `macos/`, `ubuntu/` | system-only | OS-specific aliases, bashrc, system install scripts |
 | `nvim/` | HM link → `~/.config/nvim` | Neovim config (Lua, lazy.nvim) |
 | `herdr/` | HM link + `home/herdr.nix` | herdr config + systemd unit, toggles, boot restore (see WORKFLOW.md) |
 | `ghostty/` | HM link → `~/.config/ghostty` | Ghostty terminal config (linux/ + macos/ variants) |
@@ -43,10 +83,10 @@ curl -fsSL https://install.determinate.systems/nix | sh -s -- install
 git clone git@github.com:dis446/dotfiles.git ~/dotfiles
 
 # 3. System-level setup (RPM Fusion, dnf.conf, zram, flatpak, systemd)
-./fedora/install.sh          # or nobara/install.sh / ubuntu/install.sh
+./fedora/install.sh          # or nobara/install.sh / ubuntu/install.sh / arch/install.sh
 
 # 4. Apply the Nix environment (tools + config + shell + herdr unit)
-home-manager switch --flake ~/dotfiles#$(id -un)@nobara   # platform: fedora | nobara | ubuntu
+home-manager switch --flake ~/dotfiles#$(id -un)@nobara   # platform: fedora | nobara | ubuntu | arch
 ```
 
 `macos/install.sh` + `macos/Brewfile` are the macOS track (see `plans/nix-migration-plan.md` §10).
@@ -71,7 +111,7 @@ Install scripts are **idempotent** — `rm -rf "$dest"` before `ln -s "$src"`.
 
 1. OS system layer — Fedora/Nobara: RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak GUI apps. Ubuntu: `apt` update, podman (user socket), flatpak GUI apps (skipped on WSL).
 2. Symlink the imperative agent configs (`pi`, `.ai`, `claude`) and reload herdr.
-3. Shared agent/tooling tail (**all four tracks**): pi plugins, gitlab-tui build + config, and `git config core.hooksPath .githooks` (identifier pre-commit hook).
+3. Shared agent/tooling tail (**all five tracks**): pi plugins, gitlab-tui build + config, and `git config core.hooksPath .githooks` (identifier pre-commit hook).
 
 Everything else on the Linux tracks — CLI tools, runtimes, shell rc, git identity, and the editor/multiplexer configs — is Home Manager. The macOS track still symlinks its own config set because it is not on Home Manager yet (`plans/nix-migration-plan.md` §10).
 
@@ -87,7 +127,7 @@ herdr
 
 ## Nix / Home Manager
 
-- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`) and a `hosts` map (fedora/nobara/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
+- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`) and a `hosts` map (fedora/nobara/arch/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
 - `home/` — one concern per file:
   - `packages.nix` — CLI tools + runtimes; role-gated extras (`azure-cli`, `glab`, `gh` for `work`).
   - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, zellij, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
@@ -95,8 +135,8 @@ herdr
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `npm-globals.nix` — the pi agent binary (npm global, prefix `~/.local`; env var, never `npm config set`).
   - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only, **including WSL**).
-- **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu`).
-- **Hosts:** the `hosts` map is keyed `fedora`/`nobara`/`ubuntu`/**`wsl`** and carries `{ username, role, platform, system, isWsl? }`. Username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `winny` on the WSL work host). `nix-lib.sh` maps the running OS to the key (`nix_platform` detects WSL first). `isWsl` gates host-only packages (`ghostty`/nixGL) — see [Windows / WSL](#windows--wsl).
+- **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu|arch`).
+- **Hosts:** the `hosts` map is keyed `fedora`/`nobara`/`arch`/`ubuntu`/**`wsl`**/`servy` and carries `{ username, role, platform, system, isWsl? }`. Username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch, `winny` on the WSL work host). `nix-lib.sh` maps the running OS to the key (`nix_platform` detects WSL first). `isWsl` gates host-only packages (`ghostty`/nixGL) — see [Windows / WSL](#windows--wsl).
 - **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
   - **Exception: JDK baselines.** `mise/config.toml` (linked to `~/.config/mise/config.toml`) declares `java = ["temurin-21", "temurin-25"]` so both Temurin JDKs exist on every machine, 21 default. Nix's `temurin-bin-21` alone left nvim-jdtls without the exact launcher/runtime paths it derives from `mise where java@...`. `home.activation.miseInstall` re-runs `mise install` on every switch, so a pruned JDK heals on the next `home-manager switch`.
 - **GUI apps on Linux are wrapped with nixGL** (`nixGL` flake input; `targets.genericLinux.nixGL` in `home/default.nix`, `config.lib.nixGL.wrap` in `home/packages.nix`). Nix mesa can't init EGL on non-NixOS, so nix GL apps (ghostty) fail with `Failed to create EGL display` without the wrapper.
@@ -326,7 +366,7 @@ first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
 - `rm -rf "$dest"` before `ln -s "$src"` for idempotency
 - Use `link_target()` helper from install scripts
 - Every `*/install.sh` starts with `#!/usr/bin/env bash` and is executable (`100755`)
-- Every OS track has a shell rc (`{fedora,nobara,ubuntu}/bashrc`, `macos/{zshrc,bashrc}`) that sources `bash/*` + its own `bash_aliases`, and every install script ends with the same shared tail (herdr reload, pi plugins, gitlab-tui, `core.hooksPath`)
+- Every OS track has a shell rc (`{fedora,nobara,arch,ubuntu}/bashrc`, `macos/{zshrc,bashrc}`) that sources `bash/*` + its own `bash_aliases`, and every install script ends with the same shared tail (herdr reload, pi plugins, gitlab-tui, `core.hooksPath`)
 - Line endings are LF, enforced by `.gitattributes` so shell shebangs survive a Windows checkout
 
 ### Nix
