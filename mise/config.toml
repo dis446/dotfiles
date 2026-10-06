@@ -6,4 +6,4 @@
 # local mise.toml). `mise install` runs on every HM switch, so a prune or a
 # version bump never leaves a machine without a JDK again.
 [tools]
-java = ["temurin-21", "temurin-25"]
+java = ["temurin-21", "temurin-25", "node-24"]
