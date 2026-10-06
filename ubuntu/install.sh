@@ -94,20 +94,12 @@ else
   echo "WARN: go/make missing — skipping gitlab-tui build (go+gcc+gnumake come from home/packages.nix)" >&2
 fi
 
-# config: GitLab server ($GITLAB_HOST, e.g. https://<gitlab-host>); token from $GITLAB_TOKEN, else placeholder
-mkdir -p "$HOME/.config/gitlab-tui"
-python3 - "${GITLAB_TOKEN:-__PASTE_GITLAB_TOKEN_HERE__}" "${GITLAB_HOST:-https://<gitlab-host>}" <<'PYEOF'
-import json, os, sys
-cfg = {"servers": [{"name": sys.argv[2], "url": sys.argv[2], "token": sys.argv[1], "default": True}], "theme": "catppuccin"}
-os.makedirs(os.path.expanduser("~/.config/gitlab-tui"), exist_ok=True)
-with open(os.path.expanduser("~/.config/gitlab-tui/config.json"), "w") as f:
-    json.dump(cfg, f, indent=2)
-PYEOF
-if [ -n "${GITLAB_TOKEN:-}" ]; then
-  echo "gitlab-tui configured for $GITLAB_HOST (token from GITLAB_TOKEN)"
-else
-  echo "NOTE: GITLAB_TOKEN not set — edit ~/.config/gitlab-tui/config.json and paste your token"
-fi
+# config: scripts/gitlab-tui-config.sh writes ~/.config/gitlab-tui/config.json
+# from the untracked GITLAB_HOST/GITLAB_TOKEN in bash/secret_aliases. It never
+# writes a placeholder — a placeholder host is what broke gitlab-tui
+# ("lookup <gitlab-host>: no such host"). Unlike `source ~/.bashrc`, it reads
+# the secrets even when install.sh runs non-interactively.
+"$HOME/dotfiles/scripts/gitlab-tui-config.sh"
 
 [ -f "$HOME/.bashrc" ] && source "$HOME/.bashrc"
 
