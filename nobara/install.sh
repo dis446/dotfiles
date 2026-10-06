@@ -52,6 +52,21 @@ sudo dnf install -y flatpak
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
 
+# TODO(pi-npm-migration): delete this block once every host has run it — pi used
+# to be an npm global in ~/.local and is now the flake's package
+# (home/packages.nix). The leftover npm copy shadows the flake one on PATH,
+# because nobara/bashrc puts ~/.local/bin ahead of ~/.nix-profile/bin.
+legacy_pi="$HOME/.local/lib/node_modules/@earendil-works/pi-coding-agent"
+if [ -d "$legacy_pi" ]; then
+  echo "Migrating pi off npm (it is the flake's package now)..."
+  command -v npm >/dev/null 2>&1 && npm_config_prefix="$HOME/.local" \
+    npm uninstall -g @earendil-works/pi-coding-agent >/dev/null 2>&1
+  # Also remove directly: covers a shell with no npm on PATH, and npm keeps no
+  # state here (no .package-lock.json in ~/.local/lib/node_modules).
+  rm -rf "$HOME/.local/bin/pi" "$legacy_pi"
+  rmdir "$HOME/.local/lib/node_modules/@earendil-works" 2>/dev/null || true
+fi
+
 # The pi agent binary comes from the flake (home/packages.nix -> the upstream pi
 # flake input). pi plugins are managed by the agent itself — install only when
 # pi is present (on a fresh machine, after the first HM switch).
