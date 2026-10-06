@@ -1,4 +1,9 @@
-{ config, lib, pkgs, role, isWsl ? false, ... }:
+{ config, lib, pkgs, role, isWsl ? false, llmAgents, ... }:
+let
+  # llm-agents.nix ships its own pinned nixpkgs; reference its per-system set
+  # directly (Option A) rather than overlaying ours.
+  llm = llmAgents.packages.${pkgs.stdenv.hostPlatform.system};
+in
 {
   home.packages = with pkgs; [
     # Version control / editors
@@ -38,6 +43,10 @@
     gnumake
   ]
   ++ lib.optionals (role == "work") [ azure-cli glab gh ]
-  # ghostty needs a real GPU/display; WSL has neither, so skip it there.
-  ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWsl) [ (config.lib.nixGL.wrap ghostty) ];
+  # GUI apps need a real GPU/display; WSL has neither, so skip them there.
+  # Both are nix GUI apps on non-NixOS → nixGL wrapper (else EGL init fails).
+  ++ lib.optionals (pkgs.stdenv.hostPlatform.isLinux && !isWsl) [
+       (config.lib.nixGL.wrap ghostty)
+       (config.lib.nixGL.wrap llm.orca)
+     ];
 }

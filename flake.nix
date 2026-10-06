@@ -10,6 +10,10 @@
     # GPU library wrappers so nix GUI apps (ghostty) can use the host GPU
     # stack on non-NixOS. See home/default.nix + home/packages.nix.
     nixGL.url = "github:nix-community/nixGL";
+    # AI coding agents / dev tools (orca ADE, etc.). Option A: consume its
+    # per-system packages directly — its own pinned nixpkgs, best binary-cache
+    # hits. No `follows` so we don't have to track unstable in lockstep.
+    llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
@@ -40,7 +44,11 @@
             inherit system;
             config.allowUnfree = true;
           };
-          extraSpecialArgs = { inherit username role platform isWsl; nixGL = inputs.nixGL; };
+          extraSpecialArgs = {
+            inherit username role platform isWsl;
+            nixGL = inputs.nixGL;
+            llmAgents = inputs.llm-agents;
+          };
           modules = [ ./home ];
         };
     in
