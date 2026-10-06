@@ -1,9 +1,13 @@
 # Global mise baseline. Managed by Home Manager (home/dotfiles.nix) — applies on
-# every machine (fedora + nobara share home/). Per-repo pins still override this.
+# every Linux host. Per-repo pins still override this.
 #
 # Both JDKs stay installed: 21 first = default (work stack, nvim-jdtls launcher,
 # JavaSE-21 runtime); 25 for version-pinned side projects (nvim opts in via a
 # local mise.toml). `mise install` runs on every HM switch, so a prune or a
 # version bump never leaves a machine without a JDK again.
+#
+# Node is NOT listed here on purpose: Nix owns the global Node (nodejs_24 in
+# home/packages.nix). A bare `node-24` in the java array made mise resolve
+# `java@node-24` and fail on every switch.
 [tools]
-java = ["temurin-21", "temurin-25", "node-24"]
+java = ["temurin-21", "temurin-25"]
