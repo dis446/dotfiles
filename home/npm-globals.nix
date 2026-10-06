@@ -8,12 +8,17 @@
 # env var, not `npm config set`, so activation never rewrites ~/.npmrc (which
 # holds a registry auth token).
 #
-# Version is PINNED to 0.99.2 on purpose: pi >= 1.0.0 dropped the
-# `@earendil-works/pi-agent-core/node` export, which pi-subagents resolves when
-# it spawns child agents (async and foreground alike). On 1.0.x every subagent
-# launch fails with "Background children require the host npm package ...".
-# 0.99.2 is the last release that still exports ./node AND ships chord.
-# Drop the pin only once pi-subagents supports pi >= 1.0.
+# Version is PINNED, never @latest: an upstream pi that drops an export
+# pi-subagents resolves while spawning child agents silently breaks every
+# subagent launch. That is what 1.0.0 did — it removed
+# `@earendil-works/pi-agent-core/node`, so the host was held at 0.99.2 until
+# pi-subagents made that alias optional (runs/background/runner-aliases.js).
+#
+# 1.0.4 is verified good, not assumed: pi-subagents' own resolveHostPeerAliases
+# returns missing: [] against it, and 1.0.x still ships @earendil-works/chord,
+# which that resolver requires from any host that is not a stable 0.<85.
+# Bump this and scripts/nix-update.sh together, and re-run that resolver probe
+# before moving the pin — never to @latest.
 { lib, pkgs, ... }:
 {
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -21,7 +26,7 @@
     export npm_config_prefix="$HOME/.local"
     # Version-aware guard: reinstalls when a different version is present, so the
     # pin self-enforces instead of silently keeping whatever `@latest` installed.
-    npm ls -g "@earendil-works/pi-coding-agent@0.99.2" 2>/dev/null 1>&2 \
-      || npm install -g --ignore-scripts "@earendil-works/pi-coding-agent@0.99.2"
+    npm ls -g "@earendil-works/pi-coding-agent@1.0.4" 2>/dev/null 1>&2 \
+      || npm install -g --ignore-scripts "@earendil-works/pi-coding-agent@1.0.4"
   '';
 }
