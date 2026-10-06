@@ -62,6 +62,7 @@ if command -v pi >/dev/null 2>&1; then
   pi install npm:@juicesharp/rpiv-ask-user-question
   pi install npm:pi-subagents
   pi install npm:@dietrichgebert/ponytail
+  pi install npm:pi-btw
 fi
 
 
