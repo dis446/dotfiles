@@ -142,7 +142,7 @@ if ! podman exec -i -u "$U" -e E2E_EMAIL="$EXPECT_EMAIL" -e E2E_PLATFORM="$PLATF
   -e USER="$U" -e LOGNAME="$U" "$NAME" bash -s <<'EOS'
 export PATH=$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH
 rc=0
-for t in nvim herdr zellij mise node java kubectl podman go gcc bat jq fd rg fzf \
+for t in nvim herdr zellij mise node java kubectl k9s podman lazydocker go gcc bat jq fd rg fzf \
          ghostty lazygit speedtest-cli pydf; do
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done
@@ -166,6 +166,10 @@ esac
 [ "$(git config --global user.email)" = "$E2E_EMAIL" ] || { echo "git email wrong"; rc=1; }
 grep -q "dotfiles/$E2E_PLATFORM/" "$HOME/.bashrc" || { echo "bashrc does not source repo rc"; rc=1; }
 bash -lic 'alias dtf >/dev/null 2>&1' 2>/dev/null || { echo "aliases missing"; rc=1; }
+# podman is the only container runtime: the OS track's bash_aliases must export
+# DOCKER_HOST in a real login shell (the GUI/systemd half is session-scoped and
+# cannot be asserted in a container without a user session).
+bash -lic 'test -n "$DOCKER_HOST"' 2>/dev/null || { echo "DOCKER_HOST unset in login shell"; rc=1; }
 exit $rc
 EOS
 then
