@@ -67,7 +67,7 @@ Constraints worth knowing before editing it, both verified against
   what selects *Local only*, so with none present Orca uses `orca.yaml`.
 - Commands run in a login shell, so `nvim` resolves via `~/.bashrc`.
 
-## Appearance — one coherent surface (dark, Iosevka, tokyonight navy)
+## Appearance — one coherent surface (dark, JetBrainsMono NF, tokyonight navy)
 
 There is no settings file, env var, or `orca` CLI command for appearance: the values live
 in the `settings` JSON document of `profiles/local-default/profile-state.db` (Electron data,
