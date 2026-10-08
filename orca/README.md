@@ -67,6 +67,52 @@ Constraints worth knowing before editing it, both verified against
   what selects *Local only*, so with none present Orca uses `orca.yaml`.
 - Commands run in a login shell, so `nvim` resolves via `~/.bashrc`.
 
+## Keybindings (`~/.orca/keybindings.json`)
+
+Tracked here as `keybindings.json` and wired to `~/.orca/keybindings.json` by the
+same symlink, so orca's shortcuts travel with the repo (pi's `keybindings.json`
+is tracked the same way).
+
+The goal is that moving between herdr and orca costs as little muscle memory as
+possible, so every addition is anchored in `nvim/UNIFIED-KEYBINDS.md` or
+`herdr/config.toml` rather than invented:
+
+| orca action                        | added key        | also keeps              | came from                                  |
+| ---------------------------------- | ---------------- | ----------------------- | ------------------------------------------ |
+| `tab.previousAllTypes`             | `Alt+H`          | `Mod+Shift+BracketLeft` | UNIFIED-KEYBINDS: `Alt+H` = previous tab    |
+| `tab.nextAllTypes`                 | `Alt+L`          | `Mod+Shift+BracketRight`| UNIFIED-KEYBINDS: `Alt+L` = next tab        |
+| `terminal.splitRight`              | `Alt+V`          | `Mod+Shift+D`           | herdr `prefix+v`, nvim `<C-w>v`             |
+| `terminal.splitDown`               | `Alt+S`          | `Alt+Shift+D`           | nvim `<C-w>s` (split)                       |
+| `terminal.expandPane`              | `Alt+M`          | `Mod+Shift+Enter`       | UNIFIED-KEYBINDS `<leader>sm` (zoom split)  |
+| `tab.newTerminal`                  | `Alt+I`          | `Mod+T`                 | herdr `alt+i` = workspace term tab          |
+| `tab.newAgent`                     | `Alt+K`          | — (unassigned on linux) | herdr `alt+k` = pi agent pane               |
+| `sidebar.sourceControl.toggle`     | `Alt+G`          | `Mod+Shift+G`           | herdr `alt+g` = GitLab TUI                  |
+| `worktree.palette`                 | `Alt+W`          | `Mod+Shift+J`           | herdr `prefix+w` = switch workspace         |
+| `workspace.rename`                 | `Alt+Shift+W`    | — (unassigned on linux) | herdr `prefix+shift+w` = rename workspace   |
+
+Three constraints shaped this list. All three come from orca's source, and none is
+stated in its docs prose:
+
+- **No chords.** A binding is a single combo (`Mod+P`); the parser
+  (`src/main/keybindings/keybinding-file-parser.ts`) has no notion of a key
+  *sequence*, so the `Space` leader vocabulary from Neovim cannot be reproduced
+  here. It stays where it works — inside nvim, which orca now opens per worktree
+  (`defaultTabs` above). orca is the orchestration layer; nvim is still the editor.
+- **Overrides replace rather than merge.** `getEffectiveKeybindingsForAction`
+  returns an override array as-is, so each entry repeats the default it wants to
+  keep — writing only the new key would silently drop the old one.
+- **It is strictly JSON.** `readJsonDocument` calls `JSON.parse`, so a comment
+  would break the file outright. That is why this table lives here instead.
+
+`Mod` is Ctrl on Linux, and the file is scoped under `platforms.linux` so the
+darwin defaults stay untouched. Two keys were already aligned by luck: orca's
+`Mod+B` sidebar toggle is **Ctrl+B** — herdr's prefix — and `Mod+P` is Go to File.
+The one habit that deliberately does *not* carry over is Neovim's `Ctrl+N` (find
+file): taking a bare Ctrl+letter app-wide would steal it from readline inside
+terminal panes, so orca keeps `Ctrl+P` for that. Note also that a conflicting key
+is dropped rather than reported (`removeConflictingOverrides`), so a silently
+missing binding means a collision, not a typo.
+
 ## Appearance — one coherent surface (dark, JetBrainsMono NF, tokyonight navy)
 
 There is no settings file, env var, or `orca` CLI command for appearance: the values live

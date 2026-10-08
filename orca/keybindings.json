@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "platforms": {
+    "linux": {
+      "tab.previousAllTypes": ["Mod+Shift+BracketLeft", "Alt+H"],
+      "tab.nextAllTypes": ["Mod+Shift+BracketRight", "Alt+L"],
+      "tab.newTerminal": ["Mod+T", "Alt+I"],
+      "tab.newAgent": ["Alt+K"],
+      "sidebar.sourceControl.toggle": ["Mod+Shift+G", "Alt+G"],
+      "worktree.palette": ["Mod+Shift+J", "Alt+W"],
+      "workspace.rename": ["Alt+Shift+W"],
+      "terminal.splitRight": ["Mod+Shift+D", "Alt+V"],
+      "terminal.splitDown": ["Alt+Shift+D", "Alt+S"],
+      "terminal.expandPane": ["Mod+Shift+Enter", "Alt+M"]
+    }
+  }
+}
