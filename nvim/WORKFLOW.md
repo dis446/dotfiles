@@ -202,7 +202,8 @@ loads all of them.
 | `npm:pi-subagents` | Subagent delegation: single-child handoffs, parallel fanout (`runs.all`), scripted workflows, `/council` advisor mode. |
 | `npm:@narumitw/pi-btw` | `/btw <question>` — side-question thread; doesn't pollute the main conversation. |
 | `npm:@juicesharp/rpiv-ask-user-question` | Structured questionnaire tool — typed options instead of free-form guessing when requirements are ambiguous. |
-| `herdr-agent-state.ts` (`~/.pi/agent/extensions/`) | Managed by herdr (`herdr integration install pi`): reports pi lifecycle (working/blocked/idle) + session ref so herdr's sidebar, notifications, and native session restore work. |
+| `herdr-agent-state.ts` (`~/.pi/agent/extensions/`) | Managed by herdr (`herdr integration install pi`): reports pi lifecycle (working/blocked/idle) + session ref so herdr's sidebar, notifications, and native session restore work. Classifies state only from its own `herdr:blocked` event — screen detection is skipped. |
+| `rpiv-herdr-blocked-bridge.ts` (`~/.pi/agent/extensions/`) | Bridges `rpiv:ask-user:blocked` (emitted by the ask-user-question package) onto herdr's `herdr:blocked`, so an open questionnaire shows the pane as blocked instead of working. Beside the herdr-managed file so reinstalling that integration does not clobber it. |
 
 Removed: `agent-done-notify.ts` (tmux notify-send) — replaced by herdr's
 built-in done/blocked notifications (`[ui.toast] delivery = "system"`).

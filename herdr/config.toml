@@ -55,3 +55,6 @@ key = "alt+r"
 type = "shell"
 command = "$HOME/dotfiles/herdr/restore.sh"
 description = "restore workspace trio"
+
+[experimental]
+kitty_graphics = true

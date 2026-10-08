@@ -19,6 +19,11 @@
     # like llm-agents; `stable` is a branch, so flake.lock pins the revision and
     # `nix flake update` is what moves the agent.
     pi.url = "github:earendil-works/pi/stable";
+    # Collie — self-hosted PWA that drives herdr's panes/agents from a phone,
+    # over a Tailscale tailnet. Consumed per-system like llm-agents/pi; its
+    # flake wraps the release tarball by sha256 (no source build). See
+    # home/collie.nix.
+    collie.url = "github:AltanS/collie";
   };
 
   outputs = inputs@{ self, nixpkgs, home-manager, ... }:
@@ -57,6 +62,7 @@
             nixGL = inputs.nixGL;
             llmAgents = inputs.llm-agents;
             piAgent = inputs.pi;
+            collieAgent = inputs.collie;
           };
           modules = [ ./home ];
         };

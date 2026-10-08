@@ -6,6 +6,7 @@
     ./bash.nix
     ./git.nix
     ./herdr.nix
+    ./collie.nix
     ./postgres.nix
     ./fonts.nix
   ];

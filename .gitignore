@@ -77,3 +77,10 @@ pi/agent/.skill-lock.json
 # claude/skills/* are symlinks into pi/agent/skills — tracked so the links survive.
 # These docs name the client services the agent works on, so they are exempted
 # from scripts/check-identifiers.sh; they carry no credentials.
+# Exception: `terminal-browser setup` drops *absolute* symlinks into the app
+# bundle (~/.local/share/terminal-browser/app/skills/…) via the ~/.pi and
+# ~/.claude repo symlinks. Unlike the links above they are not repo-relative, so
+# tracking them would bake $HOME into a public repo and break every other host.
+# The installer recreates them on each install/upgrade — never commit them.
+claude/skills/terminal-browser
+pi/agent/skills/terminal-browser

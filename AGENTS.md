@@ -147,7 +147,7 @@ herdr
 
 ## Nix / Home Manager
 
-- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`, `nixGL`, `llm-agents`, `pi`) and a `hosts` map (fedora/nobara/arch/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
+- `flake.nix` — inputs (`nixpkgs-unstable`, `home-manager`, `nixGL`, `llm-agents`, `pi`, `collie`) and a `hosts` map (fedora/nobara/arch/ubuntu → `{ username, role, platform, system }`) plus `homeConfigurations."<user>@<platform>"` — username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch); `scripts/nix-lib.sh` derives it from `id -un`. `role` (`work`/`personal`) gates packages; `mkHome` asserts membership. One flake, shared `home/` modules.
 - `home/` — one concern per file:
   - `packages.nix` — CLI tools + runtimes; role-gated extras (`azure-cli`, `glab`, `gh` for `work`).
   - `dotfiles.nix` — `mkOutOfStoreSymlink` links for nvim, ghostty, lazygit, herdr config, zed, `.editorconfig`, `.ideavimrc`, gradle. **Never** `source = ./dir` — that copies into the read-only store and breaks files the app rewrites (`lazy-lock.json`).
@@ -155,6 +155,14 @@ herdr
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `packages.nix` also carries the pi agent binary, from the upstream pi flake (`pi.url`) — so the agent moves with `flake.lock`; its plugins stay agent-managed under `~/.pi/agent/npm`. That npm tree is **per machine and gitignored** (nothing to `git pull`), so `plans/fix-pi-extension-lockfile.md` repairs it when its lockfile accumulates bogus `../dotfiles/…` keys.
   - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only, **including WSL**).
+  - `collie.nix` — the `collie` package (from `collie.url`) plus
+    `systemd.user.services.collie`: herdr's panes and agents on a phone, over a
+    Tailscale tailnet. Linux only. It runs `collie _exec-bridge`, **not**
+    `collie start` — Home Manager owns the unit, so `collie start|stop|restart|
+    uninstall` must not be used (`collie pair`/`devices`/`url`/`qr`/`logs`/
+    `push-keys` stay safe). Config `~/.config/collie/.env` (`COLLIE_TRUSTED_USER`,
+    VAPID push keys) and state `~/.local/state/collie` are untracked and never
+    linked. The front door is `collie serve` (`tailscale serve`, tailnet-only).
   - `postgres.nix` — `systemd.user.services.postgresql`: a user-level cluster at
     `~/.local/share/postgres/data`, pinned to `postgresql_18`, initdb'd on first
     start. Every HM host, Linux only. See [Databases](#databases).
@@ -169,7 +177,7 @@ herdr
 - **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
   - **Exception: JDK baselines.** `mise/config.toml` (linked to `~/.config/mise/config.toml`) declares `java = ["temurin-21", "temurin-25"]` so both Temurin JDKs exist on every machine, 21 default. Nix's `temurin-bin-21` alone left nvim-jdtls without the exact launcher/runtime paths it derives from `mise where java@...`. `home.activation.miseInstall` re-runs `mise install` on every switch, so a pruned JDK heals on the next `home-manager switch`.
 - **GUI apps on Linux are wrapped with nixGL** (`nixGL` flake input; `targets.genericLinux.nixGL` in `home/default.nix`, `config.lib.nixGL.wrap` in `home/packages.nix`). Nix mesa can't init EGL on non-NixOS, so nix GL apps (ghostty) fail with `Failed to create EGL display` without the wrapper.
-- **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), the MongoDB **server** (`mongod` — see [Databases](#databases)), `pi`/`claude` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
+- **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), **`terminal-browser`** (a 136 MB prebuilt Electron bundle — no upstream flake and nothing in nixpkgs, so it comes from `curl -fsSL https://terminal-browser.sh/install | bash` into `~/.local/share/terminal-browser` + a `~/.local/bin` shim, and self-updates via `terminal-browser upgrade`; `nix-update` does not touch it), the MongoDB **server** (`mongod` — see [Databases](#databases)), **Tailscale** (its daemon needs root, so it is a system install on every track — Collie's front door and nothing else's; `scripts/tailscale-setup.sh` installs it per distro and re-asserts the locked-down flags every run), `pi`/`claude`/`collie` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
 
 ## Databases
 
@@ -548,6 +556,7 @@ a shell. Full operating pattern lives in each repo's `AGENTS.md`.
 | IntelliJ IdeaVim   | `~/.ideavimrc` (`intellij/ideavimrc`)           |                                                                      |
 | Claude Code        | `~/.claude/` (`claude/`)                        | Runtime state ignored                                                |
 | pi-coding-agent    | `~/.pi/`, `~/.agents/` (`pi/`)                  | Binary via HM activation; plugins agent-managed                      |
+| Collie (phone UI)  | `~/.config/collie/` (untracked)                 | herdr on the phone over Tailscale; unit in `home/collie.nix`         |
 | .editorconfig      | `~/.editorconfig`                               |                                                                      |
 | Bash aliases       | `~/dotfiles/bash/*` (sourced by HM `~/.bashrc`) | See Shell Alias Architecture                                         |
 | Windows (native)   | `WindowsPowerShell/*.ps1`, `windows/`           | `$PROFILE` linked by `windows/install.ps1`; Scoop + winget manifests |
