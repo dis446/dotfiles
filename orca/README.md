@@ -80,13 +80,27 @@ never tracked). So they are applied once per machine in **Settings → Appearanc
 | Sidebar appearance    | **Match terminal**                     | `leftSidebarAppearanceMode`            | sidebar adopts the terminal background                     |
 | Terminal theme (dark) | **Tokyo Night Navy** (imported, custom) | `terminalThemeDark` = `custom:warp:tokyonight-navy` | identical to nvim's tokyonight override       |
 | Separate light theme  | **off**                                | `terminalUseSeparateLightTheme`        | one theme, no light-mode flip                              |
-| Terminal font / size  | `Iosevka Term SS04` / `8`              | `terminalFontFamily`, `terminalFontSize` | same as ghostty (`font-size = 8`)                        |
+| Terminal font / size  | `JetBrainsMono Nerd Font Mono` / `8`   | `terminalFontFamily`, `terminalFontSize` | same as ghostty; Mono NF keeps icons single-width on the grid |
 | Terminal line height  | `1.2`                                  | `terminalLineHeight`                   | same as ghostty (`adjust-cell-height = 20%`)               |
 | Terminal cursor blink | off                                    | `terminalCursorBlink`                  | same as ghostty (`cursor-style-blink = false`)             |
-| App + editor font     | `Iosevka Term SS04`                    | `appFontFamily`, `editorFontFamily`    | Iosevka everywhere                                        |
+| App + editor font     | `JetBrainsMono Nerd Font`              | `appFontFamily`, `editorFontFamily`    | plain NF for non-grid text, same family ghostty/zed use    |
+
+Orca does not install fonts: they come from `home/fonts.nix` on Linux
+(`pkgs.nerd-fonts.jetbrains-mono` + `fonts.fontconfig.enable`) and `macos/Brewfile` on the
+pre-HM macOS track, so these fields only resolve **after** a `home-manager switch`. Worth
+knowing: neither `Iosevka Term SS04` nor `JetBrains Mono` existed on this box before that —
+every `font-family` naming them silently fell back. (If Iosevka is ever wanted back,
+`pkgs.iosevka-bin.override { variant = "SGr-IosevkaTermSS04"; }` provides that exact family
+name; the `SGr-` prefix is packaging only.)
 
 Labels in the Settings UI drift between Orca versions; the backend key column is the ground
 truth, and the check command at the end of this section prints them.
+
+Applied 2026-10-08 on `guddy@fedora`: `theme = dark`, `match-terminal`, and the imported
+`custom:warp:tokyo-night-navy:tokyonight-navy-yaml-…` selected as the dark theme — the
+sidebar and terminal measured `#011528`, i.e. the nvim background. Still open from the table:
+the two font fields (blocked on the next `home-manager switch`, see below) and turning the
+separate light theme off.
 
 ### Import the terminal theme
 
