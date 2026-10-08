@@ -1,6 +1,6 @@
 #theme = catppuccin-mocha
 
-font-family = "Iosevka Term SS04"
+font-family = "JetBrainsMono Nerd Font Mono", "JetBrains Mono"
 font-size = 8
 
 background-opacity = 0.9

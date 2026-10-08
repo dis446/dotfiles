@@ -158,6 +158,12 @@ herdr
   - `postgres.nix` — `systemd.user.services.postgresql`: a user-level cluster at
     `~/.local/share/postgres/data`, pinned to `postgresql_18`, initdb'd on first
     start. Every HM host, Linux only. See [Databases](#databases).
+  - `fonts.nix` — `pkgs.nerd-fonts.jetbrains-mono` plus `fonts.fontconfig.enable`.
+    The fontconfig line is load-bearing: Nix-installed fonts live in the HM profile,
+    which fontconfig ignores until HM writes its `conf.d` entry, so without it every
+    `font-family` silently falls back to Noto Sans Mono. Configs use the **Mono** NF
+    variant wherever there is a cell grid (ghostty, zed's terminal — and the nvim
+    icons, herdr and lazygit drawn inside them) and plain `Nerd Font` for code buffers.
 - **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu|arch`).
 - **Hosts:** the `hosts` map is keyed `fedora`/`nobara`/`arch`/`ubuntu`/**`wsl`**/`servy` and carries `{ username, role, platform, system, isWsl? }`. Username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch, `winny` on the WSL work host). `nix-lib.sh` maps the running OS to the key (`nix_platform` detects WSL first). `isWsl` gates host-only packages (`ghostty`/nixGL) — see [Windows / WSL](#windows--wsl).
 - **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.

@@ -146,6 +146,13 @@ for t in nvim herdr mise node java kubectl k9s podman lazydocker go gcc bat jq f
          ghostty lazygit speedtest-cli pydf psql; do
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done
+# home/fonts.nix: a Nix-installed font is invisible to fontconfig until HM writes
+# its conf.d entry, and the failure mode is a silent fallback to Noto Sans Mono.
+# So assert the family actually resolves, not merely that the package built.
+if command -v fc-match >/dev/null 2>&1; then
+  fc-match "JetBrainsMono Nerd Font Mono" 2>/dev/null | grep -q JetBrains \
+    || { echo "FONT NOT RESOLVING: JetBrainsMono Nerd Font Mono"; rc=1; }
+fi
 for l in .config/nvim .config/zed/settings.json .config/ghostty/config \
          .config/lazygit/config.yml .config/herdr/config.toml .config/mise/config.toml \
          .editorconfig .ideavimrc; do
