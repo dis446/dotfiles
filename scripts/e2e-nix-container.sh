@@ -146,13 +146,17 @@ for t in nvim herdr mise node java kubectl k9s podman lazydocker go gcc bat jq f
          ghostty lazygit speedtest-cli pydf psql; do
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done
-# home/fonts.nix: a Nix-installed font is invisible to fontconfig until HM writes
-# its conf.d entry, and the failure mode is a silent fallback to Noto Sans Mono.
-# So assert the family actually resolves, not merely that the package built.
-if command -v fc-match >/dev/null 2>&1; then
-  fc-match "JetBrainsMono Nerd Font Mono" 2>/dev/null | grep -q JetBrains \
-    || { echo "FONT NOT RESOLVING: JetBrainsMono Nerd Font Mono"; rc=1; }
-fi
+# home/fonts.nix: the load-bearing pair is the font in the HM profile AND the
+# conf.d entry that tells fontconfig to look there — the failure mode is a silent
+# fallback to Noto Sans Mono, so assert both. fc-match is absent from the base
+# container image, so check by path and print evidence either way: an assertion
+# that can skip silently is not an assertion (the first version of this was
+# guarded by `command -v fc-match` and therefore proved nothing here).
+[ -f "$HOME/.config/fontconfig/conf.d/10-hm-fonts.conf" ] \
+  || { echo "MISSING fontconfig conf.d entry (10-hm-fonts.conf)"; rc=1; }
+nf_faces=$(find "$HOME/.nix-profile/share/fonts/truetype" -name 'JetBrainsMonoNerdFont*.ttf' 2>/dev/null | wc -l)
+[ "$nf_faces" -gt 0 ] || { echo "MISSING JetBrainsMono Nerd Font faces in the HM profile"; rc=1; }
+echo "font wiring OK: conf.d entry present, $nf_faces NF faces in the profile"
 for l in .config/nvim .config/zed/settings.json .config/ghostty/config \
          .config/lazygit/config.yml .config/herdr/config.toml .config/mise/config.toml \
          .editorconfig .ideavimrc; do
