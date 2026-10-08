@@ -26,6 +26,9 @@ link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"
 link_target "$HOME/dotfiles/.ai" "$HOME/.ai"
 link_target "$HOME/dotfiles/claude" "$HOME/.claude"
+# orca user config dir (~/.orca holds keybindings.json overrides).
+# ~/.config/orca is Electron app data holding a private key + tokens: never linked.
+link_target "$HOME/dotfiles/orca" "$HOME/.orca"
 # herdr config.toml and the systemd unit are managed by Home Manager
 # (home/dotfiles.nix, home/herdr.nix).
 # Apply the keybinding to a running herdr server immediately (no-op on fresh installs).

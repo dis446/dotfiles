@@ -31,7 +31,7 @@ Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
 
 - **`<os>/bashrc`** — sources `bash/*`, then `<os>/bash_aliases`; sets `PS1`, activates `mise`, puts `~/.local/bin`/`~/go/bin`/`~/.cargo/bin` on `PATH`, and exports the `JAVA_TOOL_OPTIONS` / `NODE_OPTIONS` ceilings. `home/bash.nix` sources `<os>/bashrc` only when the file exists — a missing one silently drops PATH, aliases, and `pi`/`gitlab-tui` resolution.
 - **`<os>/bash_aliases`** — the `i` / `r` / `is` / `il` package aliases, `DOCKER_HOST` + `DOCKER_SOCK` (also set at session scope in `home/default.nix` so GUI-launched apps inherit them — keep both, neither replaces the other), and **`up()` as a function, never an alias**: `scripts/nix-update.sh` → OS package upgrade → flatpak → `pi update --extensions`, chained with `|| return`, preceded by `unalias up 2>/dev/null || true`. Keep the explanatory comments — `fedora/bash_aliases` is the reference; a shorter comment is fine only where it says "same reasoning as fedora/bashrc".
-- **`<os>/install.sh`** — `#!/usr/bin/env bash`, mode `100755`, the `link_target()` helper, then the same shared tail in the same order: `pi`/`.ai`/`claude` links → herdr reload → OS packages → pi plugins → gitlab-tui build + `scripts/gitlab-tui-config.sh` → flatpak → podman socket (guarded) → `git config core.hooksPath .githooks`. **System-only** — never install anything `home/packages.nix` owns.
+- **`<os>/install.sh`** — `#!/usr/bin/env bash`, mode `100755`, the `link_target()` helper, then the same shared tail in the same order: `pi`/`.ai`/`claude`/`orca` links → herdr reload → OS packages → pi plugins → gitlab-tui build + `scripts/gitlab-tui-config.sh` → flatpak → podman socket (guarded) → `git config core.hooksPath .githooks`. **System-only** — never install anything `home/packages.nix` owns.
 - **`<os>/README.md`** — the four-command fresh-install block (Nix installer → clone to `~/dotfiles` → `./<os>/install.sh` → `nix run …home-manager… -- switch -b backup --flake ~/dotfiles#<user>@<host>`), then the rebuild command, then the same three closing notes. `fedora/README.md` is the template.
 
 ### Checklist for any cross-platform change
@@ -54,6 +54,19 @@ Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
   container run, would recompile MongoDB from source. The cached clients
   (`mongosh`, `mongodb-tools`) could move to Nix separately; the server cannot,
   cheaply. Revisit only if nixpkgs gains a cached mongod.
+- **`~/.config/orca` is never symlinked or tracked**, even though orca is a
+  managed agent config. Its *user* dir is `~/.orca` (→ `orca/`, install.sh-linked
+  exactly like `pi/`), but `~/.config/orca` is Electron app data: the private
+  Curve25519 `orca-e2ee-keypair.json` (mobile-pairing ECDH, and orca refuses to
+  regenerate it because that would unpair every device), `agent-session-authority.key`,
+  a live runtime auth token, an encrypted account session, cookies and sqlite
+  profile state. Only `keybindings.json` travels. orca itself comes from the
+  `llm-agents` flake input (nixGL-wrapped), not an AppImage — see `orca/README.md`.
+  Note orca also **injects its status extension and skills into pi's config dir**,
+  which is this repo through the `~/.pi` symlink — so an orca update shows up as a
+  diff under `pi/agent/extensions/orca-*.ts` and
+  `pi/agent/skills/{computer-use,orca-cli,orchestration}/`. Review and commit those
+  deliberately; do not let them drift unversioned on one machine.
 
 ## Directory Layout
 
@@ -72,6 +85,7 @@ Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
 | `gradle/`                                          | HM link → `~/.gradle/gradle.properties` | Gradle worker/heap limits (concurrency budget)                                   |
 | `intellij/`                                        | HM link → `~/.ideavimrc`                | IdeaVim config + keymap references                                               |
 | `pi/`                                              | install.sh → `~/.pi`, `~/.agents`       | pi-coding-agent config (runtime state ignored)                                   |
+| `orca/`                                            | install.sh → `~/.orca`                  | orca user config (`keybindings.json`); `~/.config/orca` is Electron data — never linked |
 | `claude/`                                          | install.sh → `~/.claude`                | Claude Code config (settings tracked, runtime ignored)                           |
 | `WindowsPowerShell/`                               | `windows/install.ps1` links `$PROFILE`  | Native PowerShell shell layer (`profile.ps1` + topic files)                      |
 | `windows/`                                         | `install.ps1` (run manually)            | Native-Windows layer: Scoop + winget manifests, `$PROFILE` link                  |
@@ -116,7 +130,7 @@ Install scripts are **idempotent** — `rm -rf "$dest"` before `ln -s "$src"`.
 ### What the install scripts do (system-only)
 
 1. OS system layer — Fedora/Nobara: RPM Fusion, `dnf.conf`, zram, `mpv-libs`, flatpak GUI apps. Ubuntu: `apt` update, podman (user socket), flatpak GUI apps (skipped on WSL).
-2. Symlink the imperative agent configs (`pi`, `.ai`, `claude`) and reload herdr.
+2. Symlink the imperative agent configs (`pi`, `.ai`, `claude`, `orca`) and reload herdr.
 3. Shared agent/tooling tail (**all five tracks**): pi plugins, gitlab-tui build + config, and `git config core.hooksPath .githooks` (identifier pre-commit hook).
 
 Everything else on the Linux tracks — CLI tools, runtimes, shell rc, git identity, and the editor/multiplexer configs — is Home Manager. The macOS track still symlinks its own config set because it is not on Home Manager yet (`plans/nix-migration-plan.md` §10).

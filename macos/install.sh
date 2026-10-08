@@ -24,6 +24,9 @@ link_target "$HOME/dotfiles/pi/agent" "$HOME/.agents"
 link_target "$HOME/dotfiles/pi" "$HOME/.pi"
 link_target "$HOME/dotfiles/.ai" "$HOME/.ai"
 link_target "$HOME/dotfiles/claude" "$HOME/.claude"
+# orca user config dir (~/.orca holds keybindings.json overrides).
+# ~/.config/orca is Electron app data holding a private key + tokens: never linked.
+link_target "$HOME/dotfiles/orca" "$HOME/.orca"
 link_target "$HOME/dotfiles/.editorconfig" "$HOME/.editorconfig"
 link_target "$HOME/dotfiles/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
 link_target "$HOME/dotfiles/macos/zshrc" "$HOME/.zshrc"
