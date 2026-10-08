@@ -112,7 +112,10 @@ The one habit that deliberately does *not* carry over is Neovim's `Ctrl+N` (find
 file): taking a bare Ctrl+letter app-wide would steal it from readline inside
 terminal panes, so orca keeps `Ctrl+P` for that. Note also that a conflicting key
 is dropped rather than reported (`removeConflictingOverrides`), so a silently
-missing binding means a collision, not a typo.
+missing binding means a collision, not a typo. Before concluding a binding is
+broken, note that `terminalShortcutPolicy` defaults to `orca-first` — "keeps app
+shortcuts from TUIs" — so these fire even with a terminal pane focused; only an
+opt-in `terminal-first` lets a shell or TUI binding win instead.
 
 ## Appearance — one coherent surface (dark, JetBrainsMono NF, tokyonight navy)
 
