@@ -6,6 +6,7 @@
     ./bash.nix
     ./git.nix
     ./herdr.nix
+    ./postgres.nix
   ];
 
   home.username = username;

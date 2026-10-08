@@ -47,6 +47,13 @@ Common set, required in every Linux/HM track: `bashrc`, `bash_aliases`,
 - `windows/` is a **curated** layer, not a full `scoop export` / `winget export` — drivers, games and vendor utilities are excluded on purpose.
 - GUI apps stay outside Nix where the OS already ships them (flatpak/system); only ghostty and orca are nix-wrapped (nixGL, Linux non-WSL).
 - `nobara/` has no zram step while `arch/` and `fedora/` do. Known, unresolved difference — do not silently copy one into the other; decide it and record the outcome here.
+- **`mongod` stays on dnf** (`fedora/dbs/install_mongo.sh` + the mongodb-org
+  repo), while postgres is Nix-managed. nixpkgs ships the MongoDB *server* only
+  as unfree SSPL (`mongodb-ce` `8.2.12`, `mongodb` `7.0.43`), and Hydra never
+  builds unfree — so every `nixpkgs` bump, i.e. every `nix-update` and every e2e
+  container run, would recompile MongoDB from source. The cached clients
+  (`mongosh`, `mongodb-tools`) could move to Nix separately; the server cannot,
+  cheaply. Revisit only if nixpkgs gains a cached mongod.
 
 ## Directory Layout
 
@@ -134,12 +141,43 @@ herdr
   - `git.nix` — git identity via XDG `~/.config/git/config`; the work identity lives in untracked `~/.gitconfig-local` (included).
   - `packages.nix` also carries the pi agent binary, from the upstream pi flake (`pi.url`) — so the agent moves with `flake.lock`; its plugins stay agent-managed under `~/.pi/agent/npm`. That npm tree is **per machine and gitignored** (nothing to `git pull`), so `plans/fix-pi-extension-lockfile.md` repairs it when its lockfile accumulates bogus `../dotfiles/…` keys.
   - `herdr.nix` — `systemd.user.services.herdr-server` (Linux only, **including WSL**).
+  - `postgres.nix` — `systemd.user.services.postgresql`: a user-level cluster at
+    `~/.local/share/postgres/data`, pinned to `postgresql_18`, initdb'd on first
+    start. Every HM host, Linux only. See [Databases](#databases).
 - **Reproducibility:** `flake.lock` is committed; versions move only on `nix flake update` (`nix-update`). `scripts/e2e-nix-container.sh` boots the whole thing in a fresh container and asserts the result (`E2E_DISTRO=fedora|ubuntu|arch`).
 - **Hosts:** the `hosts` map is keyed `fedora`/`nobara`/`arch`/`ubuntu`/**`wsl`**/`servy` and carries `{ username, role, platform, system, isWsl? }`. Username is per host (`guddy` on the work fedora, `neddy` on personal nobara/ubuntu, `archy` on the work arch, `winny` on the WSL work host). `nix-lib.sh` maps the running OS to the key (`nix_platform` detects WSL first). `isWsl` gates host-only packages (`ghostty`/nixGL) — see [Windows / WSL](#windows--wsl).
 - **mise is for per-repo overrides only** (a `mise.toml` in a project). Nix owns the global Node/Java/etc. — do not `mise use -g`.
   - **Exception: JDK baselines.** `mise/config.toml` (linked to `~/.config/mise/config.toml`) declares `java = ["temurin-21", "temurin-25"]` so both Temurin JDKs exist on every machine, 21 default. Nix's `temurin-bin-21` alone left nvim-jdtls without the exact launcher/runtime paths it derives from `mise where java@...`. `home.activation.miseInstall` re-runs `mise install` on every switch, so a pruned JDK heals on the next `home-manager switch`.
 - **GUI apps on Linux are wrapped with nixGL** (`nixGL` flake input; `targets.genericLinux.nixGL` in `home/default.nix`, `config.lib.nixGL.wrap` in `home/packages.nix`). Nix mesa can't init EGL on non-NixOS, so nix GL apps (ghostty) fail with `Failed to create EGL display` without the wrapper.
-- **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), `pi`/`claude` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
+- **Outside Nix (by design):** RPM Fusion / `dnf.conf` / zram / flatpak GUI apps (system), the MongoDB **server** (`mongod` — see [Databases](#databases)), `pi`/`claude` runtime state, `bash/secret_aliases` and other `secret*` files, nvim's mason LSP servers, and mise-managed per-repo toolchains.
+
+## Databases
+
+**PostgreSQL is Nix-managed** (`home/postgres.nix`) on every HM host: a *user*
+service — standalone Home Manager on non-NixOS cannot own system units — running
+`postgresql_18` as the login user, cluster in `~/.local/share/postgres/data`,
+loopback-only on **5432** (the port every dev app and DBEE profile expects).
+
+```bash
+loginctl enable-linger "$(id -un)"     # once, as root: keep it up across logout/reboot
+systemctl --user status postgresql
+psql -h 127.0.0.1 -U postgres          # trust auth; there is no local postgres OS user
+```
+
+- The major version is **pinned** to `postgresql_18` because a data directory is
+  only readable by its own major; following the moving `pkgs.postgresql` default
+  would break the cluster on the next nixpkgs bump. Bump it with `pg_upgrade` on
+  purpose.
+- The cluster is created by the unit's `ExecStartPre` on first start, so a wiped
+  datadir self-heals and `home-manager switch` never runs initdb.
+- A distro postgres already holding 5432 wins the race — remove it first
+  (fedora: `sudo systemctl disable --now postgresql && sudo dnf remove postgresql-server postgresql-contrib`).
+  `fedora/dbs/install_postgres.sh` is deleted, superseded by this module.
+
+**MongoDB stays on dnf** — see [Deliberate
+ exceptions](#deliberate-exceptions--do-not-fix-these) above.
+`fedora/dbs/install_mongo.sh` still installs `mongod` 8.0 with its
+`/var/lib/mongo` data dir untouched by this migration.
 
 ## Windows / WSL
 

@@ -143,7 +143,7 @@ if ! podman exec -i -u "$U" -e E2E_EMAIL="$EXPECT_EMAIL" -e E2E_PLATFORM="$PLATF
 export PATH=$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH
 rc=0
 for t in nvim herdr mise node java kubectl k9s podman lazydocker go gcc bat jq fd rg fzf \
-         ghostty lazygit speedtest-cli pydf; do
+         ghostty lazygit speedtest-cli pydf psql; do
   command -v "$t" >/dev/null 2>&1 || { echo "MISSING tool: $t"; rc=1; }
 done
 for l in .config/nvim .config/zed/settings.json .config/ghostty/config \
