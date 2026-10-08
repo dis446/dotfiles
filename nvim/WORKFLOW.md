@@ -61,6 +61,7 @@ TUI sessions.
 | `alt+k`                 | Toggle the pi agent pane (pi tab)        |
 | `alt+i`                 | Toggle the workspace terminal (term tab) |
 | `alt+g`                 | Toggle the GitLab TUI pane (gitlab tab)  |
+| `alt+d`                 | Toggle the reviewr code-review pane      |
 | `alt+r`                 | Re-run the boot restore (nvim + term; pi agents stay lazy) |
 
 `alt+k`/`alt+i`/`alt+g`/`alt+r` are herdr-level keybindings wired to
@@ -69,6 +70,10 @@ TUI sessions.
 while hidden). When focus is inside nvim, the same chords route through nvim's
 `<M-k>` / `<leader>ot` handlers instead (see below). `alt+r` re-runs the boot
 restore — use it after attaching if the boot-time run missed the workspaces.
+
+`alt+d` is the odd one out: it is `type = "plugin_action"` in
+`herdr/config.toml`, with no script under `herdr/` behind it — the whole pane
+belongs to the reviewr herdr plugin (see [Code review](#code-review-reviewr-herdr-pane)).
 
 The Agent sidebar (`prefix+b`) shows every pi agent across all workspaces with
 live state (working / idle / blocked), so you can monitor multiple concurrent
@@ -189,6 +194,9 @@ creates per-repo session data under
 session dir is used by the boot restore, so pi resumes the same session after a
 server restart.
 
+Review what it wrote with `alt+d` — see
+[Code review](#code-review-reviewr-herdr-pane) below.
+
 ### Pi extensions (day-to-day)
 
 Installed as global pi packages (`~/.pi/agent/npm/`, pinned in
@@ -207,6 +215,85 @@ loads all of them.
 
 Removed: `agent-done-notify.ts` (tmux notify-send) — replaced by herdr's
 built-in done/blocked notifications (`[ui.toast] delivery = "system"`).
+
+### Code review (reviewr, herdr pane)
+
+A code-review pane for the agent's diff, beside the chat. It renders the changed
+files syntax-highlighted, you comment on lines, and `s` sends those comments
+into the agent's input. It never edits your worktree and sends nothing on its
+own.
+
+```bash
+herdr plugin install persiyanov/herdr-reviewr   # needs herdr >= 0.9.3
+```
+
+`alt+d` toggles it (equivalently
+`herdr plugin action invoke toggle --plugin persiyanov.reviewr`). It **splits to
+the right of the focused pane**, so open it from the `pi` tab to get the diff
+beside the chat — opened from the nvim tab you get it beside nvim instead.
+`auto_open` is off in this repo's config: with ~40 restored worktree workspaces,
+an auto-spawned pane in each is dead weight. Toggle it and it stays put.
+
+**The daily loop** — agent writes in the `pi` tab, you review in the reviewr pane:
+
+1. `alt+d` — open reviewr. It starts on the **uncommitted** scope: staged,
+   unstaged and untracked, i.e. everything the agent just touched.
+2. `j`/`k` walk the file list, `]`/`[` step hunk by hunk across files, `f`/`F`
+   jump file to file, `Tab` switches focus between navigator and diff.
+3. `v` selects a line, `v`+`j`/`k` a range, then `c` comments, type, `Enter`.
+4. `n`/`N` step between your comments, `l` lists them, `d` deletes, `e` re-edits
+   (on an uncommented line `e` opens the file in `$EDITOR`/nvim at that line).
+5. `s` sends the whole set to the workspace's agent — in this repo the `pi` tab.
+   One agent takes them straight away, several open a picker. `y` copies to the
+   clipboard instead when you want to hand them elsewhere.
+
+Nothing leaves the pane until `s`, and comments are in-memory only: closing a
+pane with unsent comments loses them. If `s` says it refused because the agent is
+at a permission prompt, answer the prompt and send again — the paste would have
+been dropped.
+
+**Scopes** (`u`/`b`/`t`/`g`) decide what the diff is against:
+
+| Key | Scope       | What you are looking at                                                                                    |
+| --- | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `u` | uncommitted | working tree vs `HEAD` — the default, right after an edit                                                  |
+| `b` | branch      | uncommitted **plus** the branch's commits, vs the merge-base with `main` — the pre-MR view                 |
+| `t` | last turn   | only what the agent's most recent turn changed — cheapest way to check a single task                       |
+| `g` | commits     | one commit or a contiguous range, picked with `G` — read what it committed, without unsaved edits mixed in |
+
+`B` changes the base for `b`: any branch or revision, and the list marks which
+row is the repo default, which is the open MR's target (`pr base`), and which is
+checked out here. The pick is per-worktree and holds until you pick again.
+
+**Tabs** — `1` Changes (default), `2` All files (any file in the worktree,
+changed or not; `p` cycles navigator position, `z` hides it, `<`/`>` resize,
+`/` fuzzy-finds names and greps code, `Ctrl+F` finds in the open file, `m`
+renders markdown — handy for reading a feature's `BRIEF.md`), `3` PR/MR (a
+read-only mirror of the branch's GitHub/GitLab MR via `gh`/`glab`; `o` opens it
+in the browser; it never posts).
+
+**In the feature workflow:** `feature-start` opens one herdr workspace per
+feature, holding one git worktree per touched repo. Open reviewr there (`alt+d`)
+and `b` already shows that worktree's feature branch against its platform base —
+the whole feature as a single diff before you run `feature_mr`, then `3` shows
+the live MR once it exists.
+
+Config: `~/.config/herdr/plugins/config/persiyanov.reviewr/config.toml` (theme
+`tokyo-night` to match herdr, `auto_open = false`). **Not tracked in this repo** —
+herdr's plugin config dir is machine-local, so recreate it on a new machine.
+`?` lists every key that works in the current mode.
+
+Caveat (v0.46.0): `herdr plugin install` points `~/.local/bin/herdr-reviewr` and
+`~/.local/state/herdr/plugins/persiyanov.reviewr/bin/herdr-reviewr` at its own
+deleted staging dir, so both dangle. The pane and actions are unaffected (they
+resolve `bin/herdr-reviewr` against the live plugin root); re-point them only if
+you want the plain `herdr-reviewr <repo>` shell mode:
+
+```bash
+ln -sfn ~/.config/herdr/plugins/github/persiyanov.reviewr-*/bin/herdr-reviewr ~/.local/bin/herdr-reviewr
+ln -sfn ~/.config/herdr/plugins/github/persiyanov.reviewr-*/bin/herdr-reviewr \
+  ~/.local/state/herdr/plugins/persiyanov.reviewr/bin/herdr-reviewr
+```
 
 ### Sessions (auto-session)
 

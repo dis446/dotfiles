@@ -421,7 +421,11 @@ every workspace has nvim + a term tab — the **pi agent tab is lazy** (each
 agent costs ~200MB RSS, ~8GB across 40 workspaces, so agents start on
 first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
 `herdr/pi-toggle.sh` / `term-toggle.sh` / `gitlab-toggle.sh` back the
-`alt+k` / `alt+i` / `alt+g` keybindings. Full workflow: `nvim/WORKFLOW.md`.
+`alt+k` / `alt+i` / `alt+g` keybindings. `alt+d` toggles the reviewr
+code-review pane — a herdr **plugin**, not a local script (`plugin_action` in
+`herdr/config.toml`, installed with `herdr plugin install
+persiyanov/herdr-reviewr`), whose own config is machine-local under
+`~/.config/herdr/plugins/config/`. Full workflow: `nvim/WORKFLOW.md`.
 
 ## Code Style Guidelines
 

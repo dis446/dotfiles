@@ -56,5 +56,20 @@ type = "shell"
 command = "$HOME/dotfiles/herdr/restore.sh"
 description = "restore workspace trio"
 
+# alt+d: toggle the reviewr pane (code review for the agent's diff).
+# reviewr is a herdr plugin (`herdr plugin install persiyanov/herdr-reviewr`),
+# not a local script — the whole pane is the plugin's. Splits to the right of
+# the focused pane; `s` in it sends line comments to this workspace's agent.
+# Config (theme/auto_open) is machine-local: ~/.config/herdr/plugins/config/
+# persiyanov.reviewr/config.toml — see nvim/WORKFLOW.md § "Code review".
+[[keys.command]]
+key = "alt+d"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "toggle reviewr pane"
+
 [experimental]
 kitty_graphics = true
+
+[ui.sound]
+enabled = true
