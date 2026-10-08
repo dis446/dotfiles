@@ -21,6 +21,8 @@ pi/agent/cache
 # ~/.config/orca is Electron app data (private E2EE keypair, runtime token,
 # cookies, sqlite) and is never symlinked or tracked — see orca/README.md.
 orca/agent-hooks/
+# Encrypted API keys the app writes next to its config (e.g. opencode-go) — never tracked.
+orca/*.enc
 
 # Claude Code (~/.claude) — track config only, ignore runtime + secrets.
 # Whitelist approach: ignore everything, then re-include the config we manage.

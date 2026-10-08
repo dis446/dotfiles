@@ -1,0 +1,42 @@
+# Orca terminal theme - "Tokyo Night Navy"
+#
+# Matched 1:1 to nvim's tokyonight override in nvim/lua/dis446/plugins/colorscheme.lua
+# (style = "night", on_colors -> bg #011628 / fg #CBE0F0). The 16 ANSI colours are dumped
+# from the real plugin palette, not hand-picked, so nvim and the Orca terminal agree:
+#
+#   nvim --headless -u NONE --cmd "set rtp+=~/.local/share/nvim/lazy/tokyonight.nvim" \
+#     -c "lua print(vim.json.encode(require('tokyonight.colors').setup(
+#        require('tokyonight.config').extend({style='night', on_colors=<same overrides>})).terminal))"
+#
+# Orca reads a Warp-shaped theme: name, background/foreground/cursor (or accent), and
+# terminal_colors.normal / .bright. Gradients and background images are dropped by the
+# importer; selection colours are not part of this format.
+#
+# Import once: Orca -> Settings -> Terminal -> Theme -> Import theme (YAML) -> pick this file.
+# It lands in terminalCustomThemes as "warp:tokyonight-navy" (a copy - later edits here need
+# a re-import, the file is not read at runtime).
+name: Tokyo Night Navy
+background: '#011628'
+foreground: '#CBE0F0'
+cursor: '#CBE0F0'
+accent: '#7aa2f7'
+details: darker
+terminal_colors:
+  normal:
+    black: '#15161e'
+    red: '#f7768e'
+    green: '#9ece6a'
+    yellow: '#e0af68'
+    blue: '#7aa2f7'
+    magenta: '#bb9af7'
+    cyan: '#7dcfff'
+    white: '#a9b1d6'
+  bright:
+    black: '#414868'
+    red: '#ff899d'
+    green: '#9fe044'
+    yellow: '#faba4a'
+    blue: '#8db0ff'
+    magenta: '#c7a9ff'
+    cyan: '#a4daff'
+    white: '#c0caf5'

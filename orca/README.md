@@ -34,3 +34,53 @@ orca's **Settings panes are not files at all** — they live in that Electron
 storage, so they do not travel between machines. What does travel: this dir's
 `keybindings.json`, plus the per-project `orca.yaml` / `.worktreeinclude` pair,
 which belongs in each *project* repo (see the orca docs, "orca.yaml").
+
+## Appearance — one coherent surface (dark, Iosevka, tokyonight navy)
+
+There is no settings file, env var, or `orca` CLI command for appearance: the values live
+in the `settings` JSON document of `profiles/local-default/profile-state.db` (Electron data,
+never tracked). So they are applied once per machine in **Settings → Appearance** /
+**Settings → Terminal**, and the target is recorded here instead of scripted.
+
+| Setting               | Value                                  | Backend key                            | Why                                                       |
+| --------------------- | -------------------------------------- | -------------------------------------- | --------------------------------------------------------- |
+| App theme             | **Dark**                               | `theme`                                | nvim + terminal are dark; light chrome was the clash       |
+| Sidebar appearance    | **Match terminal**                     | `leftSidebarAppearanceMode`            | sidebar adopts the terminal background                     |
+| Terminal theme (dark) | **Tokyo Night Navy** (imported, custom) | `terminalThemeDark` = `custom:warp:tokyonight-navy` | identical to nvim's tokyonight override       |
+| Separate light theme  | **off**                                | `terminalUseSeparateLightTheme`        | one theme, no light-mode flip                              |
+| Terminal font / size  | `Iosevka Term SS04` / `8`              | `terminalFontFamily`, `terminalFontSize` | same as ghostty (`font-size = 8`)                        |
+| Terminal line height  | `1.2`                                  | `terminalLineHeight`                   | same as ghostty (`adjust-cell-height = 20%`)               |
+| Terminal cursor blink | off                                    | `terminalCursorBlink`                  | same as ghostty (`cursor-style-blink = false`)             |
+| App + editor font     | `Iosevka Term SS04`                    | `appFontFamily`, `editorFontFamily`    | Iosevka everywhere                                        |
+
+Labels in the Settings UI drift between Orca versions; the backend key column is the ground
+truth, and the check command at the end of this section prints them.
+
+### Import the terminal theme
+
+The palette lives in `themes/tokyonight-navy.yaml` — a Warp-shaped YAML, which is the one
+format Orca's theme importer reads. Its 16 ANSI colours are dumped from the real tokyonight
+plugin with the same `on_colors` override that `nvim/lua/dis446/plugins/colorscheme.lua`
+uses, so nvim and the Orca terminal agree exactly (see the header comment for the command).
+
+```text
+Settings → Terminal → Theme → Import theme → themes/tokyonight-navy.yaml
+```
+
+Then select the imported theme as the dark terminal theme and turn the separate light theme
+off.
+
+The import **copies** the palette into `terminalCustomThemes` (`warp:tokyonight-navy`); the
+file is not read at runtime, so editing it here means importing again. Gradients and
+selection colours are not part of this format and are dropped/untouched.
+
+Deliberately *not* done: rewriting `profile-state.db` from a script. Orca keeps settings in
+memory and rewrites the document on change, so an external write only sticks while orca is
+closed — a one-off `theme = dark` click is less fragile than a patcher that can be
+clobbered. To check what is actually live:
+
+```bash
+python3 -c "import sqlite3,json;c=sqlite3.connect('file:$HOME/.config/orca/profiles/local-default/profile-state.db?mode=ro',uri=True);s=json.loads([p for d,p in c.execute('select domain,payload from profile_state_documents') if d=='settings'][0]);print({k:v for k,v in s.items() if 'theme' in k or 'Font' in k or 'Sidebar' in k})"
+```
+
+nvim, ghostty and zed are untouched by this — Orca is the one that bends to them.
