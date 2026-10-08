@@ -425,7 +425,8 @@ first `alt+k` via `pi-toggle.sh`; set `RESTORE_PI=1` to boot them).
 code-review pane — a herdr **plugin**, not a local script (`plugin_action` in
 `herdr/config.toml`, installed with `herdr plugin install
 persiyanov/herdr-reviewr`), whose own config is machine-local under
-`~/.config/herdr/plugins/config/`. Full workflow: `nvim/WORKFLOW.md`.
+`~/.config/herdr/plugins/config/`. Full workflow: `nvim/WORKFLOW.md`; reviewr
+guide: `docs/herdr-reviewr.md`.
 
 ## Code Style Guidelines
 
