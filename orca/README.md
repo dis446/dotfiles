@@ -33,7 +33,39 @@ must never be symlinked into this repo or committed:
 orca's **Settings panes are not files at all** — they live in that Electron
 storage, so they do not travel between machines. What does travel: this dir's
 `keybindings.json`, plus the per-project `orca.yaml` / `.worktreeinclude` pair,
-which belongs in each *project* repo (see the orca docs, "orca.yaml").
+which belongs in each *project* repo (see below).
+
+## Per-repo worktree defaults (`orca.yaml`)
+
+A *project* keeps an `orca.yaml` at its repo root that Orca reads when it creates a
+worktree. Those belong in the project repo, not here, because they describe that
+project. This repo carries its own as the reference — two tabs, the first reserved
+for the agent, the second running neovim:
+
+```yaml
+defaultTabs:
+  - title: Agent     # Orca puts the agent here and skips this tab's own command
+  - title: nvim
+    command: nvim
+```
+
+```bash
+# give any repo you drive from Orca the same worktree tabs
+cp ~/dotfiles/orca.yaml <repo>/orca.yaml
+```
+
+Constraints worth knowing before editing it, both verified against
+`src/shared/orca-yaml.ts` and `worktree-default-terminal-tabs.ts`:
+
+- **Only `scripts.setup`/`archive`, `setupAgentStartupPolicy`, `issueCommand`,
+  `defaultTabs`, `environmentRecipes` and `worktree.sharedDirectories` are parsed.
+  Unknown keys are silently ignored** — a typo is a silent no-op, never an error.
+- Per-tab fields are exactly `title`, `command`, `color` (`color` must be `#rgb`
+  or `#rrggbb`; an entry with none of the three is dropped).
+- The command runs only when the **Command source** policy allows it — *Local only*
+  suppresses tab commands (`Settings → Repository`). A setup/archive local hook is
+  what selects *Local only*, so with none present Orca uses `orca.yaml`.
+- Commands run in a login shell, so `nvim` resolves via `~/.bashrc`.
 
 ## Appearance — one coherent surface (dark, Iosevka, tokyonight navy)
 

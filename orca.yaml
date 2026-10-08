@@ -1,0 +1,15 @@
+# Orca worktree defaults. Orca reads this at the repository root when it creates a
+# worktree, so committing it gives every worktree of this repo the same tabs.
+#
+# The FIRST entry is occupied by the agent/startup command when a worktree is
+# created with an agent, and Orca skips that tab's own command in that case
+# (worktree-default-terminal-tabs.ts: `!(index === 0 && startup)`). So it is a
+# placeholder on purpose — put real commands in later tabs or they may never run.
+#
+# `command` is queued to run in the tab's shell, which is a login shell, so PATH
+# comes from ~/.bashrc and `nvim` resolves to ~/.nix-profile/bin/nvim. Tab commands
+# do not wait for setup to finish; nvim needs nothing installed, so that is fine.
+defaultTabs:
+  - title: Agent
+  - title: nvim
+    command: nvim
