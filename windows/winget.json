@@ -9,7 +9,13 @@
         { "PackageIdentifier": "Microsoft.PowerShell" },
         { "PackageIdentifier": "JetBrains.Toolbox" },
         { "PackageIdentifier": "Zed.Zed" },
-        { "PackageIdentifier": "Mozilla.Firefox" }
+        { "PackageIdentifier": "Mozilla.Firefox" },
+        { "PackageIdentifier": "AnyDeskSoftwareGmbH.AnyDesk" },
+        { "PackageIdentifier": "Discord.Discord" },
+        { "PackageIdentifier": "Bruno.Bruno" },
+        { "PackageIdentifier": "Viber.Viber" },
+        { "PackageIdentifier": "Jellyfin.JellyfinMediaPlayer" },
+        { "PackageIdentifier": "ONLYOFFICE.DesktopEditors" }
       ],
       "SourceDetails": {
         "Argument": "https://cdn.winget.microsoft.com/cache",

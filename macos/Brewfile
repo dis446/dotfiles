@@ -13,3 +13,13 @@ brew "speedtest-cli"
 # Font — matches the ghostty/zed configs. The macOS track is pre-Home-Manager, so
 # brew is its font installer (on Linux, home/fonts.nix owns this instead).
 cask "font-jetbrains-mono-nerd-font"
+
+# GUI apps mirroring the Linux flatpak set (the flatpak install line in
+# <os>/install.sh). Flatseal + Extension Manager are GNOME/Linux-only — no
+# Homebrew equivalent. Epiphany is intentionally excluded (GNOME Web).
+cask "anydesk"
+cask "bruno"
+cask "discord"
+cask "jellyfin-media-player"
+cask "onlyoffice"
+cask "viber"

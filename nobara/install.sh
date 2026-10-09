@@ -53,7 +53,7 @@ curl -f https://zed.dev/install.sh | sh
 
 sudo dnf install -y flatpak
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal -y
+flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno com.anydesk.Anydesk com.discordapp.Discord com.viber.Viber org.jellyfin.JellyfinDesktop org.onlyoffice.desktopeditors -y
 
 # TODO(pi-npm-migration): delete this block once every host has run it — pi used
 # to be an npm global in ~/.local and is now the flake's package

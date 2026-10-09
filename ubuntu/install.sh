@@ -54,7 +54,7 @@ fi
 # ── GUI apps (desktop only — WSL has no display server of its own) ────────
 if ! is_wsl; then
   sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-  flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno -y
+  flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno com.anydesk.Anydesk com.discordapp.Discord com.viber.Viber org.jellyfin.JellyfinDesktop org.onlyoffice.desktopeditors -y
 fi
 
 # podman user socket backs $XDG_RUNTIME_DIR/podman/podman.sock (DOCKER_HOST in

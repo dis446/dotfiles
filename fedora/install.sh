@@ -111,7 +111,7 @@ fi
 
 sudo dnf install -y flatpak
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno -y
+flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno com.anydesk.Anydesk com.discordapp.Discord com.viber.Viber org.jellyfin.JellyfinDesktop org.onlyoffice.desktopeditors -y
 
 systemctl --user enable --now podman.socket
 

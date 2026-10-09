@@ -106,7 +106,7 @@ fi
 "$HOME/dotfiles/scripts/gitlab-tui-config.sh"
 
 sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub com.github.tchx84.Flatseal com.mattjakeman.ExtensionManager -y
+flatpak install flathub com.mattjakeman.ExtensionManager com.github.tchx84.Flatseal com.usebruno.Bruno com.anydesk.Anydesk com.discordapp.Discord com.viber.Viber org.jellyfin.JellyfinDesktop org.onlyoffice.desktopeditors -y
 
 # podman user socket backs $XDG_RUNTIME_DIR/podman/podman.sock (DOCKER_HOST in
 # arch/bash_aliases). Guarded: the unit only exists once systemd is running
